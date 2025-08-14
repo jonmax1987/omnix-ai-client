@@ -1,0 +1,383 @@
+import { create } from 'zustand';
+import { subscribeWithSelector, devtools } from 'zustand/middleware';
+import { immer } from 'zustand/middleware/immer';
+
+const useProductsStore = create()(
+  devtools(
+    subscribeWithSelector(
+      immer((set, get) => ({
+        // Products data
+        products: [],
+        selectedProduct: null,
+        
+        // Filtering and search
+        filters: {
+          search: '',
+          category: '',
+          supplier: '',
+          status: 'active',
+          stockLevel: 'all', // all, low, out, healthy
+          location: '',
+          tags: []
+        },
+        
+        // Sorting
+        sortBy: 'name',
+        sortOrder: 'asc', // asc, desc
+        
+        // Pagination
+        currentPage: 1,
+        itemsPerPage: 25,
+        totalItems: 0,
+        
+        // UI state
+        viewMode: 'table', // table, grid, list
+        selectedProducts: [],
+        showFilters: false,
+        
+        // Loading states
+        loading: false,
+        loadingProduct: false,
+        creating: false,
+        updating: false,
+        deleting: false,
+        
+        // Error handling
+        error: null,
+        
+        // Actions
+        setProducts: (products) => 
+          set((state) => {
+            state.products = products;
+            state.totalItems = products.length;
+          }),
+          
+        addProduct: (product) => 
+          set((state) => {
+            state.products.unshift({
+              ...product,
+              id: product.id || `PRD-${Date.now()}`,
+              createdAt: new Date().toISOString(),
+              updatedAt: new Date().toISOString()
+            });
+            state.totalItems = state.products.length;
+          }),
+          
+        updateProduct: (id, updates) => 
+          set((state) => {
+            const index = state.products.findIndex(p => p.id === id);
+            if (index !== -1) {
+              state.products[index] = {
+                ...state.products[index],
+                ...updates,
+                updatedAt: new Date().toISOString()
+              };
+            }
+            if (state.selectedProduct?.id === id) {
+              state.selectedProduct = { ...state.selectedProduct, ...updates };
+            }
+          }),
+          
+        deleteProduct: (id) => 
+          set((state) => {
+            state.products = state.products.filter(p => p.id !== id);
+            state.totalItems = state.products.length;
+            if (state.selectedProduct?.id === id) {
+              state.selectedProduct = null;
+            }
+            state.selectedProducts = state.selectedProducts.filter(pid => pid !== id);
+          }),
+          
+        deleteProducts: (ids) => 
+          set((state) => {
+            state.products = state.products.filter(p => !ids.includes(p.id));
+            state.totalItems = state.products.length;
+            if (state.selectedProduct && ids.includes(state.selectedProduct.id)) {
+              state.selectedProduct = null;
+            }
+            state.selectedProducts = state.selectedProducts.filter(pid => !ids.includes(pid));
+          }),
+          
+        setSelectedProduct: (product) => 
+          set((state) => {
+            state.selectedProduct = product;
+          }),
+          
+        // Filtering actions
+        setFilter: (key, value) => 
+          set((state) => {
+            state.filters[key] = value;
+            state.currentPage = 1; // Reset to first page when filtering
+          }),
+          
+        setFilters: (filters) => 
+          set((state) => {
+            state.filters = { ...state.filters, ...filters };
+            state.currentPage = 1;
+          }),
+          
+        clearFilters: () => 
+          set((state) => {
+            state.filters = {
+              search: '',
+              category: '',
+              supplier: '',
+              status: 'active',
+              stockLevel: 'all',
+              location: '',
+              tags: []
+            };
+            state.currentPage = 1;
+          }),
+          
+        // Sorting actions
+        setSorting: (sortBy, sortOrder) => 
+          set((state) => {
+            state.sortBy = sortBy;
+            state.sortOrder = sortOrder;
+          }),
+          
+        toggleSortOrder: () => 
+          set((state) => {
+            state.sortOrder = state.sortOrder === 'asc' ? 'desc' : 'asc';
+          }),
+          
+        // Pagination actions
+        setCurrentPage: (page) => 
+          set((state) => {
+            state.currentPage = page;
+          }),
+          
+        setItemsPerPage: (items) => 
+          set((state) => {
+            state.itemsPerPage = items;
+            state.currentPage = 1; // Reset to first page
+          }),
+          
+        // Selection actions
+        setSelectedProducts: (productIds) => 
+          set((state) => {
+            state.selectedProducts = productIds;
+          }),
+          
+        toggleProductSelection: (productId) => 
+          set((state) => {
+            const index = state.selectedProducts.indexOf(productId);
+            if (index === -1) {
+              state.selectedProducts.push(productId);
+            } else {
+              state.selectedProducts.splice(index, 1);
+            }
+          }),
+          
+        selectAllProducts: () => 
+          set((state) => {
+            const visibleProducts = get().getFilteredProducts();
+            state.selectedProducts = visibleProducts.map(p => p.id);
+          }),
+          
+        clearSelection: () => 
+          set((state) => {
+            state.selectedProducts = [];
+          }),
+          
+        // UI actions
+        setViewMode: (mode) => 
+          set((state) => {
+            state.viewMode = mode;
+          }),
+          
+        toggleFilters: () => 
+          set((state) => {
+            state.showFilters = !state.showFilters;
+          }),
+          
+        // Loading actions
+        setLoading: (loading) => 
+          set((state) => {
+            state.loading = loading;
+          }),
+          
+        setLoadingProduct: (loading) => 
+          set((state) => {
+            state.loadingProduct = loading;
+          }),
+          
+        setCreating: (creating) => 
+          set((state) => {
+            state.creating = creating;
+          }),
+          
+        setUpdating: (updating) => 
+          set((state) => {
+            state.updating = updating;
+          }),
+          
+        setDeleting: (deleting) => 
+          set((state) => {
+            state.deleting = deleting;
+          }),
+          
+        // Error handling
+        setError: (error) => 
+          set((state) => {
+            state.error = error;
+          }),
+          
+        clearError: () => 
+          set((state) => {
+            state.error = null;
+          }),
+          
+        // Computed getters
+        getFilteredProducts: () => {
+          const { products, filters } = get();
+          
+          return products.filter(product => {
+            // Search filter
+            if (filters.search) {
+              const searchTerm = filters.search.toLowerCase();
+              const searchableFields = [
+                product.name,
+                product.sku,
+                product.description,
+                product.supplier,
+                product.category
+              ].filter(Boolean);
+              
+              if (!searchableFields.some(field => 
+                field.toLowerCase().includes(searchTerm)
+              )) {
+                return false;
+              }
+            }
+            
+            // Category filter
+            if (filters.category && product.category !== filters.category) {
+              return false;
+            }
+            
+            // Supplier filter
+            if (filters.supplier && product.supplier !== filters.supplier) {
+              return false;
+            }
+            
+            // Status filter
+            if (filters.status && product.status !== filters.status) {
+              return false;
+            }
+            
+            // Stock level filter
+            if (filters.stockLevel !== 'all') {
+              const stock = product.currentStock || 0;
+              const minStock = product.minStock || 0;
+              
+              switch (filters.stockLevel) {
+                case 'out':
+                  if (stock > 0) return false;
+                  break;
+                case 'low':
+                  if (stock === 0 || stock > minStock) return false;
+                  break;
+                case 'healthy':
+                  if (stock <= minStock) return false;
+                  break;
+              }
+            }
+            
+            // Location filter
+            if (filters.location && product.location !== filters.location) {
+              return false;
+            }
+            
+            // Tags filter
+            if (filters.tags.length > 0) {
+              const productTags = product.tags || [];
+              if (!filters.tags.some(tag => productTags.includes(tag))) {
+                return false;
+              }
+            }
+            
+            return true;
+          });
+        },
+        
+        getSortedProducts: () => {
+          const filteredProducts = get().getFilteredProducts();
+          const { sortBy, sortOrder } = get();
+          
+          return [...filteredProducts].sort((a, b) => {
+            let aValue = a[sortBy];
+            let bValue = b[sortBy];
+            
+            // Handle different data types
+            if (typeof aValue === 'string') {
+              aValue = aValue.toLowerCase();
+              bValue = bValue.toLowerCase();
+            }
+            
+            if (typeof aValue === 'number') {
+              return sortOrder === 'asc' ? aValue - bValue : bValue - aValue;
+            }
+            
+            if (sortOrder === 'asc') {
+              return aValue < bValue ? -1 : aValue > bValue ? 1 : 0;
+            } else {
+              return aValue > bValue ? -1 : aValue < bValue ? 1 : 0;
+            }
+          });
+        },
+        
+        getPaginatedProducts: () => {
+          const sortedProducts = get().getSortedProducts();
+          const { currentPage, itemsPerPage } = get();
+          const startIndex = (currentPage - 1) * itemsPerPage;
+          const endIndex = startIndex + itemsPerPage;
+          
+          return sortedProducts.slice(startIndex, endIndex);
+        },
+        
+        getTotalPages: () => {
+          const filteredProducts = get().getFilteredProducts();
+          const { itemsPerPage } = get();
+          return Math.ceil(filteredProducts.length / itemsPerPage);
+        },
+        
+        getProductById: (id) => {
+          const { products } = get();
+          return products.find(product => product.id === id) || null;
+        },
+        
+        getSelectedProductsData: () => {
+          const { products, selectedProducts } = get();
+          return products.filter(product => selectedProducts.includes(product.id));
+        },
+        
+        // Statistics
+        getProductStats: () => {
+          const { products } = get();
+          
+          const stats = {
+            total: products.length,
+            active: products.filter(p => p.status === 'active').length,
+            inactive: products.filter(p => p.status === 'inactive').length,
+            outOfStock: products.filter(p => (p.currentStock || 0) === 0).length,
+            lowStock: products.filter(p => {
+              const stock = p.currentStock || 0;
+              const minStock = p.minStock || 0;
+              return stock > 0 && stock <= minStock;
+            }).length,
+            categories: [...new Set(products.map(p => p.category))].filter(Boolean).length,
+            suppliers: [...new Set(products.map(p => p.supplier))].filter(Boolean).length,
+            totalValue: products.reduce((sum, p) => sum + ((p.currentStock || 0) * (p.price || 0)), 0)
+          };
+          
+          return stats;
+        }
+      }))
+    ),
+    { name: 'products-store' }
+  )
+);
+
+export default useProductsStore;

@@ -1,0 +1,593 @@
+import { create } from 'zustand';
+import { subscribeWithSelector, devtools, persist } from 'zustand/middleware';
+import { immer } from 'zustand/middleware/immer';
+
+const useUserStore = create()(
+  devtools(
+    persist(
+      subscribeWithSelector(
+        immer((set, get) => ({
+          // User authentication state
+          isAuthenticated: false,
+          user: null,
+          token: null,
+          refreshToken: null,
+          tokenExpiry: null,
+          
+          // User profile data
+          profile: {
+            id: null,
+            email: '',
+            firstName: '',
+            lastName: '',
+            avatar: null,
+            phone: '',
+            company: '',
+            role: '',
+            department: '',
+            title: '',
+            timezone: 'UTC',
+            language: 'en',
+            dateJoined: null,
+            lastLogin: null,
+            isEmailVerified: false,
+            isPhoneVerified: false
+          },
+          
+          // User preferences
+          preferences: {
+            theme: 'light', // light, dark, auto
+            language: 'en',
+            timezone: 'UTC',
+            currency: 'USD',
+            dateFormat: 'MM/dd/yyyy',
+            timeFormat: '12h',
+            numberFormat: 'US',
+            defaultView: 'dashboard',
+            sidebarCollapsed: false,
+            
+            // Notification preferences
+            notifications: {
+              email: true,
+              push: true,
+              sms: false,
+              desktop: true,
+              sound: true,
+              
+              // Notification types
+              alerts: {
+                critical: true,
+                warning: true,
+                info: false
+              },
+              inventory: {
+                lowStock: true,
+                outOfStock: true,
+                reorderPoint: true
+              },
+              orders: {
+                newOrder: true,
+                orderUpdates: false,
+                orderCancellation: true
+              },
+              system: {
+                maintenance: true,
+                updates: false,
+                backups: false
+              }
+            },
+            
+            // Dashboard preferences
+            dashboard: {
+              autoRefresh: true,
+              refreshInterval: 30000,
+              defaultTimeRange: '7d',
+              compactView: false,
+              showRecentActivity: true,
+              widgetLayout: 'default'
+            },
+            
+            // Table preferences
+            tables: {
+              itemsPerPage: 25,
+              showDensity: 'comfortable', // comfortable, compact, spacious
+              defaultSort: 'updatedAt',
+              defaultSortOrder: 'desc'
+            }
+          },
+          
+          // User permissions and roles
+          permissions: {
+            products: {
+              view: false,
+              create: false,
+              edit: false,
+              delete: false,
+              export: false
+            },
+            inventory: {
+              view: false,
+              adjust: false,
+              transfer: false,
+              audit: false
+            },
+            orders: {
+              view: false,
+              create: false,
+              edit: false,
+              cancel: false,
+              fulfill: false
+            },
+            analytics: {
+              view: false,
+              export: false,
+              advanced: false
+            },
+            alerts: {
+              view: false,
+              acknowledge: false,
+              resolve: false,
+              manage: false
+            },
+            settings: {
+              view: false,
+              edit: false,
+              admin: false
+            },
+            users: {
+              view: false,
+              create: false,
+              edit: false,
+              delete: false
+            }
+          },
+          
+          // Session management
+          session: {
+            startTime: null,
+            lastActivity: null,
+            sessionTimeout: 3600000, // 1 hour in ms
+            warningTime: 300000, // 5 minutes before timeout
+            isSessionWarningShown: false
+          },
+          
+          // Security settings
+          security: {
+            twoFactorEnabled: false,
+            lastPasswordChange: null,
+            passwordExpiryDays: 90,
+            sessionHistory: [],
+            trustedDevices: [],
+            loginAttempts: 0,
+            lockedUntil: null
+          },
+          
+          // Loading states
+          loading: {
+            auth: false,
+            profile: false,
+            preferences: false,
+            permissions: false
+          },
+          
+          // Error handling
+          errors: {
+            auth: null,
+            profile: null,
+            preferences: null,
+            permissions: null
+          },
+          
+          // Actions
+          
+          // Authentication actions
+          login: async (credentials) => {
+            set((state) => {
+              state.loading.auth = true;
+              state.errors.auth = null;
+            });
+            
+            try {
+              // Simulate API call - replace with actual authentication
+              const mockResponse = {
+                token: 'mock-jwt-token',
+                refreshToken: 'mock-refresh-token',
+                user: {
+                  id: 'user-123',
+                  email: credentials.email,
+                  firstName: 'John',
+                  lastName: 'Doe',
+                  avatar: null,
+                  role: 'inventory_manager'
+                },
+                permissions: {
+                  products: { view: true, create: true, edit: true, delete: false, export: true },
+                  inventory: { view: true, adjust: true, transfer: true, audit: false },
+                  orders: { view: true, create: true, edit: true, cancel: true, fulfill: true },
+                  analytics: { view: true, export: true, advanced: false },
+                  alerts: { view: true, acknowledge: true, resolve: true, manage: false },
+                  settings: { view: true, edit: true, admin: false },
+                  users: { view: false, create: false, edit: false, delete: false }
+                }
+              };
+              
+              await new Promise(resolve => setTimeout(resolve, 1000)); // Simulate network delay
+              
+              set((state) => {
+                state.isAuthenticated = true;
+                state.token = mockResponse.token;
+                state.refreshToken = mockResponse.refreshToken;
+                state.tokenExpiry = Date.now() + (24 * 60 * 60 * 1000); // 24 hours
+                state.user = mockResponse.user;
+                state.permissions = mockResponse.permissions;
+                
+                state.profile = {
+                  ...state.profile,
+                  ...mockResponse.user,
+                  lastLogin: new Date().toISOString()
+                };
+                
+                state.session.startTime = Date.now();
+                state.session.lastActivity = Date.now();
+                
+                state.loading.auth = false;
+              });
+              
+              return { success: true };
+            } catch (error) {
+              set((state) => {
+                state.errors.auth = error.message || 'Login failed';
+                state.loading.auth = false;
+              });
+              return { success: false, error: error.message };
+            }
+          },
+          
+          logout: () =>
+            set((state) => {
+              state.isAuthenticated = false;
+              state.user = null;
+              state.token = null;
+              state.refreshToken = null;
+              state.tokenExpiry = null;
+              state.session.startTime = null;
+              state.session.lastActivity = null;
+              state.session.isSessionWarningShown = false;
+            }),
+            
+          refreshSession: async () => {
+            const { refreshToken, tokenExpiry } = get();
+            
+            if (!refreshToken || Date.now() >= tokenExpiry) {
+              get().logout();
+              return false;
+            }
+            
+            try {
+              // Simulate token refresh - replace with actual API call
+              await new Promise(resolve => setTimeout(resolve, 500));
+              
+              set((state) => {
+                state.token = 'new-mock-jwt-token';
+                state.tokenExpiry = Date.now() + (24 * 60 * 60 * 1000);
+                state.session.lastActivity = Date.now();
+              });
+              
+              return true;
+            } catch (error) {
+              get().logout();
+              return false;
+            }
+          },
+          
+          // Profile management
+          updateProfile: async (updates) => {
+            set((state) => {
+              state.loading.profile = true;
+              state.errors.profile = null;
+            });
+            
+            try {
+              // Simulate API call
+              await new Promise(resolve => setTimeout(resolve, 800));
+              
+              set((state) => {
+                state.profile = { ...state.profile, ...updates };
+                if (state.user) {
+                  state.user = { ...state.user, ...updates };
+                }
+                state.loading.profile = false;
+              });
+              
+              return { success: true };
+            } catch (error) {
+              set((state) => {
+                state.errors.profile = error.message || 'Profile update failed';
+                state.loading.profile = false;
+              });
+              return { success: false, error: error.message };
+            }
+          },
+          
+          uploadAvatar: async (file) => {
+            set((state) => {
+              state.loading.profile = true;
+              state.errors.profile = null;
+            });
+            
+            try {
+              // Simulate file upload - replace with actual upload logic
+              await new Promise(resolve => setTimeout(resolve, 1500));
+              
+              const avatarUrl = URL.createObjectURL(file); // Mock avatar URL
+              
+              set((state) => {
+                state.profile.avatar = avatarUrl;
+                if (state.user) {
+                  state.user.avatar = avatarUrl;
+                }
+                state.loading.profile = false;
+              });
+              
+              return { success: true, url: avatarUrl };
+            } catch (error) {
+              set((state) => {
+                state.errors.profile = error.message || 'Avatar upload failed';
+                state.loading.profile = false;
+              });
+              return { success: false, error: error.message };
+            }
+          },
+          
+          // Preferences management
+          updatePreferences: async (section, updates) => {
+            set((state) => {
+              state.loading.preferences = true;
+              state.errors.preferences = null;
+            });
+            
+            try {
+              // Simulate API call
+              await new Promise(resolve => setTimeout(resolve, 500));
+              
+              set((state) => {
+                if (section) {
+                  state.preferences[section] = { ...state.preferences[section], ...updates };
+                } else {
+                  state.preferences = { ...state.preferences, ...updates };
+                }
+                state.loading.preferences = false;
+              });
+              
+              return { success: true };
+            } catch (error) {
+              set((state) => {
+                state.errors.preferences = error.message || 'Preferences update failed';
+                state.loading.preferences = false;
+              });
+              return { success: false, error: error.message };
+            }
+          },
+          
+          setTheme: (theme) =>
+            set((state) => {
+              state.preferences.theme = theme;
+            }),
+            
+          setLanguage: (language) =>
+            set((state) => {
+              state.preferences.language = language;
+              state.profile.language = language;
+            }),
+            
+          setSidebarCollapsed: (collapsed) =>
+            set((state) => {
+              state.preferences.sidebarCollapsed = collapsed;
+            }),
+            
+          // Session management
+          updateLastActivity: () =>
+            set((state) => {
+              state.session.lastActivity = Date.now();
+              state.session.isSessionWarningShown = false;
+            }),
+            
+          showSessionWarning: () =>
+            set((state) => {
+              state.session.isSessionWarningShown = true;
+            }),
+            
+          extendSession: async () => {
+            const success = await get().refreshSession();
+            if (success) {
+              set((state) => {
+                state.session.isSessionWarningShown = false;
+              });
+            }
+            return success;
+          },
+          
+          // Security management
+          changePassword: async (currentPassword, newPassword) => {
+            set((state) => {
+              state.loading.auth = true;
+              state.errors.auth = null;
+            });
+            
+            try {
+              // Simulate API call
+              await new Promise(resolve => setTimeout(resolve, 1000));
+              
+              set((state) => {
+                state.security.lastPasswordChange = new Date().toISOString();
+                state.security.loginAttempts = 0;
+                state.loading.auth = false;
+              });
+              
+              return { success: true };
+            } catch (error) {
+              set((state) => {
+                state.errors.auth = error.message || 'Password change failed';
+                state.loading.auth = false;
+              });
+              return { success: false, error: error.message };
+            }
+          },
+          
+          enableTwoFactor: async () => {
+            set((state) => {
+              state.loading.auth = true;
+              state.errors.auth = null;
+            });
+            
+            try {
+              // Simulate API call
+              await new Promise(resolve => setTimeout(resolve, 1200));
+              
+              set((state) => {
+                state.security.twoFactorEnabled = true;
+                state.loading.auth = false;
+              });
+              
+              return { success: true };
+            } catch (error) {
+              set((state) => {
+                state.errors.auth = error.message || 'Two-factor setup failed';
+                state.loading.auth = false;
+              });
+              return { success: false, error: error.message };
+            }
+          },
+          
+          disableTwoFactor: async () => {
+            set((state) => {
+              state.loading.auth = true;
+              state.errors.auth = null;
+            });
+            
+            try {
+              // Simulate API call
+              await new Promise(resolve => setTimeout(resolve, 800));
+              
+              set((state) => {
+                state.security.twoFactorEnabled = false;
+                state.loading.auth = false;
+              });
+              
+              return { success: true };
+            } catch (error) {
+              set((state) => {
+                state.errors.auth = error.message || 'Two-factor disable failed';
+                state.loading.auth = false;
+              });
+              return { success: false, error: error.message };
+            }
+          },
+          
+          // Permission checks
+          hasPermission: (resource, action) => {
+            const { permissions } = get();
+            return permissions[resource]?.[action] || false;
+          },
+          
+          canAccess: (resource) => {
+            const { permissions } = get();
+            return Object.values(permissions[resource] || {}).some(permission => permission === true);
+          },
+          
+          // Error handling
+          setError: (section, error) =>
+            set((state) => {
+              state.errors[section] = error;
+            }),
+            
+          clearError: (section) =>
+            set((state) => {
+              state.errors[section] = null;
+            }),
+            
+          clearAllErrors: () =>
+            set((state) => {
+              Object.keys(state.errors).forEach(key => {
+                state.errors[key] = null;
+              });
+            }),
+            
+          // Computed getters
+          getFullName: () => {
+            const { profile } = get();
+            return `${profile.firstName} ${profile.lastName}`.trim() || profile.email;
+          },
+          
+          getInitials: () => {
+            const { profile } = get();
+            const firstName = profile.firstName || '';
+            const lastName = profile.lastName || '';
+            if (firstName && lastName) {
+              return `${firstName.charAt(0)}${lastName.charAt(0)}`.toUpperCase();
+            }
+            return profile.email ? profile.email.charAt(0).toUpperCase() : '?';
+          },
+          
+          isSessionExpiring: () => {
+            const { session } = get();
+            if (!session.lastActivity) return false;
+            
+            const timeSinceActivity = Date.now() - session.lastActivity;
+            const timeUntilWarning = session.sessionTimeout - session.warningTime;
+            
+            return timeSinceActivity >= timeUntilWarning;
+          },
+          
+          isSessionExpired: () => {
+            const { session } = get();
+            if (!session.lastActivity) return true;
+            
+            const timeSinceActivity = Date.now() - session.lastActivity;
+            return timeSinceActivity >= session.sessionTimeout;
+          },
+          
+          getSessionTimeRemaining: () => {
+            const { session } = get();
+            if (!session.lastActivity) return 0;
+            
+            const timeSinceActivity = Date.now() - session.lastActivity;
+            const timeRemaining = session.sessionTimeout - timeSinceActivity;
+            
+            return Math.max(0, timeRemaining);
+          },
+          
+          isPasswordExpired: () => {
+            const { security } = get();
+            if (!security.lastPasswordChange) return false;
+            
+            const daysSinceChange = (Date.now() - new Date(security.lastPasswordChange).getTime()) / (1000 * 60 * 60 * 24);
+            return daysSinceChange >= security.passwordExpiryDays;
+          },
+          
+          getUserRole: () => {
+            const { profile, user } = get();
+            return user?.role || profile?.role || 'user';
+          }
+        }))
+      ),
+      {
+        name: 'user-store',
+        partialize: (state) => ({
+          // Persist only essential data
+          isAuthenticated: state.isAuthenticated,
+          token: state.token,
+          refreshToken: state.refreshToken,
+          tokenExpiry: state.tokenExpiry,
+          user: state.user,
+          profile: state.profile,
+          preferences: state.preferences,
+          permissions: state.permissions
+        })
+      }
+    ),
+    { name: 'user-store' }
+  )
+);
+
+export default useUserStore;

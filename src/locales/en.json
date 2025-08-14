@@ -1,0 +1,56 @@
+{
+  "common": {
+    "loading": "Loading...",
+    "error": "Error",
+    "success": "Success",
+    "cancel": "Cancel",
+    "save": "Save",
+    "delete": "Delete",
+    "edit": "Edit",
+    "search": "Search",
+    "filter": "Filter",
+    "export": "Export"
+  },
+  "navigation": {
+    "dashboard": "Dashboard",
+    "products": "Products",
+    "alerts": "Alerts",
+    "recommendations": "Recommendations",
+    "analytics": "Analytics",
+    "settings": "Settings"
+  },
+  "dashboard": {
+    "title": "Dashboard",
+    "totalValue": "Total Inventory Value",
+    "totalItems": "Total Items",
+    "lowStock": "Low Stock Items",
+    "outOfStock": "Out of Stock",
+    "expiredItems": "Expired Items",
+    "activeAlerts": "Active Alerts"
+  },
+  "products": {
+    "title": "Products",
+    "name": "Product Name",
+    "sku": "SKU",
+    "category": "Category",
+    "quantity": "Quantity",
+    "price": "Price",
+    "supplier": "Supplier",
+    "lastUpdated": "Last Updated"
+  },
+  "alerts": {
+    "title": "Alerts",
+    "lowStock": "Low Stock",
+    "outOfStock": "Out of Stock",
+    "expired": "Expired",
+    "forecastWarning": "Forecast Warning",
+    "dismiss": "Dismiss"
+  },
+  "recommendations": {
+    "title": "Order Recommendations",
+    "currentStock": "Current Stock",
+    "recommendedQuantity": "Recommended Quantity",
+    "urgency": "Urgency",
+    "estimatedCost": "Estimated Cost"
+  }
+}

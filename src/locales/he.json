@@ -1,0 +1,56 @@
+{
+  "common": {
+    "loading": "טוען...",
+    "error": "שגיאה",
+    "success": "הצלחה",
+    "cancel": "ביטול",
+    "save": "שמור",
+    "delete": "מחק",
+    "edit": "ערוך",
+    "search": "חפש",
+    "filter": "סנן",
+    "export": "יצא"
+  },
+  "navigation": {
+    "dashboard": "לוח בקרה",
+    "products": "מוצרים",
+    "alerts": "התראות",
+    "recommendations": "המלצות",
+    "analytics": "אנליטיקה",
+    "settings": "הגדרות"
+  },
+  "dashboard": {
+    "title": "לוח בקרה",
+    "totalValue": "שווי מלאי כולל",
+    "totalItems": "כמות פריטים",
+    "lowStock": "מלאי נמוך",
+    "outOfStock": "אזל מהמלאי",
+    "expiredItems": "פריטים שפגי תוקף",
+    "activeAlerts": "התראות פעילות"
+  },
+  "products": {
+    "title": "מוצרים",
+    "name": "שם המוצר",
+    "sku": "מק״ט",
+    "category": "קטגוריה",
+    "quantity": "כמות",
+    "price": "מחיר",
+    "supplier": "ספק",
+    "lastUpdated": "עדכון אחרון"
+  },
+  "alerts": {
+    "title": "התראות",
+    "lowStock": "מלאי נמוך",
+    "outOfStock": "אזל מהמלאי",
+    "expired": "פג תוקף",
+    "forecastWarning": "אזהרת תחזית",
+    "dismiss": "בטל"
+  },
+  "recommendations": {
+    "title": "המלצות הזמנה",
+    "currentStock": "מלאי נוכחי",
+    "recommendedQuantity": "כמות מומלצת",
+    "urgency": "דחיפות",
+    "estimatedCost": "עלות משוערת"
+  }
+}
