@@ -2,7 +2,7 @@ import styled, { css } from 'styled-components';
 import { motion } from 'framer-motion';
 
 const StyledTypography = styled(motion.div).withConfig({
-  shouldForwardProp: (prop) => !['variant', 'color', 'weight', 'align', 'transform', 'truncate', 'noWrap', 'lineHeight', 'letterSpacing'].includes(prop),
+  shouldForwardProp: (prop) => !['variant', 'color', 'weight', 'align', 'transform', 'truncate', 'noWrap', 'lineHeight', 'letterSpacing', 'gutterBottom'].includes(prop),
 })`
   margin: 0;
   padding: 0;

@@ -15,6 +15,10 @@ const CardContainer = styled(motion.div).withConfig({
   overflow: hidden;
   transition: all ${props => props.theme?.animation?.duration?.fast || '150ms'} ${props => props.theme?.animation?.easing?.easeInOut || 'ease-in-out'};
   
+  &.metric-card {
+    /* Print-specific styles are handled in global CSS */
+  }
+  
   &:hover {
     border-color: ${props => props.theme?.colors?.border?.strong || '#cbd5e1'};
     box-shadow: ${props => props.theme?.shadows?.md || '0 4px 6px -1px rgba(0, 0, 0, 0.1)'};
@@ -273,7 +277,7 @@ const MetricCard = ({
       variant={variant}
       clickable={clickable}
       onClick={onClick}
-      className={className}
+      className={`metric-card ${className || ''}`}
       whileHover={clickable ? { y: -2 } : undefined}
       whileTap={clickable ? { scale: 0.98 } : undefined}
       {...props}

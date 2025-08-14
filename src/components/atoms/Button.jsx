@@ -2,7 +2,9 @@ import styled, { css } from 'styled-components';
 import { motion } from 'framer-motion';
 import Spinner from './Spinner';
 
-const StyledButton = styled(motion.button)`
+const StyledButton = styled(motion.button).withConfig({
+  shouldForwardProp: (prop) => !['variant', 'size', 'fullWidth'].includes(prop)
+})`
   display: inline-flex;
   align-items: center;
   justify-content: center;

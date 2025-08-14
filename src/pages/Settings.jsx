@@ -1,6 +1,9 @@
 import styled from 'styled-components';
 import { motion } from 'framer-motion';
 import { useState } from 'react';
+import useUserStore from '../store/userStore';
+import usePushNotifications from '../hooks/usePushNotifications';
+import { useI18n } from '../hooks/useI18n';
 import Typography from '../components/atoms/Typography';
 import Button from '../components/atoms/Button';
 import Icon from '../components/atoms/Icon';
@@ -180,6 +183,9 @@ const DangerZone = styled.div`
 const Settings = () => {
   const [activeSection, setActiveSection] = useState('profile');
   const [loading, setLoading] = useState(false);
+  const { preferences, setTheme, updatePreferences } = useUserStore();
+  const pushNotifications = usePushNotifications();
+  const { locale, changeLocale, t } = useI18n();
 
   // Mock user data
   const [userData, setUserData] = useState({
@@ -193,7 +199,7 @@ const Settings = () => {
     avatar: null
   });
 
-  // Settings state
+  // Settings state (local settings not in user store)
   const [settings, setSettings] = useState({
     notifications: {
       email: true,
@@ -202,14 +208,6 @@ const Settings = () => {
       lowStock: true,
       priceChanges: true,
       reports: true
-    },
-    preferences: {
-      theme: 'light',
-      currency: 'USD',
-      dateFormat: 'MM/dd/yyyy',
-      timeFormat: '12h',
-      language: 'en',
-      timezone: 'UTC-5'
     },
     security: {
       twoFactor: false,
@@ -396,6 +394,109 @@ const Settings = () => {
                   onChange={() => handleToggle('notifications', 'push')}
                 />
               </ToggleField>
+              
+              {/* Push Notification Management */}
+              {pushNotifications.isSupported && (
+                <div style={{ 
+                  marginTop: '16px', 
+                  padding: '16px', 
+                  backgroundColor: pushNotifications.status === 'subscribed' 
+                    ? 'rgba(16, 185, 129, 0.1)' 
+                    : 'rgba(107, 114, 128, 0.1)',
+                  borderRadius: '8px',
+                  border: `1px solid ${
+                    pushNotifications.status === 'subscribed' 
+                      ? 'rgba(16, 185, 129, 0.3)' 
+                      : 'rgba(107, 114, 128, 0.3)'
+                  }`
+                }}>
+                  <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '12px' }}>
+                    <div>
+                      <Typography variant="body2" weight="medium">
+                        Browser Push Notifications
+                      </Typography>
+                      <Typography variant="caption" color="secondary">
+                        Status: {pushNotifications.status === 'subscribed' ? 'Active' : 
+                               pushNotifications.status === 'denied' ? 'Blocked' :
+                               pushNotifications.status === 'default' ? 'Not configured' : 'Permission granted'}
+                      </Typography>
+                      {pushNotifications.error && (
+                        <Typography variant="caption" color="error" style={{ display: 'block', marginTop: '4px' }}>
+                          {pushNotifications.error}
+                        </Typography>
+                      )}
+                    </div>
+                    <Badge 
+                      variant={pushNotifications.status === 'subscribed' ? 'success' : 'secondary'} 
+                      size="sm"
+                    >
+                      {pushNotifications.status === 'subscribed' ? 'Active' : 
+                       pushNotifications.status === 'denied' ? 'Blocked' : 'Inactive'}
+                    </Badge>
+                  </div>
+                  
+                  <div style={{ display: 'flex', gap: '8px', flexWrap: 'wrap' }}>
+                    {!pushNotifications.isSubscribed && pushNotifications.status !== 'denied' && (
+                      <Button 
+                        variant="primary" 
+                        size="sm"
+                        onClick={pushNotifications.subscribe}
+                        loading={pushNotifications.isLoading}
+                      >
+                        <Icon name="bell" size={14} />
+                        Enable Notifications
+                      </Button>
+                    )}
+                    
+                    {pushNotifications.isSubscribed && (
+                      <>
+                        <Button 
+                          variant="secondary" 
+                          size="sm"
+                          onClick={pushNotifications.unsubscribe}
+                          loading={pushNotifications.isLoading}
+                        >
+                          <Icon name="bell-off" size={14} />
+                          Disable Notifications
+                        </Button>
+                        
+                        <Button 
+                          variant="outline" 
+                          size="sm"
+                          onClick={() => pushNotifications.sendTestNotification(
+                            'Test Notification', 
+                            'This is a test notification from OMNIX AI'
+                          )}
+                        >
+                          <Icon name="send" size={14} />
+                          Send Test
+                        </Button>
+                      </>
+                    )}
+                    
+                    {pushNotifications.status === 'denied' && (
+                      <Typography variant="caption" color="secondary">
+                        Notifications are blocked. Please enable them in your browser settings.
+                      </Typography>
+                    )}
+                  </div>
+                </div>
+              )}
+              
+              {!pushNotifications.isSupported && (
+                <div style={{ 
+                  marginTop: '16px', 
+                  padding: '12px', 
+                  backgroundColor: 'rgba(245, 158, 11, 0.1)',
+                  borderRadius: '6px',
+                  border: '1px solid rgba(245, 158, 11, 0.3)'
+                }}>
+                  <Typography variant="caption" color="secondary">
+                    <Icon name="warning" size={14} style={{ marginRight: '6px' }} />
+                    Push notifications are not supported in this browser.
+                  </Typography>
+                </div>
+              )}
               <ToggleField>
                 <div>
                   <Typography variant="body2" weight="medium">
@@ -484,77 +585,63 @@ const Settings = () => {
                 label="Theme"
                 name="theme"
                 type="select"
-                value={settings.preferences.theme}
+                value={preferences.theme}
                 options={[
                   { value: 'light', label: 'Light Theme' },
                   { value: 'dark', label: 'Dark Theme' },
                   { value: 'auto', label: 'Auto (System)' }
                 ]}
-                onChange={(e) => setSettings(prev => ({
-                  ...prev,
-                  preferences: { ...prev.preferences, theme: e.target.value }
-                }))}
+                onChange={(e) => setTheme(e.target.value)}
               />
               <FormField
                 label="Currency"
                 name="currency"
                 type="select"
-                value={settings.preferences.currency}
+                value={preferences.currency}
                 options={[
                   { value: 'USD', label: 'US Dollar (USD)' },
                   { value: 'EUR', label: 'Euro (EUR)' },
                   { value: 'GBP', label: 'British Pound (GBP)' },
                   { value: 'CAD', label: 'Canadian Dollar (CAD)' }
                 ]}
-                onChange={(e) => setSettings(prev => ({
-                  ...prev,
-                  preferences: { ...prev.preferences, currency: e.target.value }
-                }))}
+                onChange={(e) => updatePreferences(null, { currency: e.target.value })}
               />
               <FormField
                 label="Date Format"
                 name="dateFormat"
                 type="select"
-                value={settings.preferences.dateFormat}
+                value={preferences.dateFormat}
                 options={[
                   { value: 'MM/dd/yyyy', label: 'MM/dd/yyyy (US)' },
                   { value: 'dd/MM/yyyy', label: 'dd/MM/yyyy (UK)' },
                   { value: 'yyyy-MM-dd', label: 'yyyy-MM-dd (ISO)' }
                 ]}
-                onChange={(e) => setSettings(prev => ({
-                  ...prev,
-                  preferences: { ...prev.preferences, dateFormat: e.target.value }
-                }))}
+                onChange={(e) => updatePreferences(null, { dateFormat: e.target.value })}
               />
               <FormField
                 label="Time Format"
                 name="timeFormat"
                 type="select"
-                value={settings.preferences.timeFormat}
+                value={preferences.timeFormat}
                 options={[
                   { value: '12h', label: '12-hour (AM/PM)' },
                   { value: '24h', label: '24-hour' }
                 ]}
-                onChange={(e) => setSettings(prev => ({
-                  ...prev,
-                  preferences: { ...prev.preferences, timeFormat: e.target.value }
-                }))}
+                onChange={(e) => updatePreferences(null, { timeFormat: e.target.value })}
               />
               <FormField
                 label="Language"
                 name="language"
                 type="select"
-                value={settings.preferences.language}
+                value={locale}
                 options={[
                   { value: 'en', label: 'English' },
-                  { value: 'es', label: 'Español' },
-                  { value: 'fr', label: 'Français' },
-                  { value: 'de', label: 'Deutsch' }
+                  { value: 'he', label: 'עברית (Hebrew)' }
                 ]}
-                onChange={(e) => setSettings(prev => ({
-                  ...prev,
-                  preferences: { ...prev.preferences, language: e.target.value }
-                }))}
+                onChange={(e) => {
+                  changeLocale(e.target.value);
+                  updatePreferences(null, { language: e.target.value });
+                }}
               />
             </FieldGrid>
           </motion.div>
@@ -730,7 +817,7 @@ const Settings = () => {
       <SettingsHeader>
         <div>
           <Typography variant="h3" weight="bold" color="primary">
-            Settings
+            {t('navigation.settings')}
           </Typography>
           <Typography variant="body1" color="secondary">
             Manage your account preferences and application settings.

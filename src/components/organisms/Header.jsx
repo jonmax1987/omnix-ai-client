@@ -7,6 +7,7 @@ import Typography from '../atoms/Typography';
 import Avatar from '../atoms/Avatar';
 import Badge from '../atoms/Badge';
 import SearchBar from '../molecules/SearchBar';
+import LanguageSwitcher from '../molecules/LanguageSwitcher';
 
 const HeaderContainer = styled.header`
   position: sticky;
@@ -163,6 +164,12 @@ const DropdownMenu = styled(motion.div)`
   padding: ${props => props.theme.spacing[2]} 0;
   min-width: 200px;
   overflow: hidden;
+  
+  /* RTL Support */
+  [dir="rtl"] & {
+    right: auto;
+    left: 0;
+  }
 `;
 
 const DropdownSection = styled.div`
@@ -362,6 +369,8 @@ const Header = ({
 
         <RightSection>
           {children}
+
+          <LanguageSwitcher />
 
           <div ref={notificationRef} style={{ position: 'relative' }}>
             <NotificationButton

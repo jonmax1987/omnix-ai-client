@@ -150,9 +150,6 @@ const icons = {
   ),
 
   // Business
-  trending: (
-    <path d="M13 7h8m0 0v8m0-8l-8 8-4-4-6 6" />
-  ),
   calendar: (
     <path d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
   ),
@@ -164,12 +161,6 @@ const icons = {
   ),
   eyeOff: (
     <path d="M17.94 17.94A10.07 10.07 0 0112 20c-7 0-11-8-11-8a18.45 18.45 0 015.06-5.94M9.9 4.24A9.12 9.12 0 0112 4c7 0 11 8 11 8a18.5 18.5 0 01-2.16 3.19m-6.72-1.07a3 3 0 11-4.24-4.24" />
-  ),
-  download: (
-    <path d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4" />
-  ),
-  upload: (
-    <path d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-8l-4-4m0 0L8 8m4-4v12" />
   ),
   
   // Additional missing icons
@@ -217,6 +208,15 @@ const icons = {
   ),
   'chevron-down': (
     <path d="M6 9l6 6 6-6" />
+  ),
+  'chevron-up': (
+    <path d="m18 15-6-6-6 6" />
+  ),
+  'chevron-left': (
+    <path d="m15 18-6-6 6-6" />
+  ),
+  'chevron-right': (
+    <path d="m9 18 6-6-6-6" />
   ),
   grid: (
     <path d="M3 3h7v7H3zM14 3h7v7h-7zM14 14h7v7h-7zM3 14h7v7H3z" />

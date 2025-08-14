@@ -1,6 +1,7 @@
 import styled, { css } from 'styled-components';
 import { motion, AnimatePresence } from 'framer-motion';
 import { useState, useEffect } from 'react';
+import { useI18n } from '../../hooks/useI18n';
 import Icon from '../atoms/Icon';
 import Button from '../atoms/Button';
 import Typography from '../atoms/Typography';
@@ -19,6 +20,14 @@ const SidebarContainer = styled(motion.aside).withConfig({
   border-right: 1px solid ${props => props.theme.colors.border.default};
   transition: all ${props => props.theme.animation.duration.normal} ${props => props.theme.animation.easing.easeInOut};
   
+  /* RTL Support */
+  [dir="rtl"] & {
+    left: auto;
+    right: 0;
+    border-right: none;
+    border-left: 1px solid ${props => props.theme.colors.border.default};
+  }
+  
   ${props => props.collapsed ? css`
     width: 72px;
   ` : css`
@@ -29,6 +38,11 @@ const SidebarContainer = styled(motion.aside).withConfig({
     width: 280px; /* Always full width on mobile */
     transform: ${props => props.mobileOpen ? 'translateX(0)' : 'translateX(-100%)'};
     box-shadow: ${props => props.mobileOpen ? props.theme.shadows.xl : 'none'};
+    
+    /* RTL mobile support */
+    [dir="rtl"] & {
+      transform: ${props => props.mobileOpen ? 'translateX(0)' : 'translateX(100%)'};
+    }
   }
 `;
 
@@ -215,6 +229,7 @@ const Sidebar = ({
 }) => {
   const [hoveredItem, setHoveredItem] = useState(null);
   const [isMobile, setIsMobile] = useState(false);
+  const { t } = useI18n();
 
   useEffect(() => {
     const checkIsMobile = () => {
@@ -230,18 +245,18 @@ const Sidebar = ({
     {
       section: 'Main',
       items: [
-        { id: 'dashboard', label: 'Dashboard', icon: 'dashboard' },
-        { id: 'products', label: 'Products', icon: 'products', badge: '1.2K' },
-        { id: 'analytics', label: 'Analytics', icon: 'analytics' },
-        { id: 'alerts', label: 'Alerts', icon: 'alerts', badge: { variant: 'error', content: '5' } }
+        { id: 'dashboard', label: t('navigation.dashboard'), icon: 'dashboard' },
+        { id: 'products', label: t('navigation.products'), icon: 'products', badge: '1.2K' },
+        { id: 'analytics', label: t('navigation.analytics'), icon: 'analytics' },
+        { id: 'alerts', label: t('navigation.alerts'), icon: 'alerts', badge: { variant: 'error', content: '5' } }
       ]
     },
     {
       section: 'Management',
       items: [
-        { id: 'recommendations', label: 'Recommendations', icon: 'trending' },
+        { id: 'recommendations', label: t('navigation.recommendations'), icon: 'trending' },
         { id: 'reports', label: 'Reports', icon: 'analytics' },
-        { id: 'settings', label: 'Settings', icon: 'settings' }
+        { id: 'settings', label: t('navigation.settings'), icon: 'settings' }
       ]
     }
   ];

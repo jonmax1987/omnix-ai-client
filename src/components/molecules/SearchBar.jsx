@@ -11,6 +11,10 @@ const SearchContainer = styled.div.withConfig({
   position: relative;
   width: 100%;
   max-width: ${props => props.maxWidth || '400px'};
+  
+  &.search-bar {
+    /* Print-specific styles are handled in global CSS */
+  }
 `;
 
 const SearchInputContainer = styled.div`
@@ -272,7 +276,7 @@ const SearchBar = ({
   }, {});
 
   return (
-    <SearchContainer ref={containerRef} maxWidth={maxWidth} className={className}>
+    <SearchContainer ref={containerRef} maxWidth={maxWidth} className={`search-bar ${className || ''}`}>
       <SearchInputContainer>
         <SearchIcon>
           <Icon name="search" size={20} />

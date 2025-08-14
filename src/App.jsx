@@ -2,12 +2,16 @@ import { BrowserRouter as Router, Routes, Route, Navigate, useNavigate, useLocat
 import { ThemeProvider } from 'styled-components';
 import { useEffect } from 'react';
 import { lightTheme, darkTheme } from './styles/theme';
+import GlobalStyles from './styles/globalStyles';
 import useStore from './store';
+import useUserStore from './store/userStore';
 
 // Layout components
 import Header from './components/organisms/Header';
 import Sidebar from './components/organisms/Sidebar';
 import ErrorBoundary from './components/organisms/ErrorBoundary';
+import OfflineIndicator from './components/atoms/OfflineIndicator';
+import PageTransition from './components/molecules/PageTransition';
 
 // Pages
 import Dashboard from './pages/Dashboard';
@@ -37,6 +41,13 @@ const MainContent = styled.main.withConfig({
   
   @media (min-width: ${props => props.theme?.breakpoints?.lg || '1024px'}) {
     margin-left: ${props => props.sidebarCollapsed ? '72px' : '280px'};
+    
+    /* RTL Support */
+    [dir="rtl"] & {
+      margin-left: 0;
+      margin-right: ${props => props.sidebarCollapsed ? '72px' : '280px'};
+      transition: margin-right ${props => props.theme?.animation?.duration?.standard || '300ms'} ${props => props.theme?.animation?.easing?.easeInOut || 'ease-in-out'};
+    }
   }
 `;
 
@@ -50,12 +61,29 @@ function AppContent() {
   const navigate = useNavigate();
   const location = useLocation();
   const store = useStore();
+  const { preferences, setTheme } = useUserStore();
   const { ui = {}, toggleSidebar, setSidebarMobileOpen, setCurrentPage } = store || {};
   
-  // Ensure we always have a valid theme
+  // Ensure we always have a valid store
   if (!store) {
     return <div>Loading...</div>;
   }
+
+  // System theme detection
+  useEffect(() => {
+    if (preferences.theme === 'auto') {
+      const mediaQuery = window.matchMedia('(prefers-color-scheme: dark)');
+      const updateTheme = () => {
+        // Don't change the user preference, just detect the system theme
+        // The theme selection logic will handle 'auto' mode
+      };
+      
+      mediaQuery.addEventListener('change', updateTheme);
+      updateTheme();
+      
+      return () => mediaQuery.removeEventListener('change', updateTheme);
+    }
+  }, [preferences.theme]);
   
   // Update store when route changes
   useEffect(() => {
@@ -94,7 +122,18 @@ function AppContent() {
     }
   ];
 
-  const currentTheme = ui?.theme === 'dark' ? darkTheme : lightTheme;
+  // Theme selection logic
+  const getTheme = () => {
+    if (preferences.theme === 'dark') return darkTheme;
+    if (preferences.theme === 'light') return lightTheme;
+    if (preferences.theme === 'auto') {
+      const prefersDark = window.matchMedia('(prefers-color-scheme: dark)').matches;
+      return prefersDark ? darkTheme : lightTheme;
+    }
+    return lightTheme;
+  };
+
+  const currentTheme = getTheme();
 
   const handleMenuToggle = () => {
     if (window.innerWidth < 1024) {
@@ -131,7 +170,9 @@ function AppContent() {
 
   return (
     <ThemeProvider theme={currentTheme}>
+      <GlobalStyles />
       <ErrorBoundary showError={true}>
+        <OfflineIndicator />
         <AppContainer>
           <Sidebar
             collapsed={ui?.sidebarCollapsed || false}
@@ -153,17 +194,19 @@ function AppContent() {
             />
             
             <ContentArea>
-              <Routes>
-                <Route path="/" element={<Navigate to="/dashboard" replace />} />
-                <Route path="/dashboard" element={<Dashboard />} />
-                <Route path="/products" element={<Products />} />
-                <Route path="/products/:id" element={<ProductDetail />} />
-                <Route path="/alerts" element={<Alerts />} />
-                <Route path="/recommendations" element={<Recommendations />} />
-                <Route path="/analytics" element={<Analytics />} />
-                <Route path="/settings" element={<Settings />} />
-                <Route path="*" element={<Navigate to="/dashboard" replace />} />
-              </Routes>
+              <PageTransition variant="default">
+                <Routes>
+                  <Route path="/" element={<Navigate to="/dashboard" replace />} />
+                  <Route path="/dashboard" element={<Dashboard />} />
+                  <Route path="/products" element={<Products />} />
+                  <Route path="/products/:id" element={<ProductDetail />} />
+                  <Route path="/alerts" element={<Alerts />} />
+                  <Route path="/recommendations" element={<Recommendations />} />
+                  <Route path="/analytics" element={<Analytics />} />
+                  <Route path="/settings" element={<Settings />} />
+                  <Route path="*" element={<Navigate to="/dashboard" replace />} />
+                </Routes>
+              </PageTransition>
             </ContentArea>
           </MainContent>
         </AppContainer>

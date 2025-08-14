@@ -52,5 +52,16 @@
     "recommendedQuantity": "Recommended Quantity",
     "urgency": "Urgency",
     "estimatedCost": "Estimated Cost"
+  },
+  "offline": {
+    "message": "You are currently offline. Some features may be limited.",
+    "cacheNotice": "Showing cached data",
+    "noData": "No offline data available"
+  },
+  "update": {
+    "available": "A new version is available.",
+    "apply": "Update",
+    "installing": "Installing update...",
+    "success": "Update applied successfully"
   }
 }

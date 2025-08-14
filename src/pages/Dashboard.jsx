@@ -9,6 +9,10 @@ import DashboardGrid, { GridItem, DASHBOARD_LAYOUTS } from '../components/organi
 import MetricCard from '../components/molecules/MetricCard';
 import AlertCard from '../components/molecules/AlertCard';
 import ChartContainer from '../components/organisms/ChartContainer';
+import PullToRefresh from '../components/molecules/PullToRefresh';
+import MobileCarousel from '../components/molecules/MobileCarousel';
+import { exportDashboardReport } from '../utils/exportUtils';
+import { isTouchDevice } from '../utils/mobileGestures';
 
 const DashboardContainer = styled(motion.div)`
   padding: ${props => props.theme.spacing[6]};
@@ -221,14 +225,115 @@ const Dashboard = () => {
   };
 
   const handleExport = () => {
-    console.log('Exporting dashboard data...');
+    const dashboardData = {
+      metrics: metrics,
+      alerts: recentAlerts,
+      timestamp: new Date().toISOString()
+    };
+    
+    exportDashboardReport(dashboardData, `dashboard-report-${new Date().toISOString().split('T')[0]}.pdf`, {
+      title: 'OMNIX AI Dashboard Report',
+      includeMetrics: true,
+      includeAlerts: true,
+      includeTimestamp: true
+    });
   };
 
   const handleAlertClick = (alert) => {
     console.log('Alert clicked:', alert);
   };
 
-  return (
+  const chartComponents = [
+    <ChartContainer
+      key="inventory-trend"
+      title="Inventory Value Trend"
+      description="Total inventory value over time"
+      type="line"
+      badge="Live"
+      showTimeRange
+      timeRange={timeRange}
+      onTimeRangeChange={handleTimeRangeChange}
+      refreshable
+      onRefresh={handleRefresh}
+      exportable
+      loading={loading}
+      lastUpdated={lastUpdated}
+    >
+      <MockChart color="#3B82F6">
+        <Typography variant="h6" color="primary">
+          Line Chart Placeholder
+        </Typography>
+      </MockChart>
+    </ChartContainer>,
+    
+    <ChartContainer
+      key="category-breakdown"
+      title="Category Breakdown"
+      description="Inventory distribution by category"
+      type="pie"
+      refreshable
+      onRefresh={handleRefresh}
+      showLegend
+      legend={[
+        { id: 'electronics', label: 'Electronics', color: '#3B82F6' },
+        { id: 'clothing', label: 'Clothing', color: '#10B981' },
+        { id: 'food', label: 'Food', color: '#F59E0B' },
+        { id: 'books', label: 'Books', color: '#EF4444' }
+      ]}
+      exportable
+    >
+      <MockChart color="#10B981">
+        <Typography variant="h6" color="success">
+          Pie Chart Placeholder
+        </Typography>
+      </MockChart>
+    </ChartContainer>,
+    
+    <ChartContainer
+      key="stock-levels"
+      title="Stock Levels by Location"
+      description="Current stock distribution"
+      type="bar"
+      refreshable
+      onRefresh={handleRefresh}
+      exportable
+      loading={loading}
+    >
+      <MockChart color="#F59E0B">
+        <Typography variant="h6" color="warning">
+          Bar Chart Placeholder
+        </Typography>
+      </MockChart>
+    </ChartContainer>,
+    
+    <ChartContainer
+      key="demand-forecast"
+      title="Demand Forecast"
+      description="AI-powered demand predictions"
+      type="area"
+      badge="AI"
+      showTimeRange
+      timeRange={timeRange}
+      onTimeRangeChange={handleTimeRangeChange}
+      refreshable
+      onRefresh={handleRefresh}
+      exportable
+      showLegend
+      legend={[
+        { id: 'actual', label: 'Actual Demand', color: '#8B5CF6' },
+        { id: 'forecast', label: 'Forecasted', color: '#06B6D4' },
+        { id: 'confidence', label: 'Confidence Range', color: '#84CC16' }
+      ]}
+    >
+      <MockChart color="#8B5CF6">
+        <Typography variant="h6" color="brand">
+          Area Chart Placeholder
+        </Typography>
+      </MockChart>
+    </ChartContainer>
+  ];
+
+  const dashboardContent = (
     <DashboardContainer
       initial={{ opacity: 0, y: 20 }}
       animate={{ opacity: 1, y: 0 }}
@@ -445,6 +550,52 @@ const Dashboard = () => {
         </GridItem>
       </DashboardGrid>
     </DashboardContainer>
+  );
+
+  // For mobile, show charts in a carousel
+  if (isTouchDevice()) {
+    return (
+      <PullToRefresh
+        onRefresh={handleRefresh}
+        refreshing={loading}
+        pullingText="Pull to refresh dashboard"
+        refreshingText="Refreshing dashboard data..."
+      >
+        {dashboardContent}
+        
+        {/* Mobile Chart Carousel */}
+        <div style={{ 
+          marginTop: '32px', 
+          height: '400px',
+          display: window.innerWidth <= 768 ? 'block' : 'none'
+        }}>
+          <Typography variant="h5" weight="semibold" style={{ marginBottom: '16px' }}>
+            Charts
+          </Typography>
+          <MobileCarousel
+            showIndicators
+            showNavigation
+            showCounter
+            showSwipeHint
+            onSlideChange={(index) => console.log('Chart slide changed:', index)}
+          >
+            {chartComponents}
+          </MobileCarousel>
+        </div>
+      </PullToRefresh>
+    );
+  }
+
+  // Desktop version with pull-to-refresh
+  return (
+    <PullToRefresh
+      onRefresh={handleRefresh}
+      refreshing={loading}
+      pullingText="Pull to refresh dashboard"
+      refreshingText="Refreshing dashboard data..."
+    >
+      {dashboardContent}
+    </PullToRefresh>
   );
 };
 

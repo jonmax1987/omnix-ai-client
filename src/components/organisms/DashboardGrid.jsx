@@ -9,6 +9,10 @@ const GridContainer = styled.div.withConfig({
   gap: ${props => getGridGap(props.spacing, props.theme)};
   width: 100%;
   
+  &.dashboard-grid {
+    /* Print-specific styles are handled in global CSS */
+  }
+  
   ${props => getGridTemplate(props.layout, props.columns, props.theme)}
   
   @media (max-width: ${props => props.theme.breakpoints.lg}) {
@@ -278,7 +282,7 @@ const DashboardGrid = ({
       layout={layout}
       columns={layout === 'custom' ? columns : currentColumns}
       spacing={spacing}
-      className={className}
+      className={`dashboard-grid ${className || ''}`}
       {...props}
     >
       {renderChildren()}

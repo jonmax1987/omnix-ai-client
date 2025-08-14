@@ -6,6 +6,7 @@ import Button from '../atoms/Button';
 import Typography from '../atoms/Typography';
 import Badge from '../atoms/Badge';
 import Spinner from '../atoms/Spinner';
+import { exportChartAsImage } from '../../utils/exportUtils';
 
 const ChartWrapper = styled(motion.div)`
   display: flex;
@@ -15,6 +16,10 @@ const ChartWrapper = styled(motion.div)`
   border-radius: ${props => props.theme.spacing[3]};
   overflow: hidden;
   position: relative;
+  
+  &.chart-container {
+    /* Print-specific styles are handled in global CSS */
+  }
   
   ${props => props.fullScreen && css`
     position: fixed;
@@ -349,9 +354,17 @@ const ChartContainer = ({
   };
 
   const handleExport = (format = 'png') => {
-    if (chartRef.current && onExport) {
-      onExport(chartRef.current, format);
+    if (chartRef.current) {
+      const filename = `${title || 'chart'}-${new Date().toISOString().split('T')[0]}.${format}`;
+      exportChartAsImage(chartRef.current, filename, format, {
+        width: 800,
+        height: 600,
+        backgroundColor: '#ffffff'
+      });
     }
+    
+    // Call custom export handler if provided
+    onExport?.(chartRef.current, format);
   };
 
   const toggleFullScreen = () => {
@@ -436,7 +449,7 @@ const ChartContainer = ({
 
       <ChartWrapper
         fullScreen={isFullScreen}
-        className={className}
+        className={`chart-container ${className || ''}`}
         initial={{ opacity: 0, scale: 0.95 }}
         animate={{ 
           opacity: 1, 

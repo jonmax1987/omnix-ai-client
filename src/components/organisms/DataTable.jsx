@@ -1,6 +1,6 @@
 import styled, { css } from 'styled-components';
 import { motion, AnimatePresence } from 'framer-motion';
-import { useState, useMemo, useCallback } from 'react';
+import { useState, useMemo, useCallback, useEffect, useRef } from 'react';
 import Icon from '../atoms/Icon';
 import Button from '../atoms/Button';
 import Typography from '../atoms/Typography';
@@ -8,6 +8,7 @@ import Input from '../atoms/Input';
 import Badge from '../atoms/Badge';
 import TableRow from '../molecules/TableRow';
 import SearchBar from '../molecules/SearchBar';
+import { exportToCSV, exportToPDF } from '../../utils/exportUtils';
 
 const TableContainer = styled.div`
   display: flex;
@@ -16,6 +17,10 @@ const TableContainer = styled.div`
   border: 1px solid ${props => props.theme.colors.border.default};
   border-radius: ${props => props.theme.spacing[3]};
   overflow: hidden;
+  
+  &.data-table {
+    /* Print-specific styles are handled in global CSS */
+  }
 `;
 
 const TableHeader = styled.div`
@@ -26,6 +31,10 @@ const TableHeader = styled.div`
   padding: ${props => props.theme.spacing[4]} ${props => props.theme.spacing[6]};
   border-bottom: 1px solid ${props => props.theme.colors.border.subtle};
   flex-wrap: wrap;
+  
+  &.table-header {
+    /* Print-specific styles are handled in global CSS */
+  }
   
   @media (max-width: ${props => props.theme.breakpoints.md}) {
     padding: ${props => props.theme.spacing[3]} ${props => props.theme.spacing[4]};
@@ -69,6 +78,10 @@ const FiltersContainer = styled(motion.div)`
   border-bottom: 1px solid ${props => props.theme.colors.border.subtle};
   overflow-x: auto;
   
+  &.filters {
+    /* Print-specific styles are handled in global CSS */
+  }
+  
   @media (max-width: ${props => props.theme.breakpoints.md}) {
     padding: ${props => props.theme.spacing[3]} ${props => props.theme.spacing[4]};
   }
@@ -100,6 +113,10 @@ const BulkActionsBar = styled(motion.div)`
   padding: ${props => props.theme.spacing[3]} ${props => props.theme.spacing[6]};
   background: ${props => props.theme.colors.primary[50]};
   border-bottom: 1px solid ${props => props.theme.colors.border.subtle};
+  
+  &.bulk-actions {
+    /* Print-specific styles are handled in global CSS */
+  }
   
   @media (max-width: ${props => props.theme.breakpoints.md}) {
     padding: ${props => props.theme.spacing[3]} ${props => props.theme.spacing[4]};
@@ -217,6 +234,10 @@ const TableFooter = styled.div`
   border-top: 1px solid ${props => props.theme.colors.border.subtle};
   background: ${props => props.theme.colors.background.secondary};
   
+  &.table-footer {
+    /* Print-specific styles are handled in global CSS */
+  }
+  
   @media (max-width: ${props => props.theme.breakpoints.md}) {
     padding: ${props => props.theme.spacing[3]} ${props => props.theme.spacing[4]};
     flex-direction: column;
@@ -236,6 +257,10 @@ const PaginationControls = styled.div`
   display: flex;
   align-items: center;
   gap: ${props => props.theme.spacing[2]};
+  
+  &.pagination-controls {
+    /* Print-specific styles are handled in global CSS */
+  }
 `;
 
 const PageSizeSelect = styled.select`
@@ -250,6 +275,59 @@ const Checkbox = styled.input.attrs({ type: 'checkbox' })`
   width: 16px;
   height: 16px;
   cursor: pointer;
+`;
+
+const ExportDropdown = styled.div`
+  position: relative;
+  display: inline-block;
+`;
+
+const ExportButton = styled(Button)`
+  &.export-button {
+    /* Print-specific styles are handled in global CSS */
+  }
+`;
+
+const ExportMenu = styled(motion.div)`
+  position: absolute;
+  top: 100%;
+  right: 0;
+  z-index: 10;
+  background: ${props => props.theme.colors.background.elevated};
+  border: 1px solid ${props => props.theme.colors.border.default};
+  border-radius: ${props => props.theme.spacing[2]};
+  box-shadow: ${props => props.theme.shadows.lg};
+  margin-top: ${props => props.theme.spacing[1]};
+  min-width: 120px;
+  overflow: hidden;
+  
+  /* RTL Support */
+  [dir="rtl"] & {
+    right: auto;
+    left: 0;
+  }
+`;
+
+const ExportMenuItem = styled(motion.button)`
+  display: flex;
+  align-items: center;
+  gap: ${props => props.theme.spacing[2]};
+  width: 100%;
+  padding: ${props => props.theme.spacing[2]} ${props => props.theme.spacing[3]};
+  background: none;
+  border: none;
+  cursor: pointer;
+  font-size: ${props => props.theme.typography.fontSize.sm};
+  color: ${props => props.theme.colors.text.primary};
+  transition: background-color ${props => props.theme.animation.duration.fast} ${props => props.theme.animation.easing.easeInOut};
+  
+  &:hover {
+    background-color: ${props => props.theme.colors.background.secondary};
+  }
+  
+  &:last-child {
+    border-bottom: none;
+  }
 `;
 
 const DataTable = ({
@@ -273,6 +351,9 @@ const DataTable = ({
   emptyStateTitle = 'No data found',
   emptyStateDescription = 'There are no items to display.',
   emptyStateIcon = 'search',
+  exportable = false,
+  exportFilename,
+  exportFormats = ['csv', 'pdf'],
   onSearch,
   onSort,
   onSelect,
@@ -281,6 +362,7 @@ const DataTable = ({
   onAction,
   onBulkAction,
   onFilter,
+  onExport,
   className,
   ...props
 }) => {
@@ -291,6 +373,22 @@ const DataTable = ({
   const [pageSize, setPageSize] = useState(initialPageSize);
   const [activeFilters, setActiveFilters] = useState(new Map());
   const [showFilters, setShowFilters] = useState(false);
+  const [showExportMenu, setShowExportMenu] = useState(false);
+  const exportDropdownRef = useRef(null);
+
+  // Handle clicking outside export dropdown
+  useEffect(() => {
+    const handleClickOutside = (event) => {
+      if (exportDropdownRef.current && !exportDropdownRef.current.contains(event.target)) {
+        setShowExportMenu(false);
+      }
+    };
+
+    if (showExportMenu) {
+      document.addEventListener('mousedown', handleClickOutside);
+      return () => document.removeEventListener('mousedown', handleClickOutside);
+    }
+  }, [showExportMenu]);
 
   // Filter and search data
   const filteredData = useMemo(() => {
@@ -408,9 +506,61 @@ const DataTable = ({
     setShowFilters(false);
   };
 
+  const handleExport = useCallback((format) => {
+    const dataToExport = sortedData; // Export all filtered/sorted data, not just current page
+    const baseFilename = exportFilename || title || 'table-export';
+    const timestamp = new Date().toISOString().split('T')[0];
+    const filename = `${baseFilename}-${timestamp}`;
+
+    switch (format) {
+      case 'csv':
+        exportToCSV(dataToExport, columns, `${filename}.csv`);
+        break;
+      case 'pdf':
+        exportToPDF(dataToExport, columns, `${filename}.pdf`, {
+          title: title || 'Table Export',
+          subtitle: description,
+          showTimestamp: true
+        });
+        break;
+      default:
+        console.warn(`Unsupported export format: ${format}`);
+    }
+
+    // Call custom export handler if provided
+    onExport?.(dataToExport, columns, format);
+  }, [sortedData, columns, exportFilename, title, description, onExport]);
+
+  const handleExportMenuClick = (format) => {
+    handleExport(format);
+    setShowExportMenu(false);
+  };
+
+  const getFormatIcon = (format) => {
+    switch (format) {
+      case 'csv':
+        return 'fileText';
+      case 'pdf':
+        return 'download';
+      default:
+        return 'download';
+    }
+  };
+
+  const getFormatLabel = (format) => {
+    switch (format) {
+      case 'csv':
+        return 'Export CSV';
+      case 'pdf':
+        return 'Export PDF';
+      default:
+        return `Export ${format.toUpperCase()}`;
+    }
+  };
+
   return (
-    <TableContainer className={className} {...props}>
-      <TableHeader>
+    <TableContainer className={`data-table ${className || ''}`} {...props}>
+      <TableHeader className="table-header">
         <HeaderLeft>
           <TableTitle>
             {title && (
@@ -460,6 +610,45 @@ const DataTable = ({
             </Button>
           )}
 
+          {exportable && exportFormats.length > 0 && (
+            <ExportDropdown ref={exportDropdownRef}>
+              <ExportButton
+                variant="secondary"
+                size="sm"
+                onClick={() => setShowExportMenu(!showExportMenu)}
+                className="export-button"
+              >
+                <Icon name="download" size={16} />
+                Export
+                <Icon name="chevronDown" size={14} />
+              </ExportButton>
+
+              <AnimatePresence>
+                {showExportMenu && (
+                  <ExportMenu
+                    initial={{ opacity: 0, y: -10 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    exit={{ opacity: 0, y: -10 }}
+                    transition={{ duration: 0.2 }}
+                  >
+                    {exportFormats.map((format) => (
+                      <ExportMenuItem
+                        key={format}
+                        onClick={() => handleExportMenuClick(format)}
+                        whileHover={{ backgroundColor: 'rgba(0,0,0,0.05)' }}
+                      >
+                        <Icon name={getFormatIcon(format)} size={16} />
+                        <Typography variant="body2">
+                          {getFormatLabel(format)}
+                        </Typography>
+                      </ExportMenuItem>
+                    ))}
+                  </ExportMenu>
+                )}
+              </AnimatePresence>
+            </ExportDropdown>
+          )}
+
           {actions.map((action, index) => (
             <Button
               key={index}
@@ -477,6 +666,7 @@ const DataTable = ({
       <AnimatePresence>
         {showFilters && filters.length > 0 && (
           <FiltersContainer
+            className="filters"
             initial={{ height: 0, opacity: 0 }}
             animate={{ height: 'auto', opacity: 1 }}
             exit={{ height: 0, opacity: 0 }}
@@ -504,6 +694,7 @@ const DataTable = ({
       <AnimatePresence>
         {selectedRows.size > 0 && bulkActions.length > 0 && (
           <BulkActionsBar
+            className="bulk-actions"
             initial={{ height: 0, opacity: 0 }}
             animate={{ height: 'auto', opacity: 1 }}
             exit={{ height: 0, opacity: 0 }}
@@ -638,7 +829,7 @@ const DataTable = ({
       </TableWrapper>
 
       {pagination && totalItems > 0 && (
-        <TableFooter>
+        <TableFooter className="table-footer">
           <PaginationInfo>
             <span>Showing {startItem}-{endItem} of {totalItems} items</span>
             <PageSizeSelect
@@ -654,7 +845,7 @@ const DataTable = ({
             </PageSizeSelect>
           </PaginationInfo>
 
-          <PaginationControls>
+          <PaginationControls className="pagination-controls">
             <Button
               variant="ghost"
               size="sm"

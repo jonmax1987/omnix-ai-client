@@ -527,6 +527,9 @@ const Products = () => {
         onRowClick={handleRowClick}
         onAction={handleAction}
         onBulkAction={handleBulkAction}
+        exportable
+        exportFilename="products-inventory"
+        exportFormats={['csv', 'pdf']}
       />
     </ProductsContainer>
   );

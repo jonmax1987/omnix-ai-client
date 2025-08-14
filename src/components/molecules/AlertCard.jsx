@@ -15,6 +15,10 @@ const AlertContainer = styled(motion.div)`
   border-left: 4px solid;
   position: relative;
   
+  &.alert-card {
+    /* Print-specific styles are handled in global CSS */
+  }
+  
   ${props => getAlertSeverityStyles(props.severity, props.theme)}
   
   ${props => props.variant === 'filled' && css`
@@ -213,7 +217,7 @@ const AlertCard = ({
           severity={severity}
           variant={variant}
           hasDescription={hasDescription}
-          className={className}
+          className={`alert-card ${className || ''}`}
           initial={{ opacity: 0, y: -20, scale: 0.95 }}
           animate={{ opacity: 1, y: 0, scale: 1 }}
           exit={{ opacity: 0, x: 300, scale: 0.95 }}
