@@ -3,7 +3,7 @@ import react from '@vitejs/plugin-react-swc'
 import legacy from '@vitejs/plugin-legacy'
 import { VitePWA } from 'vite-plugin-pwa'
 import { visualizer } from 'rollup-plugin-visualizer'
-import { viteImagemin } from 'vite-plugin-imagemin'
+import viteImagemin from 'vite-plugin-imagemin'
 
 // https://vite.dev/config/
 export default defineConfig(({ command, mode }) => ({

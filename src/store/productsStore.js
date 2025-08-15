@@ -45,11 +45,126 @@ const useProductsStore = create()(
         // Error handling
         error: null,
         
-        // Actions
-        setProducts: (products) => 
+        // Async Actions
+        fetchProducts: async (params = {}) => {
           set((state) => {
-            state.products = products;
-            state.totalItems = products.length;
+            state.loading = true;
+            state.error = null;
+          });
+
+          try {
+            const { productsAPI } = await import('../services/api.js');
+            const response = await productsAPI.getProducts(params);
+            
+            get().setProducts(response);
+            
+            // Update pagination if provided
+            if (response.pagination) {
+              set((state) => {
+                state.totalItems = response.pagination.total || 0;
+              });
+            }
+          } catch (error) {
+            console.error('Failed to fetch products:', error);
+            set((state) => {
+              state.error = error.message || 'Failed to fetch products';
+            });
+          } finally {
+            set((state) => {
+              state.loading = false;
+            });
+          }
+        },
+
+        createProduct: async (productData) => {
+          set((state) => {
+            state.creating = true;
+            state.error = null;
+          });
+
+          try {
+            const { productsAPI } = await import('../services/api.js');
+            const newProduct = await productsAPI.createProduct(productData);
+            
+            get().addProduct(newProduct);
+            return newProduct;
+          } catch (error) {
+            console.error('Failed to create product:', error);
+            set((state) => {
+              state.error = error.message || 'Failed to create product';
+            });
+            throw error;
+          } finally {
+            set((state) => {
+              state.creating = false;
+            });
+          }
+        },
+
+        updateProductAsync: async (id, updates) => {
+          set((state) => {
+            state.updating = true;
+            state.error = null;
+          });
+
+          try {
+            const { productsAPI } = await import('../services/api.js');
+            const updatedProduct = await productsAPI.updateProduct(id, updates);
+            
+            get().updateProduct(id, updatedProduct);
+            return updatedProduct;
+          } catch (error) {
+            console.error('Failed to update product:', error);
+            set((state) => {
+              state.error = error.message || 'Failed to update product';
+            });
+            throw error;
+          } finally {
+            set((state) => {
+              state.updating = false;
+            });
+          }
+        },
+
+        deleteProductAsync: async (id) => {
+          set((state) => {
+            state.deleting = true;
+            state.error = null;
+          });
+
+          try {
+            const { productsAPI } = await import('../services/api.js');
+            await productsAPI.deleteProduct(id);
+            
+            get().deleteProduct(id);
+          } catch (error) {
+            console.error('Failed to delete product:', error);
+            set((state) => {
+              state.error = error.message || 'Failed to delete product';
+            });
+            throw error;
+          } finally {
+            set((state) => {
+              state.deleting = false;
+            });
+          }
+        },
+        
+        // Actions
+        setProducts: (productsData) => 
+          set((state) => {
+            // Handle both direct array and backend response format
+            if (Array.isArray(productsData)) {
+              state.products = productsData;
+              state.totalItems = productsData.length;
+            } else if (productsData && productsData.products) {
+              // Backend response format: {products: [...], pagination: {...}}
+              state.products = productsData.products;
+              state.totalItems = productsData.pagination?.total || productsData.products.length;
+            } else {
+              state.products = [];
+              state.totalItems = 0;
+            }
           }),
           
         addProduct: (product) => 

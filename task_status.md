@@ -114,5 +114,75 @@
 - [x] Security headers
 - [x] SEO
 
-**Current:** Phase 4 - Production Ready 🎉
-**Status:** All core features and production optimizations complete
+## Frontend-Backend Integration
+- [ ] Update API service layer to match OpenAPI spec exactly
+- [ ] Fix API endpoint paths (/v1 prefix missing)
+- [ ] Update data models to match API schemas
+- [ ] Connect dashboard to real API endpoints
+- [ ] Integrate alerts system with backend
+- [ ] Connect recommendations with API
+- [ ] Implement demand forecasting data flow
+- [ ] Update WebSocket integration for real-time updates
+- [ ] Replace mock data stores with API calls
+- [ ] Fix authentication flow with backend JWT
+
+## API Integration Tasks
+- [ ] Dashboard summary API integration (/dashboard/summary)
+- [ ] Inventory graph API integration (/dashboard/inventory-graph)
+- [ ] Products CRUD operations alignment
+- [ ] Alerts management API integration
+- [ ] Order recommendations API integration
+- [ ] Demand forecasts API integration (/forecasts/demand)
+- [ ] Trend analysis API integration (/forecasts/trends)
+- [ ] Product search and filtering refinement
+- [ ] Pagination implementation matching API spec
+- [ ] Error handling alignment with API responses
+
+## Data Model Updates
+- [ ] Update Product schema to match API
+- [ ] Update Alert schema with new fields
+- [ ] Update DashboardSummary data structure
+- [ ] Update OrderRecommendation model
+- [ ] Update DemandForecast model
+- [ ] Update TrendAnalysis model
+- [ ] Add missing API response interfaces
+- [ ] Update TypeScript definitions
+- [ ] Add proper error handling types
+
+## Environment Configuration
+- [ ] Configure API base URLs for different environments
+- [ ] Set up authentication tokens/API keys
+- [ ] Configure WebSocket connection URLs
+- [ ] Update CORS settings for backend integration
+- [ ] Set up proper environment variables
+- [ ] Configure development proxy settings
+- [ ] Update build configurations for different stages
+
+## Real-time Features
+- [ ] WebSocket connection for live alerts
+- [ ] Real-time inventory updates
+- [ ] Live dashboard metrics updates
+- [ ] Push notifications for critical alerts
+- [ ] Real-time recommendation updates
+- [ ] Live forecast data updates
+
+## Testing Updates
+- [ ] Update integration tests for real API
+- [ ] Mock API responses for unit tests
+- [ ] Add API error scenario testing
+- [ ] Update E2E tests with real data flows
+- [ ] Add API performance testing
+- [ ] Test authentication flows
+
+## Deployment & Infrastructure
+- [ ] Configure production API endpoints
+- [ ] Set up staging environment
+- [ ] Configure AWS CloudFront for API caching
+- [ ] Set up proper DNS for API access
+- [ ] Configure SSL certificates
+- [ ] Set up monitoring for API integration
+- [ ] Configure backup and failover strategies
+
+**Current:** Phase 5 - Frontend-Backend Integration Required
+**Status:** Frontend complete, backend exists with OpenAPI spec, need integration
+**Priority:** API integration → Data model alignment → Real-time features → Deployment

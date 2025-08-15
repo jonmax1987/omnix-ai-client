@@ -1,9 +1,9 @@
 // API service layer for OMNIX AI
 import useUserStore from '../store/userStore';
 
-// API Configuration
+// API Configuration  
 const API_CONFIG = {
-  baseURL: process.env.REACT_APP_API_URL || 'http://localhost:3001/api',
+  baseURL: process.env.REACT_APP_API_URL || 'http://localhost:3000/v1',
   timeout: 30000,
   retryAttempts: 3,
   retryDelay: 1000
@@ -17,6 +17,13 @@ const createApiHeaders = () => {
     'Accept': 'application/json'
   };
   
+  // Add API Key if available
+  const apiKey = process.env.REACT_APP_API_KEY;
+  if (apiKey) {
+    headers['X-API-Key'] = apiKey;
+  }
+  
+  // Add Bearer token if available
   if (token) {
     headers['Authorization'] = `Bearer ${token}`;
   }
@@ -74,7 +81,9 @@ const apiRequest = async (endpoint, options = {}) => {
       
       const contentType = response.headers.get('Content-Type');
       if (contentType && contentType.includes('application/json')) {
-        return await response.json();
+        const data = await response.json();
+        // Handle backend response format transformation
+        return transformBackendResponse(data, endpoint);
       }
       
       return response;
@@ -96,6 +105,76 @@ const apiRequest = async (endpoint, options = {}) => {
   }
   
   throw lastError;
+};
+
+// Response transformation utility
+const transformBackendResponse = (data, endpoint) => {
+  // Transform backend's {data: [...], pagination: {...}} to client expected format
+  if (data && typeof data === 'object' && data.data) {
+    // Products endpoint transformation
+    if (endpoint.includes('/products')) {
+      return {
+        products: data.data,
+        pagination: data.pagination || data.meta,
+        ...(data.meta && { meta: data.meta })
+      };
+    }
+    
+    // Dashboard summary transformation
+    if (endpoint.includes('/dashboard/summary')) {
+      return {
+        revenue: {
+          current: data.data.totalInventoryValue || 0,
+          previous: 0, // Backend doesn't provide this yet
+          change: 0,
+          trend: 'neutral'
+        },
+        inventory: {
+          totalValue: data.data.totalInventoryValue || 0,
+          totalItems: data.data.totalItems || 0,
+          lowStockItems: data.data.lowStockItems || 0,
+          outOfStockItems: 0 // Backend doesn't provide this yet
+        },
+        alerts: {
+          critical: 0, // Will be populated from alerts endpoint
+          warning: 0,
+          info: 0,
+          total: 0
+        },
+        categoryBreakdown: data.data.categoryBreakdown || []
+      };
+    }
+    
+    // Alerts endpoint transformation
+    if (endpoint.includes('/alerts')) {
+      return {
+        alerts: data.data,
+        pagination: data.pagination || data.meta
+      };
+    }
+    
+    // Recommendations endpoint transformation
+    if (endpoint.includes('/recommendations')) {
+      return {
+        recommendations: data.data,
+        pagination: data.pagination || data.meta
+      };
+    }
+    
+    // Forecasts endpoint transformation
+    if (endpoint.includes('/forecasts')) {
+      return {
+        forecasts: data.data,
+        pagination: data.pagination || data.meta
+      };
+    }
+    
+    // Default transformation - return data directly
+    return data.data;
+  }
+  
+  // Return original data if no transformation needed
+  return data;
 };
 
 // Custom API Error class
@@ -235,12 +314,13 @@ export const ordersAPI = {
   getOrderStatistics: (params = {}) => api.get('/orders/statistics', params)
 };
 
-// Alerts API
+// Alerts API (aligned with backend spec)
 export const alertsAPI = {
   getAlerts: (params = {}) => api.get('/alerts', params),
   getAlert: (id) => api.get(`/alerts/${id}`),
   createAlert: (data) => api.post('/alerts', data),
-  acknowledgeAlert: (id) => api.post(`/alerts/${id}/acknowledge`),
+  dismissAlert: (id) => api.post(`/alerts/${id}/dismiss`), // Backend uses dismiss instead of acknowledge
+  acknowledgeAlert: (id) => api.post(`/alerts/${id}/dismiss`), // Map to backend endpoint
   resolveAlert: (id, resolution) => api.post(`/alerts/${id}/resolve`, { resolution }),
   bulkAcknowledge: (ids) => api.post('/alerts/bulk-acknowledge', { ids }),
   bulkResolve: (ids, resolution) => api.post('/alerts/bulk-resolve', { ids, resolution }),
@@ -253,14 +333,22 @@ export const alertsAPI = {
   getRules: () => api.get('/alerts/rules')
 };
 
-// Analytics API
+// Dashboard API (matches backend spec)
+export const dashboardAPI = {
+  getSummary: (params = {}) => api.get('/dashboard/summary', params),
+  getInventoryGraph: (params = {}) => api.get('/dashboard/inventory-graph', params)
+};
+
+// Analytics API (mapped to backend endpoints where available)
 export const analyticsAPI = {
-  getDashboardMetrics: (params = {}) => api.get('/analytics/dashboard', params),
+  getDashboardMetrics: (params = {}) => api.get('/dashboard/summary', params), // Maps to backend endpoint
+  getInventoryGraph: (params = {}) => api.get('/dashboard/inventory-graph', params), // Maps to backend endpoint
+  // Legacy endpoints (may need backend implementation)
   getRevenueMetrics: (params = {}) => api.get('/analytics/revenue', params),
   getInventoryMetrics: (params = {}) => api.get('/analytics/inventory', params),
   getOrderMetrics: (params = {}) => api.get('/analytics/orders', params),
-  getForecast: (params = {}) => api.get('/analytics/forecast', params),
-  getTrends: (params = {}) => api.get('/analytics/trends', params),
+  getForecast: (params = {}) => api.get('/forecasts/demand', params), // Map to backend forecasts
+  getTrends: (params = {}) => api.get('/forecasts/trends', params), // Map to backend forecasts
   getPerformance: (params = {}) => api.get('/analytics/performance', params),
   generateReport: (type, params = {}) => api.post(`/analytics/reports/${type}`, params),
   getReports: (params = {}) => api.get('/analytics/reports', params),
@@ -268,9 +356,10 @@ export const analyticsAPI = {
   deleteReport: (reportId) => api.delete(`/analytics/reports/${reportId}`)
 };
 
-// Recommendations API
+// Recommendations API (matches backend spec)
 export const recommendationsAPI = {
-  getRecommendations: (params = {}) => api.get('/recommendations', params),
+  getOrderRecommendations: (params = {}) => api.get('/recommendations/orders', params),
+  getRecommendations: (params = {}) => api.get('/recommendations/orders', params), // Map existing calls
   getRecommendation: (id) => api.get(`/recommendations/${id}`),
   acceptRecommendation: (id) => api.post(`/recommendations/${id}/accept`),
   dismissRecommendation: (id) => api.post(`/recommendations/${id}/dismiss`),
@@ -278,6 +367,12 @@ export const recommendationsAPI = {
   getRecommendationSettings: () => api.get('/recommendations/settings'),
   updateRecommendationSettings: (settings) => 
     api.patch('/recommendations/settings', settings)
+};
+
+// Forecasting API (matches backend spec)
+export const forecastsAPI = {
+  getDemandForecasts: (params = {}) => api.get('/forecasts/demand', params),
+  getTrendAnalysis: (params = {}) => api.get('/forecasts/trends', params)
 };
 
 // Settings API

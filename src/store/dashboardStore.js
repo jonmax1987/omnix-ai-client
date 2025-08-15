@@ -254,40 +254,50 @@ const useDashboardStore = create()(
           });
 
           try {
-            // Simulate API call - replace with actual API integration
-            const mockMetrics = {
-              revenue: {
-                current: 125430.50,
-                previous: 118250.30,
-                change: 6.1,
-                trend: 'up'
-              },
-              orders: {
-                current: 1247,
-                previous: 1134,
-                change: 10.0,
-                trend: 'up'
-              },
-              inventory: {
-                totalValue: 2450000,
-                totalItems: 15420,
-                lowStockItems: 45,
-                outOfStockItems: 12
-              },
-              alerts: {
-                critical: 3,
-                warning: 12,
-                info: 8,
-                total: 23
-              }
-            };
-
-            await new Promise(resolve => setTimeout(resolve, 800)); // Simulate network delay
-            get().setMetrics(mockMetrics);
+            // Import API service
+            const { analyticsAPI } = await import('../services/api.js');
+            
+            // Fetch dashboard summary from backend
+            const dashboardData = await analyticsAPI.getDashboardMetrics();
+            
+            // Use transformed data from API layer
+            get().setMetrics(dashboardData);
           } catch (error) {
+            console.error('Failed to fetch dashboard metrics:', error);
             set((state) => {
               state.errors.metrics = error.message || 'Failed to fetch metrics';
             });
+            
+            // Fallback to mock data in development
+            if (process.env.NODE_ENV === 'development') {
+              const mockMetrics = {
+                revenue: {
+                  current: 125430.50,
+                  previous: 118250.30,
+                  change: 6.1,
+                  trend: 'up'
+                },
+                orders: {
+                  current: 1247,
+                  previous: 1134,
+                  change: 10.0,
+                  trend: 'up'
+                },
+                inventory: {
+                  totalValue: 2450000,
+                  totalItems: 15420,
+                  lowStockItems: 45,
+                  outOfStockItems: 12
+                },
+                alerts: {
+                  critical: 3,
+                  warning: 12,
+                  info: 8,
+                  total: 23
+                }
+              };
+              get().setMetrics(mockMetrics);
+            }
           } finally {
             set((state) => {
               state.loading.metrics = false;
@@ -299,24 +309,39 @@ const useDashboardStore = create()(
           get().setChartLoading(chartKey, true);
 
           try {
-            // Simulate API call - replace with actual API integration
-            let mockData = [];
+            const { analyticsAPI } = await import('../services/api.js');
+            let chartData = [];
             
             switch (chartKey) {
               case 'revenue':
-                mockData = Array.from({ length: 30 }, (_, i) => ({
-                  date: new Date(Date.now() - (29 - i) * 24 * 60 * 60 * 1000).toISOString(),
-                  value: Math.floor(Math.random() * 5000) + 3000
-                }));
+                // Try to fetch revenue data from backend
+                try {
+                  const data = await analyticsAPI.getRevenueMetrics({ timeRange });
+                  chartData = data || [];
+                } catch {
+                  // Fallback to mock data
+                  chartData = Array.from({ length: 30 }, (_, i) => ({
+                    date: new Date(Date.now() - (29 - i) * 24 * 60 * 60 * 1000).toISOString(),
+                    value: Math.floor(Math.random() * 5000) + 3000
+                  }));
+                }
                 break;
               case 'inventory':
-                mockData = Array.from({ length: 12 }, (_, i) => ({
-                  month: new Date(2024, i, 1).toLocaleDateString('en-US', { month: 'short' }),
-                  value: Math.floor(Math.random() * 500000) + 2000000
-                }));
+                // Try to fetch inventory graph from backend
+                try {
+                  const data = await analyticsAPI.getInventoryGraph({ timeRange });
+                  chartData = data || [];
+                } catch {
+                  // Fallback to mock data
+                  chartData = Array.from({ length: 12 }, (_, i) => ({
+                    month: new Date(2024, i, 1).toLocaleDateString('en-US', { month: 'short' }),
+                    value: Math.floor(Math.random() * 500000) + 2000000
+                  }));
+                }
                 break;
               case 'topProducts':
-                mockData = [
+                // Mock data for now - backend doesn't have this endpoint yet
+                chartData = [
                   { name: 'Product A', sales: 1245, change: 12.5 },
                   { name: 'Product B', sales: 987, change: -3.2 },
                   { name: 'Product C', sales: 856, change: 8.7 },
@@ -325,21 +350,28 @@ const useDashboardStore = create()(
                 ];
                 break;
               case 'categoryBreakdown':
-                mockData = [
-                  { category: 'Electronics', value: 35, count: 1420 },
-                  { category: 'Clothing', value: 28, count: 1890 },
-                  { category: 'Food & Beverages', value: 22, count: 2340 },
-                  { category: 'Home & Garden', value: 10, count: 580 },
-                  { category: 'Books', value: 5, count: 320 }
-                ];
+                // Try to get category breakdown from dashboard summary
+                try {
+                  const summaryData = await analyticsAPI.getDashboardMetrics();
+                  chartData = summaryData.categoryBreakdown || [];
+                } catch {
+                  // Fallback to mock data
+                  chartData = [
+                    { category: 'Electronics', value: 35, count: 1420 },
+                    { category: 'Clothing', value: 28, count: 1890 },
+                    { category: 'Food & Beverages', value: 22, count: 2340 },
+                    { category: 'Home & Garden', value: 10, count: 580 },
+                    { category: 'Books', value: 5, count: 320 }
+                  ];
+                }
                 break;
               default:
-                mockData = [];
+                chartData = [];
             }
 
-            await new Promise(resolve => setTimeout(resolve, 600)); // Simulate network delay
-            get().setChartData(chartKey, mockData, timeRange);
+            get().setChartData(chartKey, chartData, timeRange);
           } catch (error) {
+            console.error(`Failed to fetch chart data for ${chartKey}:`, error);
             set((state) => {
               state.errors.charts = error.message || 'Failed to fetch chart data';
               state.charts[chartKey].loading = false;
@@ -355,7 +387,8 @@ const useDashboardStore = create()(
           });
 
           try {
-            await Promise.all([
+            // Fetch metrics and chart data in parallel
+            await Promise.allSettled([
               fetchMetrics(),
               fetchChartData('revenue'),
               fetchChartData('inventory'),
