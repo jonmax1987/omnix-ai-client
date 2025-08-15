@@ -5,6 +5,7 @@ import Icon from '../atoms/Icon';
 import Button from '../atoms/Button';
 import Typography from '../atoms/Typography';
 import Badge from '../atoms/Badge';
+import { useI18n } from '../../hooks/useI18n';
 
 const AlertContainer = styled(motion.div)`
   display: flex;
@@ -164,7 +165,7 @@ const getSeverityIcon = (severity) => {
   return icons[severity] || icons.info;
 };
 
-const formatTimestamp = (timestamp) => {
+const formatTimestamp = (timestamp, t) => {
   if (!timestamp) return null;
   
   const now = new Date();
@@ -174,10 +175,10 @@ const formatTimestamp = (timestamp) => {
   const diffHours = Math.floor(diffMs / 3600000);
   const diffDays = Math.floor(diffMs / 86400000);
   
-  if (diffMins < 1) return 'Just now';
-  if (diffMins < 60) return `${diffMins}m ago`;
-  if (diffHours < 24) return `${diffHours}h ago`;
-  if (diffDays < 7) return `${diffDays}d ago`;
+  if (diffMins < 1) return t('common.justNow');
+  if (diffMins < 60) return `${diffMins}${t('common.minutesAgoShort')}`;
+  if (diffHours < 24) return `${diffHours}${t('common.hoursAgoShort')}`;
+  if (diffDays < 7) return `${diffDays}${t('common.daysAgoShort')}`;
   
   return alertTime.toLocaleDateString();
 };
@@ -198,6 +199,7 @@ const AlertCard = ({
   className,
   ...props
 }) => {
+  const { t } = useI18n();
   const [isVisible, setIsVisible] = useState(true);
 
   const handleDismiss = () => {
@@ -289,7 +291,7 @@ const AlertCard = ({
                   <AlertTimestamp>
                     <Icon name="clock" size={14} />
                     <Typography variant="caption" color="secondary">
-                      {formatTimestamp(timestamp)}
+                      {formatTimestamp(timestamp, t)}
                     </Typography>
                   </AlertTimestamp>
                 )}

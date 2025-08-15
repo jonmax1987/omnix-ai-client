@@ -6,6 +6,7 @@ import Button from '../components/atoms/Button';
 import Icon from '../components/atoms/Icon';
 import Badge from '../components/atoms/Badge';
 import AlertCenter from '../components/organisms/AlertCenter';
+import { useI18n } from '../hooks/useI18n';
 
 const AlertsContainer = styled(motion.div)`
   padding: ${props => props.theme.spacing[6]};
@@ -72,6 +73,7 @@ const AlertsContent = styled.div`
 `;
 
 const Alerts = () => {
+  const { t } = useI18n();
   const [loading, setLoading] = useState(false);
 
   // Mock alerts data
@@ -79,9 +81,9 @@ const Alerts = () => {
     {
       id: 'ALT-001',
       severity: 'error',
-      title: 'Critical Stock Level',
-      message: 'iPhone 14 Pro has only 2 units remaining. Immediate restocking required.',
-      category: 'Inventory',
+      title: t('alerts.alertTitles.criticalStockLevel'),
+      message: t('alerts.alertMessages.criticalStockLevel'),
+      category: t('alerts.categories.inventory'),
       timestamp: new Date(Date.now() - 10 * 60 * 1000),
       read: false,
       archived: false
@@ -89,9 +91,9 @@ const Alerts = () => {
     {
       id: 'ALT-002',
       severity: 'error',
-      title: 'Product Out of Stock',
-      message: 'Sony WH-1000XM4 is completely out of stock. Customer orders are pending.',
-      category: 'Inventory',
+      title: t('alerts.alertTitles.productOutOfStock'),
+      message: t('alerts.alertMessages.productOutOfStock'),
+      category: t('alerts.categories.inventory'),
       timestamp: new Date(Date.now() - 25 * 60 * 1000),
       read: false,
       archived: false
@@ -99,9 +101,9 @@ const Alerts = () => {
     {
       id: 'ALT-003',
       severity: 'warning',
-      title: 'Supplier Delay Notification',
-      message: 'Samsung Galaxy S23 shipment has been delayed by 3 days due to logistics issues.',
-      category: 'Supply Chain',
+      title: t('alerts.alertTitles.supplierDelay'),
+      message: t('alerts.alertMessages.supplierDelay'),
+      category: t('alerts.categories.supplyChain'),
       timestamp: new Date(Date.now() - 45 * 60 * 1000),
       read: false,
       archived: false
@@ -109,9 +111,9 @@ const Alerts = () => {
     {
       id: 'ALT-004',
       severity: 'warning',
-      title: 'Reorder Point Reached',
-      message: 'MacBook Air M2 stock has reached the reorder point. Consider placing a new order.',
-      category: 'Reorder',
+      title: t('alerts.alertTitles.reorderPoint'),
+      message: t('alerts.alertMessages.reorderPoint'),
+      category: t('alerts.categories.reorder'),
       timestamp: new Date(Date.now() - 1.5 * 60 * 60 * 1000),
       read: true,
       archived: false
@@ -119,9 +121,9 @@ const Alerts = () => {
     {
       id: 'ALT-005',
       severity: 'warning',
-      title: 'Price Change Alert',
-      message: 'Supplier has increased prices for Nike Air Max 90 by 8%. Review pricing strategy.',
-      category: 'Pricing',
+      title: t('alerts.alertTitles.priceChange'),
+      message: t('alerts.alertMessages.priceChange'),
+      category: t('alerts.categories.pricing'),
       timestamp: new Date(Date.now() - 2 * 60 * 60 * 1000),
       read: true,
       archived: false
@@ -129,9 +131,9 @@ const Alerts = () => {
     {
       id: 'ALT-006',
       severity: 'info',
-      title: 'Bulk Order Processed',
-      message: 'Successfully processed bulk order of 50 iPhone 14 Pro units from supplier.',
-      category: 'Orders',
+      title: t('alerts.alertTitles.bulkOrderProcessed'),
+      message: t('alerts.alertMessages.bulkOrderProcessed'),
+      category: t('alerts.categories.orders'),
       timestamp: new Date(Date.now() - 3 * 60 * 60 * 1000),
       read: true,
       archived: false
@@ -139,9 +141,9 @@ const Alerts = () => {
     {
       id: 'ALT-007',
       severity: 'info',
-      title: 'Inventory Report Generated',
-      message: 'Monthly inventory report has been generated and is ready for review.',
-      category: 'Reports',
+      title: t('alerts.alertTitles.inventoryReport'),
+      message: t('alerts.alertMessages.inventoryReport'),
+      category: t('alerts.categories.reports'),
       timestamp: new Date(Date.now() - 4 * 60 * 60 * 1000),
       read: true,
       archived: false
@@ -149,9 +151,9 @@ const Alerts = () => {
     {
       id: 'ALT-008',
       severity: 'success',
-      title: 'Stock Adjustment Completed',
-      message: 'Stock levels for Samsung Galaxy S23 have been successfully adjusted.',
-      category: 'Inventory',
+      title: t('alerts.alertTitles.stockAdjustment'),
+      message: t('alerts.alertMessages.stockAdjustment'),
+      category: t('alerts.categories.inventory'),
       timestamp: new Date(Date.now() - 6 * 60 * 60 * 1000),
       read: true,
       archived: false
@@ -159,9 +161,9 @@ const Alerts = () => {
     {
       id: 'ALT-009',
       severity: 'info',
-      title: 'New Product Added',
-      message: 'Successfully added AirPods Pro 2nd Gen to the product catalog.',
-      category: 'Products',
+      title: t('alerts.alertTitles.newProduct'),
+      message: t('alerts.alertMessages.newProduct'),
+      category: t('alerts.categories.products'),
       timestamp: new Date(Date.now() - 8 * 60 * 60 * 1000),
       read: true,
       archived: false
@@ -169,9 +171,9 @@ const Alerts = () => {
     {
       id: 'ALT-010',
       severity: 'warning',
-      title: 'Storage Temperature Alert',
-      message: 'Warehouse Section B temperature has exceeded optimal range for electronics.',
-      category: 'Warehouse',
+      title: t('alerts.alertTitles.temperatureAlert'),
+      message: t('alerts.alertMessages.temperatureAlert'),
+      category: t('alerts.categories.warehouse'),
       timestamp: new Date(Date.now() - 12 * 60 * 60 * 1000),
       read: true,
       archived: false
@@ -266,16 +268,16 @@ const Alerts = () => {
         <HeaderLeft>
           <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
             <Typography variant="h3" weight="bold" color="primary">
-              Alerts
+              {t('alerts.title')}
             </Typography>
             {stats.unread > 0 && (
               <Badge variant="error" size="sm">
-                {stats.unread} unread
+                {stats.unread} {t('alerts.unread')}
               </Badge>
             )}
           </div>
           <Typography variant="body1" color="secondary">
-            Monitor and manage system alerts, notifications, and warnings.
+            {t('alerts.description')}
           </Typography>
         </HeaderLeft>
         
@@ -283,19 +285,19 @@ const Alerts = () => {
           <div style={{ display: 'flex', alignItems: 'center', gap: '16px' }}>
             <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
               <Typography variant="caption" color="tertiary">
-                {stats.total} total
+                {stats.total} {t('alerts.total')}
               </Typography>
               <Typography variant="caption" color="tertiary">
                 •
               </Typography>
               <Typography variant="caption" color="error">
-                {stats.critical} critical
+                {stats.critical} {t('alerts.critical')}
               </Typography>
               <Typography variant="caption" color="tertiary">
                 •
               </Typography>
               <Typography variant="caption" color="warning">
-                {stats.warning} warnings
+                {stats.warning} {t('alerts.warnings')}
               </Typography>
             </div>
           </div>
@@ -307,7 +309,7 @@ const Alerts = () => {
               onClick={handleCreateRule}
             >
               <Icon name="plus" size={16} />
-              Create Rule
+              {t('alerts.createRule')}
             </Button>
             <Button
               variant="secondary"
@@ -315,7 +317,7 @@ const Alerts = () => {
               onClick={handleSettings}
             >
               <Icon name="settings" size={16} />
-              Settings
+              {t('alerts.settings')}
             </Button>
             <Button
               variant="secondary"
@@ -323,7 +325,7 @@ const Alerts = () => {
               onClick={handleExport}
             >
               <Icon name="download" size={16} />
-              Export
+              {t('common.export')}
             </Button>
           </QuickActions>
         </HeaderRight>

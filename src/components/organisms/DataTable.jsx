@@ -9,6 +9,7 @@ import Badge from '../atoms/Badge';
 import TableRow from '../molecules/TableRow';
 import SearchBar from '../molecules/SearchBar';
 import { exportToCSV, exportToPDF } from '../../utils/exportUtils';
+import { useI18n } from '../../hooks/useI18n';
 
 const TableContainer = styled.div`
   display: flex;
@@ -366,6 +367,7 @@ const DataTable = ({
   className,
   ...props
 }) => {
+  const { t } = useI18n();
   const [searchQuery, setSearchQuery] = useState('');
   const [sortConfig, setSortConfig] = useState({ key: null, direction: 'asc' });
   const [selectedRows, setSelectedRows] = useState(new Set());
@@ -601,7 +603,7 @@ const DataTable = ({
               onClick={() => setShowFilters(!showFilters)}
             >
               <Icon name="filter" size={16} />
-              Filters
+              {t('common.filters')}
               {activeFilters.size > 0 && (
                 <Badge variant="primary" size="sm">
                   {activeFilters.size}
@@ -619,7 +621,7 @@ const DataTable = ({
                 className="export-button"
               >
                 <Icon name="download" size={16} />
-                Export
+                {t('common.export')}
                 <Icon name="chevronDown" size={14} />
               </ExportButton>
 
@@ -684,7 +686,7 @@ const DataTable = ({
             {activeFilters.size > 0 && (
               <FilterChip onClick={clearFilters}>
                 <Icon name="close" size={14} />
-                Clear all
+                {t('common.clearAll')}
               </FilterChip>
             )}
           </FiltersContainer>
@@ -831,7 +833,7 @@ const DataTable = ({
       {pagination && totalItems > 0 && (
         <TableFooter className="table-footer">
           <PaginationInfo>
-            <span>Showing {startItem}-{endItem} of {totalItems} items</span>
+            <span>{t('common.pagination.showing')} {startItem}-{endItem} {t('common.pagination.of')} {totalItems} {t('common.pagination.items')}</span>
             <PageSizeSelect
               value={pageSize}
               onChange={(e) => {
@@ -840,7 +842,7 @@ const DataTable = ({
               }}
             >
               {pageSizeOptions.map(size => (
-                <option key={size} value={size}>{size} per page</option>
+                <option key={size} value={size}>{size} {t('common.pagination.perPage')}</option>
               ))}
             </PageSizeSelect>
           </PaginationInfo>
@@ -852,7 +854,7 @@ const DataTable = ({
               disabled={currentPage === 1}
               onClick={() => setCurrentPage(1)}
             >
-              First
+              {t('common.first')}
             </Button>
             <Button
               variant="ghost"
@@ -863,7 +865,7 @@ const DataTable = ({
               <Icon name="chevronLeft" size={16} />
             </Button>
             <Typography variant="body2" color="secondary">
-              Page {currentPage} of {totalPages}
+              {t('common.pagination.page')} {currentPage} {t('common.pagination.of')} {totalPages}
             </Typography>
             <Button
               variant="ghost"
@@ -879,7 +881,7 @@ const DataTable = ({
               disabled={currentPage === totalPages}
               onClick={() => setCurrentPage(totalPages)}
             >
-              Last
+              {t('common.last')}
             </Button>
           </PaginationControls>
         </TableFooter>

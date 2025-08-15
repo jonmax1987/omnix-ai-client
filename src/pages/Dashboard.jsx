@@ -13,6 +13,7 @@ import PullToRefresh from '../components/molecules/PullToRefresh';
 import MobileCarousel from '../components/molecules/MobileCarousel';
 import { exportDashboardReport } from '../utils/exportUtils';
 import { isTouchDevice } from '../utils/mobileGestures';
+import { useI18n } from '../hooks/useI18n';
 
 const DashboardContainer = styled(motion.div)`
   padding: ${props => props.theme.spacing[6]};
@@ -134,14 +135,15 @@ const MockChart = styled.div`
 `;
 
 const Dashboard = () => {
+  const { t } = useI18n();
   const [timeRange, setTimeRange] = useState('24h');
   const [loading, setLoading] = useState(false);
   const [lastUpdated, setLastUpdated] = useState(new Date().toLocaleTimeString());
 
-  // Mock data
+  // Mock data with translations
   const metrics = [
     {
-      title: 'Total Revenue',
+      title: t('dashboard.totalRevenue'),
       value: 245680,
       valueFormat: 'currency',
       change: 12.5,
@@ -152,16 +154,16 @@ const Dashboard = () => {
       progress: 98.3
     },
     {
-      title: 'Products in Stock',
+      title: t('dashboard.totalItems'),
       value: 1247,
       change: -3.2,
       trend: 'down',
       icon: 'products',
       iconColor: 'primary',
-      badge: 'Live'
+      badge: t('dashboard.badges.live')
     },
     {
-      title: 'Low Stock Alerts',
+      title: t('dashboard.lowStock'),
       value: 23,
       change: 8.5,
       trend: 'up',
@@ -170,7 +172,7 @@ const Dashboard = () => {
       variant: 'compact'
     },
     {
-      title: 'Orders Today',
+      title: t('dashboard.totalOrders'),
       value: 89,
       change: 15.3,
       trend: 'up',
@@ -184,27 +186,27 @@ const Dashboard = () => {
     {
       id: '1',
       severity: 'error',
-      title: 'Critical Stock Level',
-      message: 'iPhone 14 Pro has only 2 units remaining',
-      category: 'Inventory',
+      title: t('dashboard.alertTypes.criticalStockLevel'),
+      message: t('dashboard.alertMessages.criticalStock'),
+      category: t('dashboard.alertCategories.inventory'),
       timestamp: new Date(Date.now() - 10 * 60 * 1000),
       read: false
     },
     {
       id: '2',
       severity: 'warning',
-      title: 'Supplier Delay',
-      message: 'Samsung Galaxy S23 shipment delayed by 3 days',
-      category: 'Supply Chain',
+      title: t('dashboard.alertTypes.supplierDelay'),
+      message: t('dashboard.alertMessages.supplierDelay'),
+      category: t('dashboard.alertCategories.supplyChain'),
       timestamp: new Date(Date.now() - 45 * 60 * 1000),
       read: false
     },
     {
       id: '3',
       severity: 'info',
-      title: 'Price Update',
-      message: 'Laptop prices updated for Q4 2024',
-      category: 'Pricing',
+      title: t('dashboard.alertTypes.priceUpdate'),
+      message: t('dashboard.alertMessages.priceUpdate'),
+      category: t('dashboard.alertCategories.pricing'),
       timestamp: new Date(Date.now() - 2 * 60 * 60 * 1000),
       read: true
     }
@@ -232,7 +234,7 @@ const Dashboard = () => {
     };
     
     exportDashboardReport(dashboardData, `dashboard-report-${new Date().toISOString().split('T')[0]}.pdf`, {
-      title: 'OMNIX AI Dashboard Report',
+      title: t('common.dashboardReportTitle'),
       includeMetrics: true,
       includeAlerts: true,
       includeTimestamp: true
@@ -246,10 +248,10 @@ const Dashboard = () => {
   const chartComponents = [
     <ChartContainer
       key="inventory-trend"
-      title="Inventory Value Trend"
-      description="Total inventory value over time"
+      title={t('dashboard.charts.inventoryValueTrend')}
+      description={t('dashboard.charts.inventoryValueTrendDesc')}
       type="line"
-      badge="Live"
+      badge={t('dashboard.badges.live')}
       showTimeRange
       timeRange={timeRange}
       onTimeRangeChange={handleTimeRangeChange}
@@ -261,38 +263,38 @@ const Dashboard = () => {
     >
       <MockChart color="#3B82F6">
         <Typography variant="h6" color="primary">
-          Line Chart Placeholder
+          {t('dashboard.charts.lineChartPlaceholder')}
         </Typography>
       </MockChart>
     </ChartContainer>,
     
     <ChartContainer
       key="category-breakdown"
-      title="Category Breakdown"
-      description="Inventory distribution by category"
+      title={t('dashboard.charts.categoryBreakdown')}
+      description={t('dashboard.charts.categoryBreakdownDesc')}
       type="pie"
       refreshable
       onRefresh={handleRefresh}
       showLegend
       legend={[
-        { id: 'electronics', label: 'Electronics', color: '#3B82F6' },
-        { id: 'clothing', label: 'Clothing', color: '#10B981' },
-        { id: 'food', label: 'Food', color: '#F59E0B' },
-        { id: 'books', label: 'Books', color: '#EF4444' }
+        { id: 'electronics', label: t('dashboard.categories.electronics'), color: '#3B82F6' },
+        { id: 'clothing', label: t('dashboard.categories.clothing'), color: '#10B981' },
+        { id: 'food', label: t('dashboard.categories.food'), color: '#F59E0B' },
+        { id: 'books', label: t('dashboard.categories.books'), color: '#EF4444' }
       ]}
       exportable
     >
       <MockChart color="#10B981">
         <Typography variant="h6" color="success">
-          Pie Chart Placeholder
+          {t('dashboard.charts.pieChartPlaceholder')}
         </Typography>
       </MockChart>
     </ChartContainer>,
     
     <ChartContainer
       key="stock-levels"
-      title="Stock Levels by Location"
-      description="Current stock distribution"
+      title={t('dashboard.charts.stockLevelsByLocation')}
+      description={t('dashboard.charts.stockLevelsByLocationDesc')}
       type="bar"
       refreshable
       onRefresh={handleRefresh}
@@ -301,17 +303,17 @@ const Dashboard = () => {
     >
       <MockChart color="#F59E0B">
         <Typography variant="h6" color="warning">
-          Bar Chart Placeholder
+          {t('dashboard.charts.barChartPlaceholder')}
         </Typography>
       </MockChart>
     </ChartContainer>,
     
     <ChartContainer
       key="demand-forecast"
-      title="Demand Forecast"
-      description="AI-powered demand predictions"
+      title={t('dashboard.charts.demandForecast')}
+      description={t('dashboard.charts.demandForecastDesc')}
       type="area"
-      badge="AI"
+      badge={t('dashboard.badges.ai')}
       showTimeRange
       timeRange={timeRange}
       onTimeRangeChange={handleTimeRangeChange}
@@ -320,14 +322,14 @@ const Dashboard = () => {
       exportable
       showLegend
       legend={[
-        { id: 'actual', label: 'Actual Demand', color: '#8B5CF6' },
-        { id: 'forecast', label: 'Forecasted', color: '#06B6D4' },
-        { id: 'confidence', label: 'Confidence Range', color: '#84CC16' }
+        { id: 'actual', label: t('dashboard.chartLegends.actualDemand'), color: '#8B5CF6' },
+        { id: 'forecast', label: t('dashboard.chartLegends.forecasted'), color: '#06B6D4' },
+        { id: 'confidence', label: t('dashboard.chartLegends.confidenceRange'), color: '#84CC16' }
       ]}
     >
       <MockChart color="#8B5CF6">
         <Typography variant="h6" color="brand">
-          Area Chart Placeholder
+          {t('dashboard.charts.areaChartPlaceholder')}
         </Typography>
       </MockChart>
     </ChartContainer>
@@ -342,16 +344,16 @@ const Dashboard = () => {
       <DashboardHeader>
         <HeaderLeft>
           <Typography variant="h3" weight="bold" color="primary">
-            Dashboard
+            {t('dashboard.title')}
           </Typography>
           <Typography variant="body1" color="secondary">
-            Welcome back! Here's what's happening with your inventory.
+            {t('dashboard.welcomeMessage')}
           </Typography>
         </HeaderLeft>
         
         <HeaderRight>
           <Typography variant="caption" color="tertiary">
-            Last updated: {lastUpdated}
+            {t('common.lastUpdated')}: {lastUpdated}
           </Typography>
           
           <QuickActions>
@@ -362,7 +364,7 @@ const Dashboard = () => {
               loading={loading}
             >
               <Icon name="refresh" size={16} />
-              Refresh
+              {t('common.refresh')}
             </Button>
             <Button
               variant="secondary"
@@ -370,7 +372,7 @@ const Dashboard = () => {
               onClick={handleExport}
             >
               <Icon name="download" size={16} />
-              Export
+              {t('common.export')}
             </Button>
           </QuickActions>
         </HeaderRight>
@@ -390,7 +392,7 @@ const Dashboard = () => {
               {...metric}
               clickable
               onClick={() => console.log('Metric clicked:', metric.title)}
-              lastUpdated="2 min ago"
+              lastUpdated={`2 ${t('dashboard.minutesAgo')}`}
             />
           </GridItem>
         ))}
@@ -400,18 +402,18 @@ const Dashboard = () => {
       <AlertsSection>
         <AlertsHeader>
           <Typography variant="h5" weight="semibold">
-            Recent Alerts
+            {t('alerts.title')}
           </Typography>
           <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
             <Badge variant="error" size="sm">
-              {recentAlerts.filter(a => !a.read).length} new
+              {recentAlerts.filter(a => !a.read).length} {t('dashboard.newBadge')}
             </Badge>
             <Button
               variant="ghost"
               size="sm"
               onClick={() => console.log('View all alerts')}
             >
-              View All
+              {t('common.viewAll')}
               <Icon name="chevronRight" size={14} />
             </Button>
           </div>
@@ -440,10 +442,10 @@ const Dashboard = () => {
             <Icon name="checkCircle" size={48} color="#22C55E" />
             <div>
               <Typography variant="h6" weight="medium">
-                All Clear!
+                {t('dashboard.allGood')}
               </Typography>
               <Typography variant="body2" color="secondary">
-                No alerts to display at the moment.
+                {t('dashboard.noAlerts')}
               </Typography>
             </div>
           </EmptyAlerts>
@@ -457,8 +459,8 @@ const Dashboard = () => {
       >
         <GridItem span={3}>
           <ChartContainer
-            title="Inventory Value Over Time"
-            description="Total inventory value trend"
+            title={t('dashboard.charts.inventoryValueOverTime')}
+            description={t('dashboard.charts.inventoryValueOverTimeDesc')}
             type="line"
             showTimeRange
             timeRange={timeRange}
@@ -469,15 +471,15 @@ const Dashboard = () => {
             fullScreenable
             showLegend
             legend={[
-              { id: 'current', label: 'Current Value', color: '#3B82F6' },
-              { id: 'projected', label: 'Projected', color: '#10B981' }
+              { id: 'current', label: t('dashboard.chartLegends.currentValue'), color: '#3B82F6' },
+              { id: 'projected', label: t('dashboard.chartLegends.projected'), color: '#10B981' }
             ]}
             lastUpdated={lastUpdated}
             loading={loading}
           >
             <MockChart color="#3B82F6">
               <Typography variant="h6" color="primary">
-                Line Chart Placeholder
+                {t('dashboard.charts.lineChartPlaceholder')}
               </Typography>
             </MockChart>
           </ChartContainer>
@@ -485,20 +487,20 @@ const Dashboard = () => {
 
         <GridItem span={1}>
           <ChartContainer
-            title="Category Breakdown"
+            title={t('dashboard.charts.categoryBreakdown')}
             type="pie"
             showLegend
             legend={[
-              { id: 'electronics', label: 'Electronics', color: '#3B82F6' },
-              { id: 'clothing', label: 'Clothing', color: '#10B981' },
-              { id: 'food', label: 'Food', color: '#F59E0B' },
-              { id: 'books', label: 'Books', color: '#EF4444' }
+              { id: 'electronics', label: t('dashboard.categories.electronics'), color: '#3B82F6' },
+              { id: 'clothing', label: t('dashboard.categories.clothing'), color: '#10B981' },
+              { id: 'food', label: t('dashboard.categories.food'), color: '#F59E0B' },
+              { id: 'books', label: t('dashboard.categories.books'), color: '#EF4444' }
             ]}
             exportable
           >
             <MockChart color="#10B981">
               <Typography variant="h6" color="success">
-                Pie Chart Placeholder
+                {t('dashboard.charts.pieChartPlaceholder')}
               </Typography>
             </MockChart>
           </ChartContainer>
@@ -506,8 +508,8 @@ const Dashboard = () => {
 
         <GridItem span={2}>
           <ChartContainer
-            title="Stock Levels by Location"
-            description="Current stock distribution"
+            title={t('dashboard.charts.stockLevelsByLocation')}
+            description={t('dashboard.charts.stockLevelsByLocationDesc')}
             type="bar"
             refreshable
             onRefresh={handleRefresh}
@@ -516,7 +518,7 @@ const Dashboard = () => {
           >
             <MockChart color="#F59E0B">
               <Typography variant="h6" color="warning">
-                Bar Chart Placeholder
+                {t('dashboard.charts.barChartPlaceholder')}
               </Typography>
             </MockChart>
           </ChartContainer>
@@ -524,10 +526,10 @@ const Dashboard = () => {
 
         <GridItem span={2}>
           <ChartContainer
-            title="Demand Forecast"
-            description="AI-powered demand predictions"
+            title={t('dashboard.charts.demandForecast')}
+            description={t('dashboard.charts.demandForecastDesc')}
             type="area"
-            badge="AI"
+            badge={t('dashboard.badges.ai')}
             showTimeRange
             timeRange={timeRange}
             onTimeRangeChange={handleTimeRangeChange}
@@ -536,14 +538,14 @@ const Dashboard = () => {
             exportable
             showLegend
             legend={[
-              { id: 'actual', label: 'Actual Demand', color: '#8B5CF6' },
-              { id: 'forecast', label: 'Forecasted', color: '#06B6D4' },
-              { id: 'confidence', label: 'Confidence Range', color: '#84CC16' }
+              { id: 'actual', label: t('dashboard.chartLegends.actualDemand'), color: '#8B5CF6' },
+              { id: 'forecast', label: t('dashboard.chartLegends.forecasted'), color: '#06B6D4' },
+              { id: 'confidence', label: t('dashboard.chartLegends.confidenceRange'), color: '#84CC16' }
             ]}
           >
             <MockChart color="#8B5CF6">
               <Typography variant="h6" color="brand">
-                Area Chart Placeholder
+                {t('dashboard.charts.areaChartPlaceholder')}
               </Typography>
             </MockChart>
           </ChartContainer>
@@ -558,8 +560,8 @@ const Dashboard = () => {
       <PullToRefresh
         onRefresh={handleRefresh}
         refreshing={loading}
-        pullingText="Pull to refresh dashboard"
-        refreshingText="Refreshing dashboard data..."
+        pullingText={t('dashboard.pullToRefresh')}
+        refreshingText={t('dashboard.refreshingData')}
       >
         {dashboardContent}
         
@@ -570,7 +572,7 @@ const Dashboard = () => {
           display: window.innerWidth <= 768 ? 'block' : 'none'
         }}>
           <Typography variant="h5" weight="semibold" style={{ marginBottom: '16px' }}>
-            Charts
+            {t('dashboard.chartsSection')}
           </Typography>
           <MobileCarousel
             showIndicators
@@ -591,8 +593,8 @@ const Dashboard = () => {
     <PullToRefresh
       onRefresh={handleRefresh}
       refreshing={loading}
-      pullingText="Pull to refresh dashboard"
-      refreshingText="Refreshing dashboard data..."
+      pullingText={t('dashboard.pullToRefresh')}
+      refreshingText={t('dashboard.refreshingData')}
     >
       {dashboardContent}
     </PullToRefresh>

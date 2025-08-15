@@ -3,6 +3,7 @@ import { motion } from 'framer-motion';
 import Icon from '../atoms/Icon';
 import Typography from '../atoms/Typography';
 import Badge from '../atoms/Badge';
+import { useI18n } from '../../hooks/useI18n';
 
 const CardContainer = styled(motion.div).withConfig({
   shouldForwardProp: (prop) => !['variant', 'clickable'].includes(prop),
@@ -267,6 +268,7 @@ const MetricCard = ({
   children,
   ...props
 }) => {
+  const { t } = useI18n();
   const hasChange = change !== undefined && change !== null;
   const hasProgress = progress !== undefined && progress !== null;
   const formattedValue = formatValue(value, valueFormat);
@@ -345,7 +347,7 @@ const MetricCard = ({
             variant="caption" 
             color={variant === 'featured' ? 'inverse' : 'tertiary'}
           >
-            vs last period
+            {t('common.vsLastPeriod')}
           </Typography>
         </MetricChange>
       )}

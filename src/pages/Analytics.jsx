@@ -8,6 +8,7 @@ import Badge from '../components/atoms/Badge';
 import DashboardGrid, { GridItem } from '../components/organisms/DashboardGrid';
 import MetricCard from '../components/molecules/MetricCard';
 import ChartContainer from '../components/organisms/ChartContainer';
+import { useI18n } from '../hooks/useI18n';
 
 const AnalyticsContainer = styled(motion.div)`
   padding: ${props => props.theme.spacing[6]};
@@ -110,6 +111,7 @@ const MockChart = styled.div`
 `;
 
 const Analytics = () => {
+  const { t } = useI18n();
   const [loading, setLoading] = useState(false);
   const [timeRange, setTimeRange] = useState('30d');
   const [forecastPeriod, setForecastPeriod] = useState('90d');
@@ -117,17 +119,17 @@ const Analytics = () => {
   // Mock analytics metrics
   const metrics = [
     {
-      title: 'Forecast Accuracy',
+      title: t('analytics.metrics.forecastAccuracy'),
       value: 87.3,
       valueFormat: 'percentage',
       change: 2.1,
       trend: 'up',
       icon: 'trending',
       iconColor: 'success',
-      badge: 'AI'
+      badge: t('analytics.badges.ai')
     },
     {
-      title: 'Demand Volatility',
+      title: t('analytics.metrics.demandVolatility'),
       value: 14.2,
       valueFormat: 'percentage',
       change: -3.5,
@@ -136,7 +138,7 @@ const Analytics = () => {
       iconColor: 'primary'
     },
     {
-      title: 'Stockout Risk',
+      title: t('analytics.metrics.stockoutRisk'),
       value: 8.7,
       valueFormat: 'percentage',
       change: 1.2,
@@ -145,7 +147,7 @@ const Analytics = () => {
       iconColor: 'warning'
     },
     {
-      title: 'Inventory Turnover',
+      title: t('analytics.metrics.inventoryTurnover'),
       value: 12.4,
       change: 8.3,
       trend: 'up',
@@ -182,39 +184,39 @@ const Analytics = () => {
         <HeaderLeft>
           <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
             <Typography variant="h3" weight="bold" color="primary">
-              Analytics & Forecasting
+              {t('analytics.title')}
             </Typography>
             <Badge variant="info" size="sm">
               <Icon name="trending" size={12} />
-              AI-Powered
+              {t('analytics.aiPowered')}
             </Badge>
           </div>
           <Typography variant="body1" color="secondary">
-            Advanced analytics and demand forecasting for data-driven decisions.
+            {t('analytics.description')}
           </Typography>
         </HeaderLeft>
         
         <HeaderRight>
           <Typography variant="caption" color="tertiary">
-            Updated 5 minutes ago
+            {t('common.updatedMinutesAgo')}
           </Typography>
           
           <QuickActions>
             <Button variant="secondary" size="sm" onClick={handleScheduleReport}>
               <Icon name="calendar" size={16} />
-              Schedule
+              {t('analytics.schedule')}
             </Button>
             <Button variant="secondary" size="sm" onClick={handleReportSettings}>
               <Icon name="settings" size={16} />
-              Settings
+              {t('analytics.settings')}
             </Button>
             <Button variant="secondary" size="sm" onClick={handleExport}>
               <Icon name="download" size={16} />
-              Export
+              {t('common.export')}
             </Button>
             <Button variant="primary" size="sm" onClick={handleRefresh} loading={loading}>
               <Icon name="refresh" size={16} />
-              Refresh
+              {t('common.refresh')}
             </Button>
           </QuickActions>
         </HeaderRight>
@@ -237,11 +239,11 @@ const Analytics = () => {
       <div style={{ marginBottom: '48px' }}>
         <SectionHeader>
           <Typography variant="h5" weight="semibold">
-            Demand Forecasting
+            {t('analytics.sections.demandForecasting')}
           </Typography>
           <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
             <Typography variant="caption" color="tertiary">
-              Forecast Period:
+              {t('analytics.forecastPeriod')}
             </Typography>
             <select
               value={forecastPeriod}
@@ -253,10 +255,10 @@ const Analytics = () => {
                 fontSize: '12px'
               }}
             >
-              <option value="30d">30 days</option>
-              <option value="90d">90 days</option>
-              <option value="180d">6 months</option>
-              <option value="1y">1 year</option>
+              <option value="30d">{t('analytics.periodOptions.30d')}</option>
+              <option value="90d">{t('analytics.periodOptions.90d')}</option>
+              <option value="180d">{t('analytics.periodOptions.180d')}</option>
+              <option value="1y">{t('analytics.periodOptions.1y')}</option>
             </select>
           </div>
         </SectionHeader>
@@ -264,10 +266,10 @@ const Analytics = () => {
         <DashboardGrid columns={{ xs: 1, lg: 2 }} spacing="lg">
           <GridItem span={2}>
             <ChartContainer
-              title="Overall Demand Forecast"
-              description="AI-powered demand predictions across all product categories"
+              title={t('analytics.charts.overallDemandForecast')}
+              description={t('analytics.charts.overallDemandForecastDesc')}
               type="area"
-              badge="AI"
+              badge={t('analytics.badges.ai')}
               showTimeRange
               timeRange={timeRange}
               onTimeRangeChange={setTimeRange}
@@ -277,10 +279,10 @@ const Analytics = () => {
               fullScreenable
               showLegend
               legend={[
-                { id: 'historical', label: 'Historical Demand', color: '#3B82F6' },
-                { id: 'forecast', label: 'Forecasted Demand', color: '#8B5CF6' },
-                { id: 'upper', label: 'Upper Confidence', color: '#84CC16' },
-                { id: 'lower', label: 'Lower Confidence', color: '#F59E0B' }
+                { id: 'historical', label: t('analytics.legends.historicalDemand'), color: '#3B82F6' },
+                { id: 'forecast', label: t('analytics.legends.forecastedDemand'), color: '#8B5CF6' },
+                { id: 'upper', label: t('analytics.legends.upperConfidence'), color: '#84CC16' },
+                { id: 'lower', label: t('analytics.legends.lowerConfidence'), color: '#F59E0B' }
               ]}
             >
               <MockChart color="#8B5CF6">
@@ -293,19 +295,19 @@ const Analytics = () => {
 
           <GridItem>
             <ChartContainer
-              title="Category Breakdown"
-              description="Demand distribution by product category"
+              title={t('analytics.charts.categoryBreakdown')}
+              description={t('analytics.charts.categoryBreakdownDesc')}
               type="doughnut"
               refreshable
               onRefresh={handleRefresh}
               exportable
               showLegend
               legend={[
-                { id: 'electronics', label: 'Electronics', color: '#3B82F6' },
-                { id: 'clothing', label: 'Clothing', color: '#10B981' },
-                { id: 'food', label: 'Food & Beverages', color: '#F59E0B' },
-                { id: 'home', label: 'Home & Garden', color: '#EF4444' },
-                { id: 'books', label: 'Books', color: '#8B5CF6' }
+                { id: 'electronics', label: t('dashboard.categories.electronics'), color: '#3B82F6' },
+                { id: 'clothing', label: t('dashboard.categories.clothing'), color: '#10B981' },
+                { id: 'food', label: t('analytics.legends.foodAndBeverages'), color: '#F59E0B' },
+                { id: 'home', label: t('analytics.legends.homeAndGarden'), color: '#EF4444' },
+                { id: 'books', label: t('dashboard.categories.books'), color: '#8B5CF6' }
               ]}
             >
               <MockChart color="#10B981">
@@ -318,8 +320,8 @@ const Analytics = () => {
 
           <GridItem>
             <ChartContainer
-              title="Seasonal Trends"
-              description="Seasonal demand patterns and cycles"
+              title={t('analytics.charts.seasonalTrends')}
+              description={t('analytics.charts.seasonalTrendsDesc')}
               type="line"
               showTimeRange
               timeRange={timeRange}
@@ -342,15 +344,15 @@ const Analytics = () => {
       <div style={{ marginBottom: '48px' }}>
         <SectionHeader>
           <Typography variant="h5" weight="semibold">
-            Inventory Analytics
+            {t('analytics.sections.inventoryAnalytics')}
           </Typography>
         </SectionHeader>
 
         <DashboardGrid columns={{ xs: 1, lg: 3 }} spacing="lg">
           <GridItem>
             <ChartContainer
-              title="Inventory Value Trend"
-              description="Total inventory value over time"
+              title={t('analytics.charts.inventoryValueTrend')}
+              description={t('analytics.charts.inventoryValueTrendDesc')}
               type="line"
               showTimeRange
               timeRange={timeRange}
@@ -360,8 +362,8 @@ const Analytics = () => {
               exportable
               showLegend
               legend={[
-                { id: 'value', label: 'Inventory Value', color: '#3B82F6' },
-                { id: 'target', label: 'Target Level', color: '#22C55E' }
+                { id: 'value', label: t('analytics.legends.inventoryValue'), color: '#3B82F6' },
+                { id: 'target', label: t('analytics.legends.targetLevel'), color: '#22C55E' }
               ]}
             >
               <MockChart color="#3B82F6">
@@ -374,8 +376,8 @@ const Analytics = () => {
 
           <GridItem>
             <ChartContainer
-              title="Stock Level Distribution"
-              description="Current stock levels across all products"
+              title={t('analytics.charts.stockLevelDistribution')}
+              description={t('analytics.charts.stockLevelDistributionDesc')}
               type="bar"
               refreshable
               onRefresh={handleRefresh}
@@ -391,8 +393,8 @@ const Analytics = () => {
 
           <GridItem>
             <ChartContainer
-              title="Turnover Rate Analysis"
-              description="Inventory turnover by category"
+              title={t('analytics.charts.turnoverRateAnalysis')}
+              description={t('analytics.charts.turnoverRateAnalysisDesc')}
               type="bar"
               refreshable
               onRefresh={handleRefresh}
@@ -412,15 +414,15 @@ const Analytics = () => {
       <div style={{ marginBottom: '48px' }}>
         <SectionHeader>
           <Typography variant="h5" weight="semibold">
-            Performance Analysis
+            {t('analytics.sections.performanceAnalysis')}
           </Typography>
         </SectionHeader>
 
         <DashboardGrid columns={{ xs: 1, lg: 2 }} spacing="lg">
           <GridItem>
             <ChartContainer
-              title="Forecast Accuracy Over Time"
-              description="Historical accuracy of demand predictions"
+              title={t('analytics.charts.forecastAccuracyOverTime')}
+              description={t('analytics.charts.forecastAccuracyOverTimeDesc')}
               type="line"
               showTimeRange
               timeRange={timeRange}
@@ -428,12 +430,12 @@ const Analytics = () => {
               refreshable
               onRefresh={handleRefresh}
               exportable
-              badge="Performance"
+              badge={t('analytics.badges.performance')}
               showLegend
               legend={[
-                { id: 'accuracy', label: 'Forecast Accuracy', color: '#8B5CF6' },
-                { id: 'target', label: 'Target Accuracy', color: '#22C55E' },
-                { id: 'industry', label: 'Industry Average', color: '#94A3B8' }
+                { id: 'accuracy', label: t('analytics.legends.forecastAccuracy'), color: '#8B5CF6' },
+                { id: 'target', label: t('analytics.legends.targetAccuracy'), color: '#22C55E' },
+                { id: 'industry', label: t('analytics.legends.industryAverage'), color: '#94A3B8' }
               ]}
             >
               <MockChart color="#8B5CF6">
@@ -446,17 +448,17 @@ const Analytics = () => {
 
           <GridItem>
             <ChartContainer
-              title="Risk Analysis"
-              description="Stockout risk assessment by product category"
+              title={t('analytics.charts.riskAnalysis')}
+              description={t('analytics.charts.riskAnalysisDesc')}
               type="scatter"
               refreshable
               onRefresh={handleRefresh}
               exportable
               showLegend
               legend={[
-                { id: 'high', label: 'High Risk', color: '#EF4444' },
-                { id: 'medium', label: 'Medium Risk', color: '#F59E0B' },
-                { id: 'low', label: 'Low Risk', color: '#22C55E' }
+                { id: 'high', label: t('analytics.legends.highRisk'), color: '#EF4444' },
+                { id: 'medium', label: t('analytics.legends.mediumRisk'), color: '#F59E0B' },
+                { id: 'low', label: t('analytics.legends.lowRisk'), color: '#22C55E' }
               ]}
             >
               <MockChart color="#EF4444">
@@ -469,8 +471,8 @@ const Analytics = () => {
 
           <GridItem span={2}>
             <ChartContainer
-              title="Sales vs Forecast Comparison"
-              description="Actual sales performance compared to predictions"
+              title={t('analytics.charts.salesVsForecast')}
+              description={t('analytics.charts.salesVsForecastDesc')}
               type="bar"
               showTimeRange
               timeRange={timeRange}
@@ -481,9 +483,9 @@ const Analytics = () => {
               fullScreenable
               showLegend
               legend={[
-                { id: 'actual', label: 'Actual Sales', color: '#3B82F6' },
-                { id: 'forecast', label: 'Forecasted Sales', color: '#8B5CF6' },
-                { id: 'variance', label: 'Variance', color: '#F59E0B' }
+                { id: 'actual', label: t('analytics.legends.actualSales'), color: '#3B82F6' },
+                { id: 'forecast', label: t('analytics.legends.forecastedSales'), color: '#8B5CF6' },
+                { id: 'variance', label: t('analytics.legends.variance'), color: '#F59E0B' }
               ]}
             >
               <MockChart color="#3B82F6">
@@ -500,17 +502,17 @@ const Analytics = () => {
       <div>
         <SectionHeader>
           <Typography variant="h5" weight="semibold">
-            Advanced Analytics
+            {t('analytics.sections.advancedAnalytics')}
           </Typography>
         </SectionHeader>
 
         <DashboardGrid columns={{ xs: 1, lg: 2 }} spacing="lg">
           <GridItem>
             <ChartContainer
-              title="Market Trends Analysis"
-              description="External market factors and their impact"
+              title={t('analytics.charts.marketTrends')}
+              description={t('analytics.charts.marketTrendsDesc')}
               type="area"
-              badge="External Data"
+              badge={t('analytics.badges.externalData')}
               showTimeRange
               timeRange={timeRange}
               onTimeRangeChange={setTimeRange}
@@ -528,8 +530,8 @@ const Analytics = () => {
 
           <GridItem>
             <ChartContainer
-              title="Supplier Performance"
-              description="Delivery reliability and quality metrics"
+              title={t('analytics.charts.supplierPerformance')}
+              description={t('analytics.charts.supplierPerformanceDesc')}
               type="gauge"
               refreshable
               onRefresh={handleRefresh}

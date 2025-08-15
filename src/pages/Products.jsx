@@ -7,6 +7,7 @@ import Icon from '../components/atoms/Icon';
 import Badge from '../components/atoms/Badge';
 import Avatar from '../components/atoms/Avatar';
 import DataTable from '../components/organisms/DataTable';
+import { useI18n } from '../hooks/useI18n';
 
 const ProductsContainer = styled(motion.div)`
   padding: ${props => props.theme.spacing[6]};
@@ -106,11 +107,11 @@ const getStockColor = (level, theme) => {
   return theme.colors.green[500];
 };
 
-const getStockLabel = (current, min = 0, max = 0) => {
-  if (current === 0) return { level: 'out', label: 'Out of Stock' };
-  if (current <= min) return { level: 'low', label: 'Low Stock' };
-  if (current <= max * 0.5) return { level: 'medium', label: 'Medium Stock' };
-  return { level: 'high', label: 'In Stock' };
+const getStockLabel = (current, min = 0, max = 0, t) => {
+  if (current === 0) return { level: 'out', label: t('products.stockLevel.out') };
+  if (current <= min) return { level: 'low', label: t('products.stockLevel.low') };
+  if (current <= max * 0.5) return { level: 'medium', label: t('products.stockLevel.medium') };
+  return { level: 'high', label: t('products.stockLevel.high') };
 };
 
 const formatPrice = (price) => {
@@ -121,6 +122,7 @@ const formatPrice = (price) => {
 };
 
 const Products = () => {
+  const { t } = useI18n();
   const [loading, setLoading] = useState(false);
   const [selectedProducts, setSelectedProducts] = useState([]);
 
@@ -202,8 +204,8 @@ const Products = () => {
       id: 'PRD-005',
       name: 'Sony WH-1000XM4',
       sku: 'SNY-WH1000XM4-BLK',
-      category: 'Electronics',
-      supplier: 'Sony Corporation',
+      category: t('products.categories.electronics'),
+      supplier: t('products.suppliers.sony'),
       price: 349.99,
       cost: 210.00,
       currentStock: 0,
@@ -222,7 +224,7 @@ const Products = () => {
   const columns = [
     {
       key: 'product',
-      header: 'Product',
+      header: t('products.name'),
       width: '300px',
       render: (_, product) => (
         <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
@@ -238,7 +240,7 @@ const Products = () => {
               {product.name}
             </Typography>
             <Typography variant="caption" color="secondary" truncate>
-              SKU: {product.sku}
+              {t('products.sku')}: {product.sku}
             </Typography>
           </div>
         </div>
@@ -246,13 +248,13 @@ const Products = () => {
     },
     {
       key: 'category',
-      header: 'Category',
+      header: t('products.category'),
       accessor: 'category',
       width: '120px'
     },
     {
       key: 'supplier',
-      header: 'Supplier',
+      header: t('products.supplier'),
       accessor: 'supplier',
       width: '150px',
       truncate: true,
@@ -260,7 +262,7 @@ const Products = () => {
     },
     {
       key: 'price',
-      header: 'Price',
+      header: t('products.price'),
       width: '100px',
       align: 'right',
       render: (_, product) => (
@@ -271,10 +273,10 @@ const Products = () => {
     },
     {
       key: 'stock',
-      header: 'Stock',
+      header: t('products.quantity'),
       width: '120px',
       render: (_, product) => {
-        const stockInfo = getStockLabel(product.currentStock, product.minStock, product.maxStock);
+        const stockInfo = getStockLabel(product.currentStock, product.minStock, product.maxStock, t);
         return (
           <StockStatus>
             <StockDot level={stockInfo.level} />
@@ -292,13 +294,13 @@ const Products = () => {
     },
     {
       key: 'location',
-      header: 'Location',
+      header: t('products.location'),
       accessor: 'location',
       width: '100px'
     },
     {
       key: 'status',
-      header: 'Status',
+      header: t('products.status'),
       width: '100px',
       render: (_, product) => (
         <Badge 
@@ -313,10 +315,10 @@ const Products = () => {
 
   // Define filters
   const filters = [
-    { key: 'category', label: 'Filter by category' },
-    { key: 'supplier', label: 'Filter by supplier' },
-    { key: 'location', label: 'Filter by location' },
-    { key: 'status', label: 'Filter by status' }
+    { key: 'category', label: t('products.filters.category') },
+    { key: 'supplier', label: t('products.filters.supplier') },
+    { key: 'location', label: t('products.filters.location') },
+    { key: 'status', label: t('products.filters.status') }
   ];
 
   // Define table actions
@@ -324,22 +326,22 @@ const Products = () => {
     {
       id: 'view',
       icon: 'eye',
-      label: 'View Details'
+      label: t('products.actions.viewDetails')
     },
     {
       id: 'edit',
       icon: 'edit',
-      label: 'Edit Product'
+      label: t('products.actions.editProduct')
     },
     {
       id: 'more',
       icon: 'menu',
-      label: 'More Actions',
+      label: t('products.actions.moreActions'),
       dropdown: [
-        { id: 'duplicate', icon: 'copy', label: 'Duplicate' },
-        { id: 'export', icon: 'download', label: 'Export' },
-        { id: 'archive', icon: 'archive', label: 'Archive' },
-        { id: 'delete', icon: 'delete', label: 'Delete', destructive: true }
+        { id: 'duplicate', icon: 'copy', label: t('products.actions.duplicate') },
+        { id: 'export', icon: 'download', label: t('products.actions.export') },
+        { id: 'archive', icon: 'archive', label: t('products.actions.archive') },
+        { id: 'delete', icon: 'delete', label: t('products.actions.delete'), destructive: true }
       ]
     }
   ];
@@ -348,19 +350,19 @@ const Products = () => {
   const bulkActions = [
     {
       id: 'updateStatus',
-      label: 'Update Status',
+      label: t('products.bulkActions.updateStatus'),
       icon: 'edit',
       variant: 'secondary'
     },
     {
       id: 'updateLocation',
-      label: 'Update Location',
+      label: t('products.bulkActions.updateLocation'),
       icon: 'products',
       variant: 'secondary'
     },
     {
       id: 'export',
-      label: 'Export Selected',
+      label: t('products.bulkActions.exportSelected'),
       icon: 'download',
       variant: 'secondary'
     },
@@ -460,10 +462,10 @@ const Products = () => {
       <ProductsHeader>
         <HeaderLeft>
           <Typography variant="h3" weight="bold" color="primary">
-            Products
+            {t('products.title')}
           </Typography>
           <Typography variant="body1" color="secondary">
-            Manage your product inventory and information.
+            {t('products.description')}
           </Typography>
         </HeaderLeft>
         
@@ -487,7 +489,7 @@ const Products = () => {
               onClick={handleExport}
             >
               <Icon name="download" size={16} />
-              Export
+              {t('common.export')}
             </Button>
             <Button
               variant="primary"
@@ -495,20 +497,20 @@ const Products = () => {
               onClick={handleAddProduct}
             >
               <Icon name="plus" size={16} />
-              Add Product
+              {t('products.addProduct')}
             </Button>
           </QuickActions>
         </HeaderRight>
       </ProductsHeader>
 
       <DataTable
-        title="Product Inventory"
-        description="Complete list of products with stock levels and details"
+        title={t('products.productInventory')}
+        description={t('products.description')}
         data={mockProducts}
         columns={columns}
         loading={loading}
         searchable
-        searchPlaceholder="Search products, SKUs, or suppliers..."
+        searchPlaceholder={t('products.searchPlaceholder')}
         sortable
         selectable
         filterable
@@ -518,8 +520,8 @@ const Products = () => {
         pagination
         pageSize={10}
         pageSizeOptions={[10, 25, 50, 100]}
-        emptyStateTitle="No products found"
-        emptyStateDescription="Get started by adding your first product or adjusting your filters."
+        emptyStateTitle={t('products.emptyState')}
+        emptyStateDescription={t('products.emptyStateDescription')}
         emptyStateIcon="products"
         onSearch={handleSearch}
         onSort={handleSort}

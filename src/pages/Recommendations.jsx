@@ -9,6 +9,7 @@ import DashboardGrid, { GridItem } from '../components/organisms/DashboardGrid';
 import MetricCard from '../components/molecules/MetricCard';
 import ChartContainer from '../components/organisms/ChartContainer';
 import DataTable from '../components/organisms/DataTable';
+import { useI18n } from '../hooks/useI18n';
 
 const RecommendationsContainer = styled(motion.div)`
   padding: ${props => props.theme.spacing[6]};
@@ -182,6 +183,7 @@ const getRecommendationIcon = (type) => {
 };
 
 const Recommendations = () => {
+  const { t } = useI18n();
   const [loading, setLoading] = useState(false);
   const [timeRange, setTimeRange] = useState('30d');
 
@@ -191,87 +193,87 @@ const Recommendations = () => {
       id: 'REC-001',
       type: 'reorder',
       priority: 'high',
-      title: 'Immediate Reorder Required',
-      description: 'iPhone 14 Pro is critically low on stock and has high demand. Immediate reordering recommended to prevent stockouts.',
-      impact: 'Prevent $25,000 in lost sales',
+      title: t('recommendations.mockData.immediateReorderRequired'),
+      description: t('recommendations.mockData.immediateReorderDesc'),
+      impact: t('recommendations.mockData.preventLostSales'),
       confidence: 95,
       products: ['iPhone 14 Pro'],
-      action: 'Reorder 50 units',
+      action: t('recommendations.mockData.reorderUnits'),
       estimatedValue: 25000,
-      urgency: 'Within 24 hours'
+      urgency: t('recommendations.mockData.within24Hours')
     },
     {
       id: 'REC-002',
       type: 'pricing',
       priority: 'medium',
-      title: 'Price Optimization Opportunity',
-      description: 'Samsung Galaxy S23 pricing can be optimized based on competitor analysis and demand patterns.',
-      impact: 'Increase profit margin by 12%',
+      title: t('recommendations.mockData.priceOptimization'),
+      description: t('recommendations.mockData.priceOptimizationDesc'),
+      impact: t('recommendations.mockData.increaseProfitMargin'),
       confidence: 87,
       products: ['Samsung Galaxy S23'],
-      action: 'Increase price by $50',
+      action: t('recommendations.mockData.increasePrice'),
       estimatedValue: 8400,
-      urgency: 'Within 7 days'
+      urgency: t('recommendations.mockData.within7Days')
     },
     {
       id: 'REC-003',
       type: 'inventory',
       priority: 'low',
-      title: 'Inventory Rebalancing',
-      description: 'Nike Air Max 90 has excess stock in one location but shortage in another. Rebalancing recommended.',
-      impact: 'Optimize storage costs',
+      title: t('recommendations.mockData.inventoryRebalancing'),
+      description: t('recommendations.mockData.inventoryRebalancingDesc'),
+      impact: t('recommendations.mockData.optimizeStorageCosts'),
       confidence: 78,
       products: ['Nike Air Max 90'],
-      action: 'Transfer 15 units',
+      action: t('recommendations.mockData.transferUnits'),
       estimatedValue: 1200,
-      urgency: 'Within 14 days'
+      urgency: t('recommendations.mockData.within14Days')
     },
     {
       id: 'REC-004',
       type: 'demand',
       priority: 'medium',
-      title: 'Seasonal Demand Preparation',
-      description: 'Based on historical data, demand for MacBook Air M2 will increase by 40% in the next month.',
-      impact: 'Capture seasonal demand',
+      title: t('recommendations.mockData.seasonalDemandPreparation'),
+      description: t('recommendations.mockData.seasonalDemandDesc'),
+      impact: t('recommendations.mockData.captureSeasonalDemand'),
       confidence: 92,
       products: ['MacBook Air M2'],
-      action: 'Stock up 25 units',
+      action: t('recommendations.mockData.stockUpUnits'),
       estimatedValue: 15000,
-      urgency: 'Within 10 days'
+      urgency: t('recommendations.mockData.within10Days')
     },
     {
       id: 'REC-005',
       type: 'supplier',
       priority: 'low',
-      title: 'Supplier Diversification',
-      description: 'Consider adding alternative suppliers for Sony WH-1000XM4 to reduce supply chain risk.',
-      impact: 'Reduce supply risk',
+      title: t('recommendations.mockData.supplierDiversification'),
+      description: t('recommendations.mockData.supplierDiversificationDesc'),
+      impact: t('recommendations.mockData.reduceSupplyRisk'),
       confidence: 73,
       products: ['Sony WH-1000XM4'],
-      action: 'Contact 2 new suppliers',
+      action: t('recommendations.mockData.contactSuppliers'),
       estimatedValue: 5000,
-      urgency: 'Within 30 days'
+      urgency: t('recommendations.mockData.within30Days')
     }
   ];
 
   // Mock metrics
   const metrics = [
     {
-      title: 'Total Recommendations',
+      title: t('recommendations.metrics.totalRecommendations'),
       value: recommendations.length,
       icon: 'trending',
       iconColor: 'primary',
       variant: 'compact'
     },
     {
-      title: 'High Priority',
+      title: t('recommendations.metrics.highPriority'),
       value: recommendations.filter(r => r.priority === 'high').length,
       icon: 'warning',
       iconColor: 'error',
       variant: 'compact'
     },
     {
-      title: 'Potential Savings',
+      title: t('recommendations.metrics.potentialSavings'),
       value: 54600,
       valueFormat: 'currency',
       icon: 'trending',
@@ -279,7 +281,7 @@ const Recommendations = () => {
       variant: 'compact'
     },
     {
-      title: 'Avg. Confidence',
+      title: t('recommendations.metrics.avgConfidence'),
       value: 85,
       valueFormat: 'percentage',
       icon: 'checkCircle',
@@ -291,20 +293,20 @@ const Recommendations = () => {
   const tableColumns = [
     {
       key: 'type',
-      header: 'Type',
+      header: t('recommendations.columns.type'),
       width: '120px',
       render: (_, recommendation) => (
         <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
           <Icon name={getRecommendationIcon(recommendation.type)} size={16} />
           <Typography variant="body2" style={{ textTransform: 'capitalize' }}>
-            {recommendation.type}
+            {t(`recommendations.types.${recommendation.type}`)}
           </Typography>
         </div>
       )
     },
     {
       key: 'title',
-      header: 'Recommendation',
+      header: t('recommendations.columns.recommendation'),
       render: (_, recommendation) => (
         <div>
           <Typography variant="body2" weight="medium">
@@ -318,7 +320,7 @@ const Recommendations = () => {
     },
     {
       key: 'priority',
-      header: 'Priority',
+      header: t('recommendations.columns.priority'),
       width: '100px',
       render: (_, recommendation) => (
         <Badge 
@@ -328,13 +330,13 @@ const Recommendations = () => {
           }
           size="sm"
         >
-          {recommendation.priority}
+          {t(`recommendations.priority.${recommendation.priority}`)}
         </Badge>
       )
     },
     {
       key: 'confidence',
-      header: 'Confidence',
+      header: t('recommendations.columns.confidence'),
       width: '100px',
       align: 'right',
       render: (_, recommendation) => (
@@ -345,7 +347,7 @@ const Recommendations = () => {
     },
     {
       key: 'impact',
-      header: 'Est. Value',
+      header: t('recommendations.columns.estValue'),
       width: '120px',
       align: 'right',
       render: (_, recommendation) => (
@@ -356,7 +358,7 @@ const Recommendations = () => {
     },
     {
       key: 'urgency',
-      header: 'Urgency',
+      header: t('recommendations.columns.urgency'),
       width: '120px',
       render: (_, recommendation) => (
         <Typography variant="caption" color="secondary">
@@ -393,26 +395,26 @@ const Recommendations = () => {
         <HeaderLeft>
           <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
             <Typography variant="h3" weight="bold" color="primary">
-              AI Recommendations
+              {t('recommendations.title')}
             </Typography>
             <Badge variant="info" size="sm">
               <Icon name="trending" size={12} />
-              AI-Powered
+              {t('recommendations.aiPowered')}
             </Badge>
           </div>
           <Typography variant="body1" color="secondary">
-            Smart insights and suggestions to optimize your inventory management.
+            {t('recommendations.description')}
           </Typography>
         </HeaderLeft>
         
         <HeaderRight>
           <Button variant="secondary" size="sm" onClick={handleSettings}>
             <Icon name="settings" size={16} />
-            AI Settings
+            {t('recommendations.aiSettings')}
           </Button>
           <Button variant="secondary" size="sm" onClick={handleRefresh} loading={loading}>
             <Icon name="refresh" size={16} />
-            Refresh
+            {t('recommendations.refresh')}
           </Button>
         </HeaderRight>
       </RecommendationsHeader>
@@ -430,10 +432,10 @@ const Recommendations = () => {
       <div style={{ marginBottom: '48px' }}>
         <div style={{ display: 'flex', alignItems: 'center', gap: '12px', marginBottom: '24px' }}>
           <Typography variant="h5" weight="semibold">
-            Priority Recommendations
+            {t('recommendations.priorityRecommendations')}
           </Typography>
           <Badge variant="error" size="sm">
-            {recommendations.filter(r => r.priority === 'high').length} urgent
+            {recommendations.filter(r => r.priority === 'high').length} {t('recommendations.urgent')}
           </Badge>
         </div>
 
@@ -460,13 +462,13 @@ const Recommendations = () => {
                       </Typography>
                       <div style={{ display: 'flex', alignItems: 'center', gap: '16px', flexWrap: 'wrap' }}>
                         <div style={{ display: 'flex', alignItems: 'center', gap: '4px' }}>
-                          <Typography variant="caption" color="tertiary">Impact:</Typography>
+                          <Typography variant="caption" color="tertiary">{t('recommendations.impact')}:</Typography>
                           <Typography variant="caption" weight="medium" color="success">
                             {recommendation.impact}
                           </Typography>
                         </div>
                         <div style={{ display: 'flex', alignItems: 'center', gap: '4px' }}>
-                          <Typography variant="caption" color="tertiary">Confidence:</Typography>
+                          <Typography variant="caption" color="tertiary">{t('recommendations.confidence')}:</Typography>
                           <Typography variant="caption" weight="medium">
                             {recommendation.confidence}%
                           </Typography>
@@ -475,7 +477,7 @@ const Recommendations = () => {
                     </RecommendationContent>
                   </div>
                   <Badge variant={recommendation.priority === 'high' ? 'error' : 'warning'} size="sm">
-                    {recommendation.priority}
+                    {t(`recommendations.priority.${recommendation.priority}`)}
                   </Badge>
                 </RecommendationHeader>
                 
@@ -486,14 +488,14 @@ const Recommendations = () => {
                     onClick={() => handleApplyRecommendation(recommendation)}
                   >
                     <Icon name="checkCircle" size={16} />
-                    Apply
+                    {t('recommendations.apply')}
                   </Button>
                   <Button
                     variant="secondary"
                     size="sm"
                     onClick={() => handleDismissRecommendation(recommendation)}
                   >
-                    Dismiss
+                    {t('recommendations.dismiss')}
                   </Button>
                 </RecommendationActions>
               </RecommendationCard>
@@ -505,38 +507,38 @@ const Recommendations = () => {
       {/* All Recommendations Table */}
       <div style={{ marginBottom: '48px' }}>
         <Typography variant="h5" weight="semibold" style={{ marginBottom: '24px' }}>
-          All Recommendations
+          {t('recommendations.allRecommendations')}
         </Typography>
         
         <DataTable
-          title="AI-Generated Recommendations"
-          description="Complete list of optimization suggestions"
+          title={t('recommendations.tableTitle')}
+          description={t('recommendations.tableDescription')}
           data={recommendations}
           columns={tableColumns}
           loading={loading}
           searchable
-          searchPlaceholder="Search recommendations..."
+          searchPlaceholder={t('recommendations.searchPlaceholder')}
           sortable
           pagination
           pageSize={10}
-          emptyStateTitle="No recommendations available"
-          emptyStateDescription="AI analysis is complete. Check back later for new suggestions."
+          emptyStateTitle={t('recommendations.emptyStateTitle')}
+          emptyStateDescription={t('recommendations.emptyStateDescription')}
           emptyStateIcon="trending"
           actions={[
             {
               id: 'apply',
               icon: 'checkCircle',
-              label: 'Apply'
+              label: t('recommendations.apply')
             },
             {
               id: 'dismiss',
               icon: 'close',
-              label: 'Dismiss'
+              label: t('recommendations.dismiss')
             },
             {
               id: 'details',
               icon: 'eye',
-              label: 'View Details'
+              label: t('recommendations.viewDetails')
             }
           ]}
           onAction={(actionId, recommendation) => {
@@ -553,8 +555,8 @@ const Recommendations = () => {
       <DashboardGrid columns={{ xs: 1, lg: 2 }} spacing="lg">
         <GridItem>
           <ChartContainer
-            title="Recommendation Accuracy"
-            description="AI prediction accuracy over time"
+            title={t('recommendations.charts.recommendationAccuracy')}
+            description={t('recommendations.charts.recommendationAccuracyDesc')}
             type="line"
             showTimeRange
             timeRange={timeRange}
@@ -565,13 +567,13 @@ const Recommendations = () => {
             badge="AI"
             showLegend
             legend={[
-              { id: 'accuracy', label: 'Accuracy %', color: '#3B82F6' },
-              { id: 'target', label: 'Target', color: '#22C55E' }
+              { id: 'accuracy', label: t('recommendations.charts.accuracy'), color: '#3B82F6' },
+              { id: 'target', label: t('recommendations.charts.target'), color: '#22C55E' }
             ]}
           >
             <MockChart color="#3B82F6">
               <Typography variant="h6" color="primary">
-                Accuracy Trend
+                {t('recommendations.charts.accuracyTrend')}
               </Typography>
             </MockChart>
           </ChartContainer>
@@ -579,8 +581,8 @@ const Recommendations = () => {
         
         <GridItem>
           <ChartContainer
-            title="Savings Impact"
-            description="Financial impact of applied recommendations"
+            title={t('recommendations.charts.savingsImpact')}
+            description={t('recommendations.charts.savingsImpactDesc')}
             type="bar"
             refreshable
             onRefresh={handleRefresh}
@@ -588,7 +590,7 @@ const Recommendations = () => {
           >
             <MockChart color="#22C55E">
               <Typography variant="h6" color="success">
-                Savings by Category
+                {t('recommendations.charts.savingsByCategory')}
               </Typography>
             </MockChart>
           </ChartContainer>

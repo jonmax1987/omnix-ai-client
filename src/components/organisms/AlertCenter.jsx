@@ -7,6 +7,7 @@ import Typography from '../atoms/Typography';
 import Badge from '../atoms/Badge';
 import SearchBar from '../molecules/SearchBar';
 import AlertCard from '../molecules/AlertCard';
+import { useI18n } from '../../hooks/useI18n';
 
 const AlertCenterContainer = styled.div`
   display: flex;
@@ -213,25 +214,25 @@ const getStatColor = (type, theme) => {
   return colors[type] || theme.colors.text.primary;
 };
 
-const SEVERITY_FILTERS = [
-  { id: 'all', label: 'All Alerts', icon: 'bell' },
-  { id: 'error', label: 'Critical', icon: 'error', color: 'error' },
-  { id: 'warning', label: 'Warning', icon: 'warning', color: 'warning' },
-  { id: 'info', label: 'Info', icon: 'info', color: 'info' },
-  { id: 'success', label: 'Resolved', icon: 'checkCircle', color: 'success' }
+const getSeverityFilters = (t) => [
+  { id: 'all', label: t('alerts.filters.allAlerts'), icon: 'bell' },
+  { id: 'error', label: t('alerts.severity.critical'), icon: 'error', color: 'error' },
+  { id: 'warning', label: t('alerts.severity.warning'), icon: 'warning', color: 'warning' },
+  { id: 'info', label: t('alerts.severity.info'), icon: 'info', color: 'info' },
+  { id: 'success', label: t('alerts.filters.resolved'), icon: 'checkCircle', color: 'success' }
 ];
 
-const STATUS_FILTERS = [
-  { id: 'unread', label: 'Unread', icon: 'bell' },
-  { id: 'read', label: 'Read', icon: 'checkCircle' },
-  { id: 'archived', label: 'Archived', icon: 'archive' }
+const getStatusFilters = (t) => [
+  { id: 'unread', label: t('alerts.filters.unread'), icon: 'bell' },
+  { id: 'read', label: t('alerts.filters.read'), icon: 'checkCircle' },
+  { id: 'archived', label: t('alerts.filters.archived'), icon: 'archive' }
 ];
 
-const BULK_ACTIONS = [
-  { id: 'markRead', label: 'Mark as Read', icon: 'checkCircle', variant: 'secondary' },
-  { id: 'markUnread', label: 'Mark as Unread', icon: 'bell', variant: 'secondary' },
-  { id: 'archive', label: 'Archive', icon: 'archive', variant: 'secondary' },
-  { id: 'delete', label: 'Delete', icon: 'delete', variant: 'danger' }
+const getBulkActions = (t) => [
+  { id: 'markRead', label: t('alerts.actions.markAsRead'), icon: 'checkCircle', variant: 'secondary' },
+  { id: 'markUnread', label: t('alerts.actions.markAsUnread'), icon: 'bell', variant: 'secondary' },
+  { id: 'archive', label: t('alerts.actions.archive'), icon: 'archive', variant: 'secondary' },
+  { id: 'delete', label: t('alerts.actions.delete'), icon: 'delete', variant: 'danger' }
 ];
 
 const AlertCenter = ({
@@ -248,12 +249,17 @@ const AlertCenter = ({
   className,
   ...props
 }) => {
+  const { t } = useI18n();
   const [searchQuery, setSearchQuery] = useState('');
   const [selectedSeverity, setSelectedSeverity] = useState('all');
   const [selectedStatus, setSelectedStatus] = useState('unread');
   const [selectedAlerts, setSelectedAlerts] = useState(new Set());
   const [sortBy, setSortBy] = useState('timestamp');
   const [sortOrder, setSortOrder] = useState('desc');
+  
+  const SEVERITY_FILTERS = getSeverityFilters(t);
+  const STATUS_FILTERS = getStatusFilters(t);
+  const BULK_ACTIONS = getBulkActions(t);
 
   // Filter and sort alerts
   const filteredAlerts = useMemo(() => {
@@ -361,7 +367,7 @@ const AlertCenter = ({
           <HeaderTitle>
             <Icon name="bell" size={24} />
             <Typography variant="h5" weight="semibold">
-              Alert Center
+              {t('alerts.alertCenter')}
             </Typography>
             {stats.unread > 0 && (
               <Badge variant="error" size="sm">
@@ -375,7 +381,7 @@ const AlertCenter = ({
           {showSearch && (
             <SearchContainer>
               <SearchBar
-                placeholder="Search alerts..."
+                placeholder={t('alerts.searchPlaceholder')}
                 value={searchQuery}
                 onChange={(e) => handleSearch(e.target.value)}
                 maxWidth="100%"
@@ -406,23 +412,23 @@ const AlertCenter = ({
         <StatsGrid>
           <StatItem>
             <StatValue type="total">{stats.total}</StatValue>
-            <StatLabel>Total</StatLabel>
+            <StatLabel>{t('alerts.total')}</StatLabel>
           </StatItem>
           <StatItem>
             <StatValue type="error">{stats.error}</StatValue>
-            <StatLabel>Critical</StatLabel>
+            <StatLabel>{t('alerts.critical')}</StatLabel>
           </StatItem>
           <StatItem>
             <StatValue type="warning">{stats.warning}</StatValue>
-            <StatLabel>Warnings</StatLabel>
+            <StatLabel>{t('alerts.warnings')}</StatLabel>
           </StatItem>
           <StatItem>
             <StatValue type="info">{stats.info}</StatValue>
-            <StatLabel>Info</StatLabel>
+            <StatLabel>{t('alerts.severity.info')}</StatLabel>
           </StatItem>
           <StatItem>
             <StatValue type="unread">{stats.unread}</StatValue>
-            <StatLabel>Unread</StatLabel>
+            <StatLabel>{t('alerts.unread')}</StatLabel>
           </StatItem>
         </StatsGrid>
       )}
@@ -508,7 +514,7 @@ const AlertCenter = ({
           <EmptyState>
             <Icon name="clock" size={48} />
             <Typography variant="body1" color="secondary">
-              Loading alerts...
+              {t('alerts.states.loading')}
             </Typography>
           </EmptyState>
         ) : filteredAlerts.length === 0 ? (
@@ -516,12 +522,12 @@ const AlertCenter = ({
             <Icon name="bell" size={48} />
             <div>
               <Typography variant="h6" weight="medium">
-                No alerts found
+                {t('alerts.states.noAlertsFound')}
               </Typography>
               <Typography variant="body2" color="secondary">
                 {searchQuery || selectedSeverity !== 'all' || selectedStatus !== 'unread'
-                  ? 'Try adjusting your filters or search terms'
-                  : 'All caught up! No new alerts at the moment.'}
+                  ? t('alerts.states.adjustFilters')
+                  : t('alerts.states.allCaughtUp')}
               </Typography>
             </div>
           </EmptyState>
@@ -555,12 +561,12 @@ const AlertCenter = ({
                 onDismiss={() => onAlertAction?.('markRead', alert)}
                 actions={[
                   {
-                    label: alert.read ? 'Mark Unread' : 'Mark Read',
+                    label: alert.read ? t('alerts.actions.markAsUnread') : t('alerts.actions.markAsRead'),
                     icon: alert.read ? 'bell' : 'checkCircle',
                     onClick: () => onAlertAction?.(alert.read ? 'markUnread' : 'markRead', alert)
                   },
                   {
-                    label: 'Archive',
+                    label: t('alerts.actions.archive'),
                     icon: 'archive',
                     onClick: () => onAlertAction?.('archive', alert)
                   }

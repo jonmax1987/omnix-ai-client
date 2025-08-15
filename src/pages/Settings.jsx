@@ -222,13 +222,13 @@ const Settings = () => {
   });
 
   const navigationItems = [
-    { id: 'profile', label: 'Profile', icon: 'user' },
-    { id: 'notifications', label: 'Notifications', icon: 'bell' },
-    { id: 'preferences', label: 'Preferences', icon: 'settings' },
-    { id: 'security', label: 'Security', icon: 'warning' },
-    { id: 'integrations', label: 'Integrations', icon: 'products' },
-    { id: 'billing', label: 'Billing', icon: 'trending' },
-    { id: 'team', label: 'Team', icon: 'users' }
+    { id: 'profile', label: t('settings.navigation.profile'), icon: 'user' },
+    { id: 'notifications', label: t('settings.navigation.notifications'), icon: 'bell' },
+    { id: 'preferences', label: t('settings.navigation.preferences'), icon: 'settings' },
+    { id: 'security', label: t('settings.navigation.security'), icon: 'warning' },
+    { id: 'integrations', label: t('settings.navigation.integrations'), icon: 'products' },
+    { id: 'billing', label: t('settings.navigation.billing'), icon: 'trending' },
+    { id: 'team', label: t('settings.navigation.team'), icon: 'users' }
   ];
 
   const handleSave = async () => {
@@ -262,10 +262,10 @@ const Settings = () => {
           >
             <SectionHeader>
               <Typography variant="h5" weight="semibold">
-                Profile Settings
+                {t('settings.profile.title')}
               </Typography>
               <Typography variant="body2" color="secondary">
-                Manage your personal information and account details.
+                {t('settings.profile.description')}
               </Typography>
             </SectionHeader>
 
@@ -288,7 +288,7 @@ const Settings = () => {
                 <div style={{ marginTop: '16px' }}>
                   <Button variant="secondary" size="sm">
                     <Icon name="upload" size={16} />
-                    Change Photo
+                    {t('settings.profile.changePhoto')}
                   </Button>
                 </div>
               </ProfileInfo>
@@ -296,14 +296,14 @@ const Settings = () => {
 
             <FieldGrid>
               <FormField
-                label="Full Name"
+                label={t('settings.profile.fullName')}
                 name="name"
                 value={userData.name}
                 onChange={(e) => setUserData(prev => ({ ...prev, name: e.target.value }))}
                 required
               />
               <FormField
-                label="Email"
+                label={t('settings.profile.email')}
                 name="email"
                 type="email"
                 value={userData.email}
@@ -311,33 +311,33 @@ const Settings = () => {
                 required
               />
               <FormField
-                label="Phone"
+                label={t('settings.profile.phone')}
                 name="phone"
                 value={userData.phone}
                 onChange={(e) => setUserData(prev => ({ ...prev, phone: e.target.value }))}
               />
               <FormField
-                label="Role"
+                label={t('settings.profile.role')}
                 name="role"
                 value={userData.role}
                 onChange={(e) => setUserData(prev => ({ ...prev, role: e.target.value }))}
               />
               <FormField
-                label="Company"
+                label={t('settings.profile.company')}
                 name="company"
                 value={userData.company}
                 onChange={(e) => setUserData(prev => ({ ...prev, company: e.target.value }))}
               />
               <FormField
-                label="Timezone"
+                label={t('settings.profile.timezone')}
                 name="timezone"
                 type="select"
                 value={userData.timezone}
                 options={[
-                  { value: 'UTC-8', label: 'Pacific Time (UTC-8)' },
-                  { value: 'UTC-7', label: 'Mountain Time (UTC-7)' },
-                  { value: 'UTC-6', label: 'Central Time (UTC-6)' },
-                  { value: 'UTC-5', label: 'Eastern Time (UTC-5)' }
+                  { value: 'UTC-8', label: t('settings.profile.timezones.utc-8') },
+                  { value: 'UTC-7', label: t('settings.profile.timezones.utc-7') },
+                  { value: 'UTC-6', label: t('settings.profile.timezones.utc-6') },
+                  { value: 'UTC-5', label: t('settings.profile.timezones.utc-5') }
                 ]}
                 onChange={(e) => setUserData(prev => ({ ...prev, timezone: e.target.value }))}
               />
@@ -355,24 +355,24 @@ const Settings = () => {
           >
             <SectionHeader>
               <Typography variant="h5" weight="semibold">
-                Notification Settings
+                {t('settings.notifications.title')}
               </Typography>
               <Typography variant="body2" color="secondary">
-                Configure how you receive alerts and updates.
+                {t('settings.notifications.description')}
               </Typography>
             </SectionHeader>
 
             <SettingsSection>
               <Typography variant="h6" weight="medium" style={{ marginBottom: '16px' }}>
-                Delivery Methods
+                {t('settings.notifications.deliveryMethods')}
               </Typography>
               <ToggleField>
                 <div>
                   <Typography variant="body2" weight="medium">
-                    Email Notifications
+                    {t('settings.notifications.emailNotifications')}
                   </Typography>
                   <Typography variant="caption" color="secondary">
-                    Receive notifications via email
+                    {t('settings.notifications.emailNotificationsDesc')}
                   </Typography>
                 </div>
                 <Toggle
@@ -383,10 +383,10 @@ const Settings = () => {
               <ToggleField>
                 <div>
                   <Typography variant="body2" weight="medium">
-                    Push Notifications
+                    {t('settings.notifications.pushNotifications')}
                   </Typography>
                   <Typography variant="caption" color="secondary">
-                    Browser and mobile notifications
+                    {t('settings.notifications.pushNotificationsDesc')}
                   </Typography>
                 </div>
                 <Toggle
@@ -413,12 +413,12 @@ const Settings = () => {
                   <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '12px' }}>
                     <div>
                       <Typography variant="body2" weight="medium">
-                        Browser Push Notifications
+                        {t('settings.notifications.browserPushNotifications')}
                       </Typography>
                       <Typography variant="caption" color="secondary">
-                        Status: {pushNotifications.status === 'subscribed' ? 'Active' : 
-                               pushNotifications.status === 'denied' ? 'Blocked' :
-                               pushNotifications.status === 'default' ? 'Not configured' : 'Permission granted'}
+                        Status: {pushNotifications.status === 'subscribed' ? t('settings.notifications.pushStatus.active') : 
+                               pushNotifications.status === 'denied' ? t('settings.notifications.pushStatus.blocked') :
+                               pushNotifications.status === 'default' ? t('settings.notifications.pushStatus.notConfigured') : t('settings.notifications.pushStatus.permissionGranted')}
                       </Typography>
                       {pushNotifications.error && (
                         <Typography variant="caption" color="error" style={{ display: 'block', marginTop: '4px' }}>
@@ -430,8 +430,8 @@ const Settings = () => {
                       variant={pushNotifications.status === 'subscribed' ? 'success' : 'secondary'} 
                       size="sm"
                     >
-                      {pushNotifications.status === 'subscribed' ? 'Active' : 
-                       pushNotifications.status === 'denied' ? 'Blocked' : 'Inactive'}
+                      {pushNotifications.status === 'subscribed' ? t('settings.notifications.pushStatus.active') : 
+                       pushNotifications.status === 'denied' ? t('settings.notifications.pushStatus.blocked') : t('settings.notifications.pushStatus.inactive')}
                     </Badge>
                   </div>
                   
@@ -444,7 +444,7 @@ const Settings = () => {
                         loading={pushNotifications.isLoading}
                       >
                         <Icon name="bell" size={14} />
-                        Enable Notifications
+                        {t('settings.notifications.enableNotifications')}
                       </Button>
                     )}
                     
@@ -457,26 +457,26 @@ const Settings = () => {
                           loading={pushNotifications.isLoading}
                         >
                           <Icon name="bell-off" size={14} />
-                          Disable Notifications
+                          {t('settings.notifications.disableNotifications')}
                         </Button>
                         
                         <Button 
                           variant="outline" 
                           size="sm"
                           onClick={() => pushNotifications.sendTestNotification(
-                            'Test Notification', 
-                            'This is a test notification from OMNIX AI'
+                            t('settings.notifications.testNotificationTitle'), 
+                            t('settings.notifications.testNotificationBody')
                           )}
                         >
                           <Icon name="send" size={14} />
-                          Send Test
+                          {t('settings.notifications.sendTest')}
                         </Button>
                       </>
                     )}
                     
                     {pushNotifications.status === 'denied' && (
                       <Typography variant="caption" color="secondary">
-                        Notifications are blocked. Please enable them in your browser settings.
+                        {t('settings.notifications.notificationsBlocked')}
                       </Typography>
                     )}
                   </div>
@@ -493,17 +493,17 @@ const Settings = () => {
                 }}>
                   <Typography variant="caption" color="secondary">
                     <Icon name="warning" size={14} style={{ marginRight: '6px' }} />
-                    Push notifications are not supported in this browser.
+                    {t('settings.notifications.pushNotSupported')}
                   </Typography>
                 </div>
               )}
               <ToggleField>
                 <div>
                   <Typography variant="body2" weight="medium">
-                    SMS Notifications
+                    {t('settings.notifications.smsNotifications')}
                   </Typography>
                   <Typography variant="caption" color="secondary">
-                    Text message alerts for critical issues
+                    {t('settings.notifications.smsNotificationsDesc')}
                   </Typography>
                 </div>
                 <Toggle
@@ -515,15 +515,15 @@ const Settings = () => {
 
             <SettingsSection>
               <Typography variant="h6" weight="medium" style={{ marginBottom: '16px' }}>
-                Alert Types
+                {t('settings.notifications.alertTypes')}
               </Typography>
               <ToggleField>
                 <div>
                   <Typography variant="body2" weight="medium">
-                    Low Stock Alerts
+                    {t('settings.notifications.lowStockAlerts')}
                   </Typography>
                   <Typography variant="caption" color="secondary">
-                    When products reach minimum stock levels
+                    {t('settings.notifications.lowStockAlertsDesc')}
                   </Typography>
                 </div>
                 <Toggle
@@ -534,10 +534,10 @@ const Settings = () => {
               <ToggleField>
                 <div>
                   <Typography variant="body2" weight="medium">
-                    Price Changes
+                    {t('settings.notifications.priceChanges')}
                   </Typography>
                   <Typography variant="caption" color="secondary">
-                    Supplier price updates and market changes
+                    {t('settings.notifications.priceChangesDesc')}
                   </Typography>
                 </div>
                 <Toggle
@@ -548,10 +548,10 @@ const Settings = () => {
               <ToggleField>
                 <div>
                   <Typography variant="body2" weight="medium">
-                    Report Generation
+                    {t('settings.notifications.reportGeneration')}
                   </Typography>
                   <Typography variant="caption" color="secondary">
-                    When scheduled reports are ready
+                    {t('settings.notifications.reportGenerationDesc')}
                   </Typography>
                 </div>
                 <Toggle
@@ -573,70 +573,70 @@ const Settings = () => {
           >
             <SectionHeader>
               <Typography variant="h5" weight="semibold">
-                Application Preferences
+                {t('settings.preferences.title')}
               </Typography>
               <Typography variant="body2" color="secondary">
-                Customize your application experience.
+                {t('settings.preferences.description')}
               </Typography>
             </SectionHeader>
 
             <FieldGrid>
               <FormField
-                label="Theme"
+                label={t('settings.preferences.theme')}
                 name="theme"
                 type="select"
                 value={preferences.theme}
                 options={[
-                  { value: 'light', label: 'Light Theme' },
-                  { value: 'dark', label: 'Dark Theme' },
-                  { value: 'auto', label: 'Auto (System)' }
+                  { value: 'light', label: t('settings.preferences.themes.light') },
+                  { value: 'dark', label: t('settings.preferences.themes.dark') },
+                  { value: 'auto', label: t('settings.preferences.themes.auto') }
                 ]}
                 onChange={(e) => setTheme(e.target.value)}
               />
               <FormField
-                label="Currency"
+                label={t('settings.preferences.currency')}
                 name="currency"
                 type="select"
                 value={preferences.currency}
                 options={[
-                  { value: 'USD', label: 'US Dollar (USD)' },
-                  { value: 'EUR', label: 'Euro (EUR)' },
-                  { value: 'GBP', label: 'British Pound (GBP)' },
-                  { value: 'CAD', label: 'Canadian Dollar (CAD)' }
+                  { value: 'USD', label: t('settings.preferences.currencies.usd') },
+                  { value: 'EUR', label: t('settings.preferences.currencies.eur') },
+                  { value: 'GBP', label: t('settings.preferences.currencies.gbp') },
+                  { value: 'CAD', label: t('settings.preferences.currencies.cad') }
                 ]}
                 onChange={(e) => updatePreferences(null, { currency: e.target.value })}
               />
               <FormField
-                label="Date Format"
+                label={t('settings.preferences.dateFormat')}
                 name="dateFormat"
                 type="select"
                 value={preferences.dateFormat}
                 options={[
-                  { value: 'MM/dd/yyyy', label: 'MM/dd/yyyy (US)' },
-                  { value: 'dd/MM/yyyy', label: 'dd/MM/yyyy (UK)' },
-                  { value: 'yyyy-MM-dd', label: 'yyyy-MM-dd (ISO)' }
+                  { value: 'MM/dd/yyyy', label: t('settings.preferences.dateFormats.us') },
+                  { value: 'dd/MM/yyyy', label: t('settings.preferences.dateFormats.uk') },
+                  { value: 'yyyy-MM-dd', label: t('settings.preferences.dateFormats.iso') }
                 ]}
                 onChange={(e) => updatePreferences(null, { dateFormat: e.target.value })}
               />
               <FormField
-                label="Time Format"
+                label={t('settings.preferences.timeFormat')}
                 name="timeFormat"
                 type="select"
                 value={preferences.timeFormat}
                 options={[
-                  { value: '12h', label: '12-hour (AM/PM)' },
-                  { value: '24h', label: '24-hour' }
+                  { value: '12h', label: t('settings.preferences.timeFormats.12h') },
+                  { value: '24h', label: t('settings.preferences.timeFormats.24h') }
                 ]}
                 onChange={(e) => updatePreferences(null, { timeFormat: e.target.value })}
               />
               <FormField
-                label="Language"
+                label={t('settings.preferences.language')}
                 name="language"
                 type="select"
                 value={locale}
                 options={[
-                  { value: 'en', label: 'English' },
-                  { value: 'he', label: 'עברית (Hebrew)' }
+                  { value: 'en', label: t('settings.preferences.languages.en') },
+                  { value: 'he', label: t('settings.preferences.languages.he') }
                 ]}
                 onChange={(e) => {
                   changeLocale(e.target.value);
@@ -657,10 +657,10 @@ const Settings = () => {
           >
             <SectionHeader>
               <Typography variant="h5" weight="semibold">
-                Security Settings
+                {t('settings.security.title')}
               </Typography>
               <Typography variant="body2" color="secondary">
-                Manage your account security and access controls.
+                {t('settings.security.description')}
               </Typography>
             </SectionHeader>
 
@@ -668,10 +668,10 @@ const Settings = () => {
               <ToggleField>
                 <div>
                   <Typography variant="body2" weight="medium">
-                    Two-Factor Authentication
+                    {t('settings.security.twoFactorAuth')}
                   </Typography>
                   <Typography variant="caption" color="secondary">
-                    Add an extra layer of security to your account
+                    {t('settings.security.twoFactorAuthDesc')}
                   </Typography>
                 </div>
                 <Toggle
@@ -683,7 +683,7 @@ const Settings = () => {
 
             <FieldGrid>
               <FormField
-                label="Session Timeout (minutes)"
+                label={t('settings.security.sessionTimeout')}
                 name="sessionTimeout"
                 type="number"
                 value={settings.security.sessionTimeout}
@@ -693,10 +693,10 @@ const Settings = () => {
                 }))}
                 min={15}
                 max={480}
-                helperText="Automatically log out after inactivity"
+                helperText={t('settings.security.sessionTimeoutDesc')}
               />
               <FormField
-                label="Password Expiry (days)"
+                label={t('settings.security.passwordExpiry')}
                 name="passwordExpiry"
                 type="number"
                 value={settings.security.passwordExpiry}
@@ -706,16 +706,16 @@ const Settings = () => {
                 }))}
                 min={30}
                 max={365}
-                helperText="Require password change after this period"
+                helperText={t('settings.security.passwordExpiryDesc')}
               />
             </FieldGrid>
 
             <div style={{ marginTop: '24px' }}>
               <Button variant="secondary" style={{ marginRight: '8px' }}>
-                Change Password
+                {t('settings.security.changePassword')}
               </Button>
               <Button variant="secondary">
-                Download Backup Codes
+                {t('settings.security.downloadBackupCodes')}
               </Button>
             </div>
           </motion.div>
@@ -731,10 +731,10 @@ const Settings = () => {
           >
             <SectionHeader>
               <Typography variant="h5" weight="semibold">
-                Integrations & API
+                {t('settings.integrations.title')}
               </Typography>
               <Typography variant="body2" color="secondary">
-                Configure third-party integrations and API access.
+                {t('settings.integrations.description')}
               </Typography>
             </SectionHeader>
 
@@ -742,10 +742,10 @@ const Settings = () => {
               <ToggleField>
                 <div>
                   <Typography variant="body2" weight="medium">
-                    API Access
+                    {t('settings.integrations.apiAccess')}
                   </Typography>
                   <Typography variant="caption" color="secondary">
-                    Enable REST API access for external integrations
+                    {t('settings.integrations.apiAccessDesc')}
                   </Typography>
                 </div>
                 <Toggle
@@ -756,10 +756,10 @@ const Settings = () => {
               <ToggleField>
                 <div>
                   <Typography variant="body2" weight="medium">
-                    Webhooks
+                    {t('settings.integrations.webhooks')}
                   </Typography>
                   <Typography variant="caption" color="secondary">
-                    Send real-time updates to external systems
+                    {t('settings.integrations.webhooksDesc')}
                   </Typography>
                 </div>
                 <Toggle
@@ -770,10 +770,10 @@ const Settings = () => {
               <ToggleField>
                 <div>
                   <Typography variant="body2" weight="medium">
-                    Export Access
+                    {t('settings.integrations.exportAccess')}
                   </Typography>
                   <Typography variant="caption" color="secondary">
-                    Allow data export in various formats
+                    {t('settings.integrations.exportAccessDesc')}
                   </Typography>
                 </div>
                 <Toggle
@@ -785,10 +785,10 @@ const Settings = () => {
 
             <div style={{ marginTop: '24px' }}>
               <Button variant="primary" style={{ marginRight: '8px' }}>
-                Generate API Key
+                {t('settings.integrations.generateApiKey')}
               </Button>
               <Button variant="secondary">
-                View Documentation
+                {t('settings.integrations.viewDocumentation')}
               </Button>
             </div>
           </motion.div>
@@ -798,10 +798,10 @@ const Settings = () => {
         return (
           <div style={{ textAlign: 'center', padding: '48px' }}>
             <Typography variant="h6" color="secondary">
-              Coming Soon
+              {t('settings.comingSoon')}
             </Typography>
             <Typography variant="body2" color="tertiary">
-              This section is under development.
+              {t('settings.comingSoonDesc')}
             </Typography>
           </div>
         );
@@ -820,15 +820,15 @@ const Settings = () => {
             {t('navigation.settings')}
           </Typography>
           <Typography variant="body1" color="secondary">
-            Manage your account preferences and application settings.
+            {t('settings.description')}
           </Typography>
         </div>
         <div style={{ display: 'flex', gap: '8px' }}>
           <Button variant="secondary" size="sm">
-            Reset to Default
+            {t('settings.resetToDefault')}
           </Button>
           <Button variant="primary" size="sm" onClick={handleSave} loading={loading}>
-            Save Changes
+            {t('settings.saveChanges')}
           </Button>
         </div>
       </SettingsHeader>
@@ -857,17 +857,17 @@ const Settings = () => {
           {activeSection === 'profile' && (
             <DangerZone>
               <Typography variant="h6" weight="semibold" color="error" style={{ marginBottom: '8px' }}>
-                Danger Zone
+                {t('settings.profile.dangerZone')}
               </Typography>
               <Typography variant="body2" color="secondary" style={{ marginBottom: '16px' }}>
-                These actions are irreversible. Please proceed with caution.
+                {t('settings.profile.dangerZoneDescription')}
               </Typography>
               <div style={{ display: 'flex', gap: '8px' }}>
                 <Button variant="danger" size="sm">
-                  Delete Account
+                  {t('settings.profile.deleteAccount')}
                 </Button>
                 <Button variant="secondary" size="sm">
-                  Export Data
+                  {t('settings.profile.exportData')}
                 </Button>
               </div>
             </DangerZone>

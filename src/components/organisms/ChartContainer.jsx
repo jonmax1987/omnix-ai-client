@@ -7,6 +7,7 @@ import Typography from '../atoms/Typography';
 import Badge from '../atoms/Badge';
 import Spinner from '../atoms/Spinner';
 import { exportChartAsImage } from '../../utils/exportUtils';
+import { useI18n } from '../../hooks/useI18n';
 
 const ChartWrapper = styled(motion.div)`
   display: flex;
@@ -300,7 +301,7 @@ const ChartContainer = ({
   loading = false,
   error,
   empty = false,
-  emptyMessage = 'No data available',
+  emptyMessage,
   errorMessage = 'Failed to load chart data',
   showTimeRange = false,
   timeRange = '24h',
@@ -321,6 +322,7 @@ const ChartContainer = ({
   children,
   ...props
 }) => {
+  const { t } = useI18n();
   const [isFullScreen, setIsFullScreen] = useState(false);
   const [legendState, setLegendState] = useState(
     legend.reduce((acc, item) => ({ ...acc, [item.id]: true }), {})
@@ -417,10 +419,10 @@ const ChartContainer = ({
           <Icon name="analytics" size={48} />
           <div>
             <Typography variant="subtitle1" weight="medium">
-              No Data
+              {t('common.noData')}
             </Typography>
             <Typography variant="body2" color="secondary">
-              {emptyMessage}
+              {emptyMessage || t('common.noDataAvailable')}
             </Typography>
           </div>
         </EmptyState>
@@ -518,7 +520,7 @@ const ChartContainer = ({
               {exportable && (
                 <ActionButton
                   onClick={() => handleExport('png')}
-                  title="Export"
+                  title={t('common.export')}
                 >
                   <Icon name="download" size={16} />
                 </ActionButton>
@@ -565,7 +567,7 @@ const ChartContainer = ({
 
             {lastUpdated && (
               <Typography variant="caption" color="tertiary">
-                Last updated: {lastUpdated}
+                {t('common.lastUpdatedLabel')} {lastUpdated}
               </Typography>
             )}
           </ChartFooter>
