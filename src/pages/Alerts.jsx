@@ -1,12 +1,13 @@
 import styled from 'styled-components';
 import { motion } from 'framer-motion';
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import Typography from '../components/atoms/Typography';
 import Button from '../components/atoms/Button';
 import Icon from '../components/atoms/Icon';
 import Badge from '../components/atoms/Badge';
 import AlertCenter from '../components/organisms/AlertCenter';
 import { useI18n } from '../hooks/useI18n';
+import useAlertsStore from '../store/alertsStore';
 
 const AlertsContainer = styled(motion.div)`
   padding: ${props => props.theme.spacing[6]};
@@ -74,118 +75,24 @@ const AlertsContent = styled.div`
 
 const Alerts = () => {
   const { t } = useI18n();
-  const [loading, setLoading] = useState(false);
+  
+  // Alerts store
+  const { 
+    alerts, 
+    loading, 
+    error,
+    fetchAlerts,
+    acknowledgeAlert,
+    dismissAlert 
+  } = useAlertsStore();
 
-  // Mock alerts data
-  const mockAlerts = [
-    {
-      id: 'ALT-001',
-      severity: 'error',
-      title: t('alerts.alertTitles.criticalStockLevel'),
-      message: t('alerts.alertMessages.criticalStockLevel'),
-      category: t('alerts.categories.inventory'),
-      timestamp: new Date(Date.now() - 10 * 60 * 1000),
-      read: false,
-      archived: false
-    },
-    {
-      id: 'ALT-002',
-      severity: 'error',
-      title: t('alerts.alertTitles.productOutOfStock'),
-      message: t('alerts.alertMessages.productOutOfStock'),
-      category: t('alerts.categories.inventory'),
-      timestamp: new Date(Date.now() - 25 * 60 * 1000),
-      read: false,
-      archived: false
-    },
-    {
-      id: 'ALT-003',
-      severity: 'warning',
-      title: t('alerts.alertTitles.supplierDelay'),
-      message: t('alerts.alertMessages.supplierDelay'),
-      category: t('alerts.categories.supplyChain'),
-      timestamp: new Date(Date.now() - 45 * 60 * 1000),
-      read: false,
-      archived: false
-    },
-    {
-      id: 'ALT-004',
-      severity: 'warning',
-      title: t('alerts.alertTitles.reorderPoint'),
-      message: t('alerts.alertMessages.reorderPoint'),
-      category: t('alerts.categories.reorder'),
-      timestamp: new Date(Date.now() - 1.5 * 60 * 60 * 1000),
-      read: true,
-      archived: false
-    },
-    {
-      id: 'ALT-005',
-      severity: 'warning',
-      title: t('alerts.alertTitles.priceChange'),
-      message: t('alerts.alertMessages.priceChange'),
-      category: t('alerts.categories.pricing'),
-      timestamp: new Date(Date.now() - 2 * 60 * 60 * 1000),
-      read: true,
-      archived: false
-    },
-    {
-      id: 'ALT-006',
-      severity: 'info',
-      title: t('alerts.alertTitles.bulkOrderProcessed'),
-      message: t('alerts.alertMessages.bulkOrderProcessed'),
-      category: t('alerts.categories.orders'),
-      timestamp: new Date(Date.now() - 3 * 60 * 60 * 1000),
-      read: true,
-      archived: false
-    },
-    {
-      id: 'ALT-007',
-      severity: 'info',
-      title: t('alerts.alertTitles.inventoryReport'),
-      message: t('alerts.alertMessages.inventoryReport'),
-      category: t('alerts.categories.reports'),
-      timestamp: new Date(Date.now() - 4 * 60 * 60 * 1000),
-      read: true,
-      archived: false
-    },
-    {
-      id: 'ALT-008',
-      severity: 'success',
-      title: t('alerts.alertTitles.stockAdjustment'),
-      message: t('alerts.alertMessages.stockAdjustment'),
-      category: t('alerts.categories.inventory'),
-      timestamp: new Date(Date.now() - 6 * 60 * 60 * 1000),
-      read: true,
-      archived: false
-    },
-    {
-      id: 'ALT-009',
-      severity: 'info',
-      title: t('alerts.alertTitles.newProduct'),
-      message: t('alerts.alertMessages.newProduct'),
-      category: t('alerts.categories.products'),
-      timestamp: new Date(Date.now() - 8 * 60 * 60 * 1000),
-      read: true,
-      archived: false
-    },
-    {
-      id: 'ALT-010',
-      severity: 'warning',
-      title: t('alerts.alertTitles.temperatureAlert'),
-      message: t('alerts.alertMessages.temperatureAlert'),
-      category: t('alerts.categories.warehouse'),
-      timestamp: new Date(Date.now() - 12 * 60 * 60 * 1000),
-      read: true,
-      archived: false
-    }
-  ];
+  // Fetch alerts on component mount
+  useEffect(() => {
+    fetchAlerts();
+  }, [fetchAlerts]);
 
   const handleRefresh = async () => {
-    setLoading(true);
-    // Simulate API call
-    setTimeout(() => {
-      setLoading(false);
-    }, 1000);
+    await fetchAlerts();
   };
 
   const handleAlertClick = (alert) => {
@@ -250,12 +157,12 @@ const Alerts = () => {
     // Open dialog to create new alert rule
   };
 
-  // Calculate statistics
+  // Calculate statistics from real alerts data
   const stats = {
-    total: mockAlerts.length,
-    unread: mockAlerts.filter(a => !a.read && !a.archived).length,
-    critical: mockAlerts.filter(a => a.severity === 'error' && !a.archived).length,
-    warning: mockAlerts.filter(a => a.severity === 'warning' && !a.archived).length
+    total: alerts.length,
+    unread: alerts.filter(a => !a.read && !a.archived).length,
+    critical: alerts.filter(a => a.severity === 'error' && !a.archived).length,
+    warning: alerts.filter(a => a.severity === 'warning' && !a.archived).length
   };
 
   return (
@@ -333,7 +240,7 @@ const Alerts = () => {
 
       <AlertsContent>
         <AlertCenter
-          alerts={mockAlerts}
+          alerts={alerts}
           loading={loading}
           showStats={true}
           showSearch={true}

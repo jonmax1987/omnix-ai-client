@@ -269,7 +269,7 @@ const useDashboardStore = create()(
             });
             
             // Fallback to mock data in development
-            if (process.env.NODE_ENV === 'development') {
+            if (import.meta.env?.DEV) {
               const mockMetrics = {
                 revenue: {
                   current: 125430.50,

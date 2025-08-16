@@ -13,6 +13,9 @@ import ErrorBoundary from './components/organisms/ErrorBoundary';
 import OfflineIndicator from './components/atoms/OfflineIndicator';
 import PageTransition from './components/molecules/PageTransition';
 
+// Debug components (development only)
+import ApiDebug from './components/debug/ApiDebug';
+
 // Pages
 import Dashboard from './pages/Dashboard';
 import Products from './pages/Products';
@@ -192,6 +195,9 @@ function AppContent() {
               onNotificationClear={handleNotificationClear}
               onSearch={handleSearch}
             />
+            
+            {/* Debug panel for development */}
+            {import.meta.env.DEV && <ApiDebug />}
             
             <ContentArea>
               <PageTransition variant="default">

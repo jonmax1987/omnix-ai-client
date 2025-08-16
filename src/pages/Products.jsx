@@ -1,6 +1,6 @@
 import styled from 'styled-components';
 import { motion } from 'framer-motion';
-import { useState, useMemo } from 'react';
+import { useState, useMemo, useEffect } from 'react';
 import Typography from '../components/atoms/Typography';
 import Button from '../components/atoms/Button';
 import Icon from '../components/atoms/Icon';
@@ -8,6 +8,7 @@ import Badge from '../components/atoms/Badge';
 import Avatar from '../components/atoms/Avatar';
 import DataTable from '../components/organisms/DataTable';
 import { useI18n } from '../hooks/useI18n';
+import useProductsStore from '../store/productsStore';
 
 const ProductsContainer = styled(motion.div)`
   padding: ${props => props.theme.spacing[6]};
@@ -123,102 +124,44 @@ const formatPrice = (price) => {
 
 const Products = () => {
   const { t } = useI18n();
-  const [loading, setLoading] = useState(false);
   const [selectedProducts, setSelectedProducts] = useState([]);
+  
+  // Products store
+  const { 
+    products, 
+    loading, 
+    error, 
+    fetchProducts,
+    setFilters,
+    filters 
+  } = useProductsStore();
 
-  // Mock product data
-  const mockProducts = [
-    {
-      id: 'PRD-001',
-      name: 'iPhone 14 Pro',
-      sku: 'APL-IP14P-256-SG',
-      category: 'Electronics',
-      supplier: 'Apple Inc.',
-      price: 999.00,
-      cost: 750.00,
-      currentStock: 2,
-      minStock: 5,
-      maxStock: 50,
-      reorderPoint: 10,
-      location: 'A-1-01',
-      barcode: '123456789012',
-      status: 'active',
-      lastUpdated: '2024-01-15T10:30:00Z',
-      image: null
-    },
-    {
-      id: 'PRD-002',
-      name: 'Samsung Galaxy S23',
-      sku: 'SAM-GS23-128-BLK',
-      category: 'Electronics',
-      supplier: 'Samsung Electronics',
-      price: 799.99,
-      cost: 620.00,
-      currentStock: 15,
-      minStock: 8,
-      maxStock: 40,
-      reorderPoint: 12,
-      location: 'A-1-02',
-      barcode: '123456789013',
-      status: 'active',
-      lastUpdated: '2024-01-14T14:20:00Z',
-      image: null
-    },
-    {
-      id: 'PRD-003',
-      name: 'MacBook Air M2',
-      sku: 'APL-MBA-M2-256-SLV',
-      category: 'Electronics',
-      supplier: 'Apple Inc.',
-      price: 1199.00,
-      cost: 900.00,
-      currentStock: 8,
-      minStock: 3,
-      maxStock: 20,
-      reorderPoint: 5,
-      location: 'A-2-01',
-      barcode: '123456789014',
-      status: 'active',
-      lastUpdated: '2024-01-14T09:15:00Z',
-      image: null
-    },
-    {
-      id: 'PRD-004',
-      name: 'Nike Air Max 90',
-      sku: 'NKE-AM90-US10-WHT',
-      category: 'Footwear',
-      supplier: 'Nike Inc.',
-      price: 129.99,
-      cost: 65.00,
-      currentStock: 25,
-      minStock: 10,
-      maxStock: 100,
-      reorderPoint: 20,
-      location: 'B-1-01',
-      barcode: '123456789015',
-      status: 'active',
-      lastUpdated: '2024-01-13T16:45:00Z',
-      image: null
-    },
-    {
-      id: 'PRD-005',
-      name: 'Sony WH-1000XM4',
-      sku: 'SNY-WH1000XM4-BLK',
-      category: t('products.categories.electronics'),
-      supplier: t('products.suppliers.sony'),
-      price: 349.99,
-      cost: 210.00,
-      currentStock: 0,
-      minStock: 5,
-      maxStock: 30,
-      reorderPoint: 8,
-      location: 'A-3-01',
-      barcode: '123456789016',
-      status: 'inactive',
-      lastUpdated: '2024-01-10T11:30:00Z',
-      image: null
-    }
-  ];
+  // Fetch products on component mount
+  useEffect(() => {
+    fetchProducts();
+  }, [fetchProducts]);
+
+  // Transform backend products to match frontend format
+  const transformedProducts = useMemo(() => {
+    return products.map(product => ({
+      id: product.id,
+      name: product.name,
+      sku: product.sku || `SKU-${product.id}`,
+      category: product.category || 'Uncategorized',
+      supplier: product.supplier || 'Unknown',
+      price: product.price || 0,
+      cost: product.cost || product.price * 0.7, // Estimate cost as 70% of price
+      currentStock: product.quantity || 0,
+      minStock: product.minThreshold || 5,
+      maxStock: product.maxStock || 100,
+      reorderPoint: product.reorderPoint || product.minThreshold || 10,
+      location: product.location || 'Unknown',
+      barcode: product.barcode || product.sku,
+      status: product.status || 'active',
+      lastUpdated: product.updatedAt || product.createdAt || new Date().toISOString(),
+      image: product.image || null
+    }));
+  }, [products]);
 
   // Define table columns
   const columns = [
@@ -314,7 +257,7 @@ const Products = () => {
   ];
 
   // Define filters
-  const filters = [
+  const filterOptions = [
     { key: 'category', label: t('products.filters.category') },
     { key: 'supplier', label: t('products.filters.supplier') },
     { key: 'location', label: t('products.filters.location') },
@@ -471,7 +414,7 @@ const Products = () => {
         
         <HeaderRight>
           <Typography variant="caption" color="tertiary">
-            {mockProducts.length} total products
+            {loading ? 'Loading...' : error ? 'Error loading products' : `${transformedProducts.length} total products`}
           </Typography>
           
           <QuickActions>
@@ -506,7 +449,7 @@ const Products = () => {
       <DataTable
         title={t('products.productInventory')}
         description={t('products.description')}
-        data={mockProducts}
+        data={transformedProducts}
         columns={columns}
         loading={loading}
         searchable
@@ -514,7 +457,7 @@ const Products = () => {
         sortable
         selectable
         filterable
-        filters={filters}
+        filters={filterOptions}
         actions={actions}
         bulkActions={bulkActions}
         pagination

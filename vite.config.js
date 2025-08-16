@@ -125,6 +125,23 @@ export default defineConfig(({ command, mode }) => ({
   server: {
     hmr: {
       overlay: false
+    },
+    // Proxy API requests to avoid CORS issues in development
+    proxy: {
+      '/api': {
+        target: 'https://8r85mpuvt3.execute-api.eu-central-1.amazonaws.com/dev',
+        changeOrigin: true,
+        secure: true,
+        rewrite: (path) => path.replace(/^\/api/, '/v1'),
+        configure: (proxy, options) => {
+          proxy.on('error', (err, req, res) => {
+            console.log('Proxy error:', err);
+          });
+          proxy.on('proxyReq', (proxyReq, req, res) => {
+            console.log('Proxy request:', req.method, req.url, '->', proxyReq.path);
+          });
+        }
+      }
     }
   },
   

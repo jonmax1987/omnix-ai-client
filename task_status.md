@@ -114,74 +114,112 @@
 - [x] Security headers
 - [x] SEO
 
-## Frontend-Backend Integration
-- [ ] Update API service layer to match OpenAPI spec exactly
-- [ ] Fix API endpoint paths (/v1 prefix missing)
-- [ ] Update data models to match API schemas
-- [ ] Connect dashboard to real API endpoints
-- [ ] Integrate alerts system with backend
-- [ ] Connect recommendations with API
-- [ ] Implement demand forecasting data flow
-- [ ] Update WebSocket integration for real-time updates
-- [ ] Replace mock data stores with API calls
-- [ ] Fix authentication flow with backend JWT
-
-## API Integration Tasks
-- [ ] Dashboard summary API integration (/dashboard/summary)
-- [ ] Inventory graph API integration (/dashboard/inventory-graph)
-- [ ] Products CRUD operations alignment
-- [ ] Alerts management API integration
-- [ ] Order recommendations API integration
-- [ ] Demand forecasts API integration (/forecasts/demand)
-- [ ] Trend analysis API integration (/forecasts/trends)
-- [ ] Product search and filtering refinement
-- [ ] Pagination implementation matching API spec
-- [ ] Error handling alignment with API responses
-
-## Data Model Updates
-- [ ] Update Product schema to match API
-- [ ] Update Alert schema with new fields
-- [ ] Update DashboardSummary data structure
-- [ ] Update OrderRecommendation model
-- [ ] Update DemandForecast model
-- [ ] Update TrendAnalysis model
-- [ ] Add missing API response interfaces
-- [ ] Update TypeScript definitions
-- [ ] Add proper error handling types
-
-## Environment Configuration
-- [ ] Configure API base URLs for different environments
-- [ ] Set up authentication tokens/API keys
-- [ ] Configure WebSocket connection URLs
+## Phase 1: API Infrastructure Updates (Critical Priority)
+- [ ] Update API base URL from `/api` to `/v1` in src/services/api.js:6
+- [ ] Add X-API-Key header support alongside Bearer tokens in src/services/api.js:13-32
+- [ ] Enhance transformBackendResponse() to handle {data: [...]} → {products: [...]} mapping
+- [ ] Configure environment variables (REACT_APP_API_KEY, REACT_APP_API_URL)
+- [ ] Test API connectivity with new base URL structure
 - [ ] Update CORS settings for backend integration
-- [ ] Set up proper environment variables
 - [ ] Configure development proxy settings
-- [ ] Update build configurations for different stages
 
-## Real-time Features
-- [ ] WebSocket connection for live alerts
-- [ ] Real-time inventory updates
-- [ ] Live dashboard metrics updates
-- [ ] Push notifications for critical alerts
-- [ ] Real-time recommendation updates
-- [ ] Live forecast data updates
+## Phase 2: Client-Side Schema Extensions (High Priority)
+- [ ] Add Product fields: barcode, unit, expirationDate, description, cost (preserve existing tags, status)
+- [ ] Add Alert fields: dismissedAt, dismissedBy, expiresAt (preserve existing acknowledged, title)
+- [ ] Extend DashboardSummary to include totalInventoryValue → revenue.current mapping
+- [ ] Create TypeScript interfaces for new backend response formats
+- [ ] Add API error response types matching backend specification
+- [ ] Update product form components to handle new fields
+- [ ] Update alert components to display new backend fields
 
-## Testing Updates
-- [ ] Update integration tests for real API
-- [ ] Mock API responses for unit tests
+## Phase 3: API Integration & Mapping (High Priority)
+- [ ] Map dashboard calls: /analytics/dashboard → /dashboard/summary
+- [ ] Map forecast calls: /analytics/forecast → /forecasts/demand
+- [ ] Map trend calls: /analytics/trends → /forecasts/trends
+- [ ] Map alert actions: acknowledge → dismiss endpoint
+- [ ] Implement dual-mode stores (API + mock fallback for development)
+- [ ] Add request/response logging for API integration debugging
+- [ ] Enhance pagination implementation to match API spec
+- [ ] Update error handling to align with API responses
+
+## Phase 4: Enhanced Data Flow (Medium Priority)
+- [ ] Connect dashboard to real API endpoints with fallback to mock data
+- [ ] Integrate alerts system with backend while preserving client-side functionality
+- [ ] Connect recommendations with API (map general → order recommendations)
+- [ ] Implement demand forecasting data flow with confidence intervals
+- [ ] Update product search and filtering to use backend parameters
+- [ ] Add proper loading states for all API integrations
+
+## Phase 5: Real-time Integration (Medium Priority)
+- [ ] Configure WebSocket URL for backend compatibility
+- [ ] Map backend real-time events to existing client event handlers
+- [ ] Add WebSocket connection fallback for offline scenarios
+- [ ] Implement real-time inventory updates
+- [ ] Add live dashboard metrics updates
+- [ ] Enable push notifications for critical alerts
+- [ ] Test real-time recommendation updates
+
+## Phase 6: Testing & Validation (Lower Priority)
+- [ ] Update integration tests for real API endpoints
+- [ ] Mock API responses for unit tests (preserve existing tests)
 - [ ] Add API error scenario testing
 - [ ] Update E2E tests with real data flows
 - [ ] Add API performance testing
-- [ ] Test authentication flows
+- [ ] Test authentication flows with both API key and Bearer token
+- [ ] Add API connectivity health checks
 
-## Deployment & Infrastructure
+## Phase 7: Environment & Deployment (Lower Priority)
 - [ ] Configure production API endpoints
-- [ ] Set up staging environment
+- [ ] Set up staging environment configuration
 - [ ] Configure AWS CloudFront for API caching
 - [ ] Set up proper DNS for API access
 - [ ] Configure SSL certificates
 - [ ] Set up monitoring for API integration
 - [ ] Configure backup and failover strategies
+- [ ] Update build configurations for different stages
+
+## Backend Team Requirements (External Dependencies)
+**Note: These tasks are for the backend team - not frontend implementation**
+
+### Authentication & User Management Endpoints
+- [ ] Implement /v1/auth/login endpoint
+- [ ] Implement /v1/auth/logout endpoint  
+- [ ] Implement /v1/auth/refresh endpoint
+- [ ] Implement /v1/auth/reset-password endpoint
+- [ ] Implement /v1/auth/change-password endpoint
+- [ ] Implement /v1/user/profile endpoint (GET, PATCH)
+- [ ] Implement /v1/user/preferences endpoint (GET, PATCH)
+- [ ] Implement /v1/user/avatar upload endpoint
+
+### Inventory Management Endpoints
+- [ ] Implement /v1/inventory GET endpoint with filtering
+- [ ] Implement /v1/inventory/{productId} GET endpoint
+- [ ] Implement /v1/inventory/{productId}/adjust POST endpoint
+- [ ] Implement /v1/inventory/transfer POST endpoint
+- [ ] Implement /v1/inventory/{productId}/history GET endpoint
+- [ ] Implement /v1/inventory/bulk-adjust POST endpoint
+
+### Order Management Endpoints
+- [ ] Implement /v1/orders CRUD endpoints
+- [ ] Implement /v1/orders/{id}/cancel POST endpoint
+- [ ] Implement /v1/orders/{id}/fulfill POST endpoint
+- [ ] Implement /v1/orders/{id}/history GET endpoint
+- [ ] Implement /v1/orders/statistics GET endpoint
+
+### Settings & System Endpoints
+- [ ] Implement /v1/settings GET/PATCH endpoints
+- [ ] Implement /v1/settings/integrations endpoints
+- [ ] Implement /v1/settings/notifications endpoints
+- [ ] Implement /v1/system/health GET endpoint
+- [ ] Implement /v1/system/status GET endpoint
+- [ ] Implement /v1/system/metrics GET endpoint
+
+### Enhanced Schema Support
+- [ ] Add Product schema fields: tags (array), status (enum)
+- [ ] Add Alert schema fields: title (string), acknowledged (boolean)
+- [ ] Add User profile schema
+- [ ] Add Order management schema
+- [ ] Add Settings configuration schema
 
 **Current:** Phase 5 - Frontend-Backend Integration Required
 **Status:** Frontend complete, backend exists with OpenAPI spec, need integration

@@ -247,6 +247,8 @@ const ProductForm = ({
     dimensions: '',
     tags: '',
     status: 'active',
+    unit: '',
+    expirationDate: '',
     ...initialData
   });
 
@@ -400,6 +402,28 @@ const ProductForm = ({
         { value: 'discontinued', label: 'Discontinued' }
       ],
       rules: [validationRules.required]
+    },
+    unit: {
+      label: 'Unit of Measurement',
+      type: 'select',
+      options: [
+        { value: 'pcs', label: 'Pieces' },
+        { value: 'kg', label: 'Kilograms' },
+        { value: 'g', label: 'Grams' },
+        { value: 'l', label: 'Liters' },
+        { value: 'ml', label: 'Milliliters' },
+        { value: 'm', label: 'Meters' },
+        { value: 'cm', label: 'Centimeters' },
+        { value: 'box', label: 'Boxes' },
+        { value: 'pack', label: 'Packs' }
+      ],
+      rules: [validationRules.maxLength(20)]
+    },
+    expirationDate: {
+      label: 'Expiration Date',
+      type: 'date',
+      helperText: 'Leave empty for non-perishable items',
+      rules: []
     }
   };
 
@@ -739,12 +763,28 @@ const ProductForm = ({
             error={errors.barcode}
           />
           <FormField
+            {...fieldConfigs.unit}
+            name="unit"
+            value={formData.unit}
+            onChange={(e) => handleChange('unit', e.target.value)}
+            onBlur={() => handleBlur('unit')}
+            error={errors.unit}
+          />
+          <FormField
             {...fieldConfigs.weight}
             name="weight"
             value={formData.weight}
             onChange={(e) => handleChange('weight', e.target.value)}
             onBlur={() => handleBlur('weight')}
             error={errors.weight}
+          />
+          <FormField
+            {...fieldConfigs.expirationDate}
+            name="expirationDate"
+            value={formData.expirationDate}
+            onChange={(e) => handleChange('expirationDate', e.target.value)}
+            onBlur={() => handleBlur('expirationDate')}
+            error={errors.expirationDate}
           />
           <FormField
             {...fieldConfigs.dimensions}

@@ -81,6 +81,63 @@ const useAlertsStore = create()(
             state.totalItems = alerts.length;
             get().updateStats();
           }),
+
+        // API Actions
+        fetchAlerts: async (params = {}) => {
+          set((state) => {
+            state.loading = true;
+            state.error = null;
+          });
+
+          try {
+            const { alertsAPI } = await import('../services/api.js');
+            const response = await alertsAPI.getAlerts(params);
+            
+            // Use setAlerts to properly set the response
+            get().setAlerts(response.data || response.alerts || []);
+            
+            // Update pagination if provided
+            if (response.pagination) {
+              set((state) => {
+                state.totalItems = response.pagination.total || 0;
+              });
+            }
+          } catch (error) {
+            console.error('Failed to fetch alerts:', error);
+            set((state) => {
+              state.error = error.message || 'Failed to fetch alerts';
+            });
+            
+            // Fallback to mock data in development when API is unavailable
+            if (process.env.NODE_ENV === 'development') {
+              console.log('Using mock alerts data for development');
+              const mockAlerts = [
+                {
+                  id: 'mock-alert-1',
+                  type: 'low-stock',
+                  productId: 'mock-1',
+                  productName: 'Sample Coffee Beans',
+                  severity: 'warning',
+                  message: 'Low stock alert - only 15 units remaining',
+                  details: 'Consider reordering soon to avoid stockout',
+                  actionRequired: true,
+                  createdAt: new Date(Date.now() - 2 * 60 * 60 * 1000).toISOString(),
+                  expiresAt: new Date(Date.now() + 24 * 60 * 60 * 1000).toISOString(),
+                  dismissedAt: null,
+                  dismissedBy: null,
+                  title: 'Low Stock Warning',
+                  acknowledged: false,
+                  status: 'active'
+                }
+              ];
+              get().setAlerts(mockAlerts);
+            }
+          } finally {
+            set((state) => {
+              state.loading = false;
+            });
+          }
+        },
           
         addAlert: (alert) =>
           set((state) => {
@@ -92,7 +149,14 @@ const useAlertsStore = create()(
               acknowledgedAt: null,
               resolvedAt: null,
               assignedTo: alert.assignedTo || null,
-              notes: alert.notes || []
+              notes: alert.notes || [],
+              // Backend fields
+              dismissedAt: alert.dismissedAt || null,
+              dismissedBy: alert.dismissedBy || null,
+              expiresAt: alert.expiresAt || null,
+              // Client-side fields (preserve existing)
+              acknowledged: alert.acknowledged || false,
+              title: alert.title || alert.message || 'Alert'
             };
             
             state.alerts.unshift(newAlert);
@@ -142,6 +206,23 @@ const useAlertsStore = create()(
               state.alerts[index].status = 'acknowledged';
               state.alerts[index].acknowledgedAt = new Date().toISOString();
               state.alerts[index].acknowledgedBy = userId;
+              state.alerts[index].acknowledged = true; // Client-side field
+              get().updateStats();
+            }
+          }),
+          
+        dismissAlert: (id, userId = 'current-user') =>
+          set((state) => {
+            const index = state.alerts.findIndex(alert => alert.id === id);
+            if (index !== -1) {
+              // Map to backend dismiss functionality
+              state.alerts[index].dismissedAt = new Date().toISOString();
+              state.alerts[index].dismissedBy = userId;
+              // Also update client-side fields for compatibility
+              state.alerts[index].status = 'acknowledged';
+              state.alerts[index].acknowledged = true;
+              state.alerts[index].acknowledgedAt = state.alerts[index].acknowledgedAt || new Date().toISOString();
+              state.alerts[index].acknowledgedBy = state.alerts[index].acknowledgedBy || userId;
               get().updateStats();
             }
           }),

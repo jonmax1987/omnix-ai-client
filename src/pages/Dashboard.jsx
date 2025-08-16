@@ -1,6 +1,6 @@
 import styled from 'styled-components';
 import { motion } from 'framer-motion';
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useMemo } from 'react';
 import Typography from '../components/atoms/Typography';
 import Button from '../components/atoms/Button';
 import Icon from '../components/atoms/Icon';
@@ -14,6 +14,7 @@ import MobileCarousel from '../components/molecules/MobileCarousel';
 import { exportDashboardReport } from '../utils/exportUtils';
 import { isTouchDevice } from '../utils/mobileGestures';
 import { useI18n } from '../hooks/useI18n';
+import useDashboardStore from '../store/dashboardStore';
 
 const DashboardContainer = styled(motion.div)`
   padding: ${props => props.theme.spacing[6]};
@@ -137,50 +138,69 @@ const MockChart = styled.div`
 const Dashboard = () => {
   const { t } = useI18n();
   const [timeRange, setTimeRange] = useState('24h');
-  const [loading, setLoading] = useState(false);
+  
+  // Dashboard store
+  const { 
+    metrics, 
+    loading, 
+    errors,
+    realtimeData,
+    fetchMetrics,
+    refreshDashboard 
+  } = useDashboardStore();
+  
   const [lastUpdated, setLastUpdated] = useState(new Date().toLocaleTimeString());
 
-  // Mock data with translations
-  const metrics = [
-    {
-      title: t('dashboard.totalRevenue'),
-      value: 245680,
-      valueFormat: 'currency',
-      change: 12.5,
-      trend: 'up',
-      icon: 'trending',
-      iconColor: 'success',
-      target: 250000,
-      progress: 98.3
-    },
-    {
-      title: t('dashboard.totalItems'),
-      value: 1247,
-      change: -3.2,
-      trend: 'down',
-      icon: 'products',
-      iconColor: 'primary',
-      badge: t('dashboard.badges.live')
-    },
-    {
-      title: t('dashboard.lowStock'),
-      value: 23,
-      change: 8.5,
-      trend: 'up',
-      icon: 'warning',
-      iconColor: 'warning',
-      variant: 'compact'
-    },
-    {
-      title: t('dashboard.totalOrders'),
-      value: 89,
-      change: 15.3,
-      trend: 'up',
-      icon: 'checkCircle',
-      iconColor: 'success',
-      variant: 'compact'
-    }
-  ];
+  // Fetch dashboard data on component mount
+  useEffect(() => {
+    fetchMetrics();
+  }, [fetchMetrics]);
+
+  // Transform real dashboard data for display
+  const displayMetrics = useMemo(() => {
+    if (!metrics.inventory) return [];
+    
+    return [
+      {
+        title: t('dashboard.totalRevenue'),
+        value: metrics.revenue?.current || metrics.inventory?.totalValue || 0,
+        valueFormat: 'currency',
+        change: metrics.revenue?.change || 0,
+        trend: metrics.revenue?.trend || 'neutral',
+        icon: 'trending',
+        iconColor: 'success',
+        target: 250000,
+        progress: ((metrics.revenue?.current || 0) / 250000) * 100
+      },
+      {
+        title: t('dashboard.totalItems'),
+        value: metrics.inventory?.totalItems || 0,
+        change: 0, // Backend doesn't provide change yet
+        trend: 'neutral',
+        icon: 'products',
+        iconColor: 'primary',
+        badge: t('dashboard.badges.live')
+      },
+      {
+        title: t('dashboard.lowStock'),
+        value: metrics.inventory?.lowStockItems || 0,
+        change: 0, // Backend doesn't provide change yet
+        trend: metrics.inventory?.lowStockItems > 10 ? 'up' : 'down',
+        icon: 'warning',
+        iconColor: 'warning',
+        variant: 'compact'
+      },
+      {
+        title: t('dashboard.totalOrders'),
+        value: metrics.orders?.current || 0,
+        change: metrics.orders?.change || 0,
+        trend: metrics.orders?.trend || 'neutral',
+        icon: 'checkCircle',
+        iconColor: 'success',
+        variant: 'compact'
+      }
+    ];
+  }, [metrics, t]);
 
   const recentAlerts = [
     {
@@ -383,7 +403,7 @@ const Dashboard = () => {
         {...DASHBOARD_LAYOUTS.default}
         spacing="lg"
       >
-        {metrics.map((metric, index) => (
+        {displayMetrics.map((metric, index) => (
           <GridItem
             key={metric.title}
             span={index < 2 ? 2 : 1}

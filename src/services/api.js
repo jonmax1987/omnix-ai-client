@@ -1,13 +1,35 @@
 // API service layer for OMNIX AI
 import useUserStore from '../store/userStore';
 
+/**
+ * @typedef {import('../types/api.js').APIResponse} APIResponse
+ * @typedef {import('../types/api.js').Product} Product
+ * @typedef {import('../types/api.js').Alert} Alert
+ * @typedef {import('../types/api.js').DashboardSummary} DashboardSummary
+ * @typedef {import('../types/api.js').DashboardMetrics} DashboardMetrics
+ * @typedef {import('../types/api.js').OrderRecommendation} OrderRecommendation
+ * @typedef {import('../types/api.js').DemandForecast} DemandForecast
+ * @typedef {import('../types/api.js').TrendAnalysis} TrendAnalysis
+ */
+
 // API Configuration  
 const API_CONFIG = {
-  baseURL: process.env.REACT_APP_API_URL || 'http://localhost:3000/v1',
+  baseURL: import.meta.env.DEV 
+    ? 'http://localhost:3001'  // Use CORS proxy in development to avoid CORS issues
+    : (import.meta.env.VITE_API_BASE_URL || 'https://8r85mpuvt3.execute-api.eu-central-1.amazonaws.com/dev') + '/v1',
   timeout: 30000,
   retryAttempts: 3,
   retryDelay: 1000
 };
+
+// Debug API configuration
+if (typeof window !== 'undefined' && import.meta.env.DEV) {
+  console.group('🔧 API Configuration Debug');
+  console.log('🌍 VITE_API_BASE_URL:', import.meta.env.VITE_API_BASE_URL);
+  console.log('📡 Final baseURL:', API_CONFIG.baseURL);
+  console.log('🎯 Example endpoint:', `${API_CONFIG.baseURL}/dashboard/summary`);
+  console.groupEnd();
+}
 
 // Request/Response interceptors
 const createApiHeaders = () => {
@@ -18,7 +40,7 @@ const createApiHeaders = () => {
   };
   
   // Add API Key if available
-  const apiKey = process.env.REACT_APP_API_KEY;
+  const apiKey = import.meta.env.VITE_API_KEY;
   if (apiKey) {
     headers['X-API-Key'] = apiKey;
   }
@@ -47,12 +69,34 @@ const apiRequest = async (endpoint, options = {}) => {
       const controller = new AbortController();
       const timeoutId = setTimeout(() => controller.abort(), config.timeout);
       
+      // API Request Logging
+      if (import.meta.env.DEV) {
+        console.group(`🔄 API Request [Attempt ${attempt}]`);
+        console.log('📤 URL:', url);
+        console.log('📋 Method:', config.method || 'GET');
+        console.log('📝 Headers:', config.headers);
+        if (config.body) {
+          console.log('📦 Body:', typeof config.body === 'string' ? JSON.parse(config.body) : config.body);
+        }
+        console.groupEnd();
+      }
+      
+      const requestStart = performance.now();
       const response = await fetch(url, {
         ...config,
         signal: controller.signal
       });
+      const requestDuration = performance.now() - requestStart;
       
       clearTimeout(timeoutId);
+      
+      // API Response Logging
+      if (import.meta.env.DEV) {
+        console.group(`📡 API Response [${response.status}] - ${requestDuration.toFixed(2)}ms`);
+        console.log('✅ Status:', response.status, response.statusText);
+        console.log('📝 Headers:', Object.fromEntries(response.headers.entries()));
+        console.groupEnd();
+      }
       
       // Handle token expiration
       if (response.status === 401) {
@@ -82,14 +126,43 @@ const apiRequest = async (endpoint, options = {}) => {
       const contentType = response.headers.get('Content-Type');
       if (contentType && contentType.includes('application/json')) {
         const data = await response.json();
+        
+        // Log successful response data
+        if (import.meta.env.DEV) {
+          console.group(`📦 API Response Data`);
+          console.log('🔍 Raw Data:', data);
+          console.groupEnd();
+        }
+        
         // Handle backend response format transformation
-        return transformBackendResponse(data, endpoint);
+        const transformedData = transformBackendResponse(data, endpoint);
+        
+        // Log transformed data if different
+        if (import.meta.env.DEV && transformedData !== data) {
+          console.group(`🔄 Transformed Data`);
+          console.log('✨ Transformed:', transformedData);
+          console.groupEnd();
+        }
+        
+        return transformedData;
       }
       
       return response;
       
     } catch (error) {
       lastError = error;
+      
+      // Log API errors in development
+      if (import.meta.env.DEV) {
+        console.group(`❌ API Error [Attempt ${attempt}]`);
+        console.error('🚨 Error:', error.message);
+        console.error('📊 Status:', error.status || 'N/A');
+        console.error('🔢 Code:', error.code || 'N/A');
+        if (error.details) {
+          console.error('📋 Details:', error.details);
+        }
+        console.groupEnd();
+      }
       
       if (error.name === 'AbortError') {
         throw new ApiError('Request timeout', 408, 'TIMEOUT');
@@ -429,7 +502,7 @@ export class WebSocketService {
     }
     
     this.isConnecting = true;
-    const wsUrl = process.env.REACT_APP_WS_URL || 'ws://localhost:3001';
+    const wsUrl = import.meta.env.VITE_WEBSOCKET_URL || 'ws://localhost:3001';
     const token = useUserStore.getState().token;
     
     this.socket = new WebSocket(`${wsUrl}?token=${token}`);
