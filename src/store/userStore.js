@@ -188,52 +188,65 @@ const useUserStore = create()(
             });
             
             try {
-              // Simulate API call - replace with actual authentication
-              const mockResponse = {
-                token: 'mock-jwt-token',
-                refreshToken: 'mock-refresh-token',
-                user: {
-                  id: 'user-123',
-                  email: credentials.email,
-                  firstName: 'John',
-                  lastName: 'Doe',
-                  avatar: null,
-                  role: 'inventory_manager'
+              // Real API authentication
+              const response = await fetch('https://18sz01wxsi.execute-api.eu-central-1.amazonaws.com/dev/v1/auth/login', {
+                method: 'POST',
+                headers: {
+                  'Content-Type': 'application/json',
                 },
-                permissions: {
-                  products: { view: true, create: true, edit: true, delete: false, export: true },
-                  inventory: { view: true, adjust: true, transfer: true, audit: false },
-                  orders: { view: true, create: true, edit: true, cancel: true, fulfill: true },
-                  analytics: { view: true, export: true, advanced: false },
-                  alerts: { view: true, acknowledge: true, resolve: true, manage: false },
-                  settings: { view: true, edit: true, admin: false },
-                  users: { view: false, create: false, edit: false, delete: false }
-                }
-              };
-              
-              await new Promise(resolve => setTimeout(resolve, 1000)); // Simulate network delay
-              
-              set((state) => {
-                state.isAuthenticated = true;
-                state.token = mockResponse.token;
-                state.refreshToken = mockResponse.refreshToken;
-                state.tokenExpiry = Date.now() + (24 * 60 * 60 * 1000); // 24 hours
-                state.user = mockResponse.user;
-                state.permissions = mockResponse.permissions;
-                
-                state.profile = {
-                  ...state.profile,
-                  ...mockResponse.user,
-                  lastLogin: new Date().toISOString()
-                };
-                
-                state.session.startTime = Date.now();
-                state.session.lastActivity = Date.now();
-                
-                state.loading.auth = false;
+                body: JSON.stringify({
+                  email: credentials.email,
+                  password: credentials.password
+                })
               });
-              
-              return { success: true };
+
+              const data = await response.json();
+
+              if (response.ok && data.data) {
+                // Set permissions based on user role
+                const permissions = {
+                  products: { view: true, create: true, edit: true, delete: data.data.user.role === 'admin', export: true },
+                  inventory: { view: true, adjust: true, transfer: true, audit: data.data.user.role === 'admin' },
+                  orders: { view: true, create: true, edit: true, cancel: true, fulfill: true },
+                  analytics: { view: true, export: true, advanced: data.data.user.role === 'admin' },
+                  alerts: { view: true, acknowledge: true, resolve: true, manage: data.data.user.role === 'admin' },
+                  settings: { view: true, edit: true, admin: data.data.user.role === 'admin' },
+                  users: { 
+                    view: data.data.user.role === 'admin', 
+                    create: data.data.user.role === 'admin', 
+                    edit: data.data.user.role === 'admin', 
+                    delete: data.data.user.role === 'admin' 
+                  }
+                };
+
+                set((state) => {
+                  state.isAuthenticated = true;
+                  state.token = data.data.accessToken;
+                  state.refreshToken = data.data.refreshToken;
+                  state.tokenExpiry = Date.now() + (60 * 60 * 1000); // 1 hour
+                  state.user = data.data.user;
+                  state.permissions = permissions;
+                  
+                  state.profile = {
+                    ...state.profile,
+                    id: data.data.user.id,
+                    email: data.data.user.email,
+                    firstName: data.data.user.name?.split(' ')[0] || '',
+                    lastName: data.data.user.name?.split(' ').slice(1).join(' ') || '',
+                    role: data.data.user.role,
+                    lastLogin: new Date().toISOString()
+                  };
+                  
+                  state.session.startTime = Date.now();
+                  state.session.lastActivity = Date.now();
+                  
+                  state.loading.auth = false;
+                });
+                
+                return { success: true };
+              } else {
+                throw new Error(data.message || 'Login failed');
+              }
             } catch (error) {
               set((state) => {
                 state.errors.auth = error.message || 'Login failed';
@@ -288,24 +301,41 @@ const useUserStore = create()(
             });
             
             try {
-              // Simulate API call
-              await new Promise(resolve => setTimeout(resolve, 800));
-              
-              set((state) => {
-                state.profile = { ...state.profile, ...updates };
-                if (state.user) {
-                  state.user = { ...state.user, ...updates };
-                }
-                state.loading.profile = false;
+              const { token } = get();
+              const response = await fetch('/api/user/profile', {
+                method: 'PATCH',
+                headers: {
+                  'Content-Type': 'application/json',
+                  'Authorization': `Bearer ${token}`
+                },
+                body: JSON.stringify(updates)
               });
-              
-              return { success: true };
+
+              const data = await response.json();
+
+              if (response.ok) {
+                set((state) => {
+                  state.profile = { ...state.profile, ...updates };
+                  if (state.user) {
+                    // Update name field for consistency
+                    if (updates.firstName || updates.lastName) {
+                      state.user.name = `${updates.firstName || state.profile.firstName} ${updates.lastName || state.profile.lastName}`.trim();
+                    }
+                    state.user = { ...state.user, ...updates };
+                  }
+                  state.loading.profile = false;
+                });
+                
+                return { success: true };
+              } else {
+                throw new Error(data.message || 'Profile update failed');
+              }
             } catch (error) {
               set((state) => {
                 state.errors.profile = error.message || 'Profile update failed';
                 state.loading.profile = false;
               });
-              return { success: false, error: error.message };
+              throw error;
             }
           },
           
@@ -431,6 +461,47 @@ const useUserStore = create()(
                 state.loading.auth = false;
               });
               return { success: false, error: error.message };
+            }
+          },
+
+          updatePassword: async (currentPassword, newPassword) => {
+            set((state) => {
+              state.loading.profile = true;
+              state.errors.profile = null;
+            });
+            
+            try {
+              const { token } = get();
+              const response = await fetch('/api/auth/change-password', {
+                method: 'POST',
+                headers: {
+                  'Content-Type': 'application/json',
+                  'Authorization': `Bearer ${token}`
+                },
+                body: JSON.stringify({
+                  currentPassword,
+                  newPassword
+                })
+              });
+
+              const data = await response.json();
+
+              if (response.ok) {
+                set((state) => {
+                  state.security.lastPasswordChange = new Date().toISOString();
+                  state.security.loginAttempts = 0;
+                  state.loading.profile = false;
+                });
+                return { success: true };
+              } else {
+                throw new Error(data.message || 'Password change failed');
+              }
+            } catch (error) {
+              set((state) => {
+                state.errors.profile = error.message || 'Password change failed';
+                state.loading.profile = false;
+              });
+              throw error;
             }
           },
           

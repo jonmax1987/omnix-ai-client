@@ -17,7 +17,7 @@ const MONITORING_CONFIG = {
 // Initialize Sentry
 export function initializeErrorTracking() {
   if (!MONITORING_CONFIG.sentry.enabled || !MONITORING_CONFIG.sentry.dsn) {
-    console.log('Error tracking disabled or DSN not configured');
+    // console.log('Error tracking disabled or DSN not configured');
     return;
   }
 
@@ -72,13 +72,13 @@ export function initializeErrorTracking() {
     }
   });
 
-  console.log('Error tracking initialized');
+  // console.log('Error tracking initialized');
 }
 
 // Web Vitals monitoring
 export function initializePerformanceMonitoring() {
   if (!MONITORING_CONFIG.performance.enabled) {
-    console.log('Performance monitoring disabled');
+    // console.log('Performance monitoring disabled');
     return;
   }
 
@@ -92,7 +92,7 @@ export function initializePerformanceMonitoring() {
   // Custom performance metrics
   measureCustomMetrics();
   
-  console.log('Performance monitoring initialized');
+  // console.log('Performance monitoring initialized');
 }
 
 function sendToAnalytics({ name, value, id, delta }) {
@@ -211,7 +211,7 @@ export function trackEvent(eventName, properties = {}) {
     gtag('event', eventName, properties);
   }
 
-  console.log(`Event: ${eventName}`, properties);
+  // console.log(`Event: ${eventName}`, properties);
 }
 
 // Performance marks

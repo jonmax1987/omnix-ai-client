@@ -240,7 +240,9 @@ const ErrorText = styled(motion.div)`
   gap: ${props => props.theme.spacing[1]};
 `;
 
-const CharacterCount = styled.div`
+const CharacterCount = styled.div.withConfig({
+  shouldForwardProp: (prop) => !['isOverLimit'].includes(prop)
+})`
   font-size: ${props => props.theme.typography.fontSize.sm};
   color: ${props => props.isOverLimit ? props.theme.colors.red[600] : props.theme.colors.text.tertiary};
   text-align: right;

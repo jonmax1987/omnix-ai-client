@@ -20,10 +20,24 @@ import ApiDebug from './components/debug/ApiDebug';
 import Dashboard from './pages/Dashboard';
 import Products from './pages/Products';
 import ProductDetail from './pages/ProductDetail';
+import Orders from './pages/Orders';
+import OrderDetail from './pages/OrderDetail';
 import Alerts from './pages/Alerts';
 import Recommendations from './pages/Recommendations';
 import Analytics from './pages/Analytics';
 import Settings from './pages/Settings';
+import Login from './pages/Login';
+import Register from './pages/Register';
+import ResetPassword from './pages/ResetPassword';
+
+// Auth components
+import ProtectedRoute from './components/auth/ProtectedRoute';
+
+// Context providers
+import { ModalProvider } from './contexts/ModalContext';
+
+// Mobile-first utilities
+import { createMobileListener } from './utils/viewport';
 
 // Styled components
 import styled, { css } from 'styled-components';
@@ -37,13 +51,17 @@ const AppContainer = styled.div`
 const MainContent = styled.main.withConfig({
   shouldForwardProp: (prop) => !['sidebarCollapsed'].includes(prop),
 })`
+  /* Mobile First: Default to full width with no margins */
   flex: 1;
   display: flex;
   flex-direction: column;
-  transition: margin-left ${props => props.theme?.animation?.duration?.standard || '300ms'} ${props => props.theme?.animation?.easing?.easeInOut || 'ease-in-out'};
+  margin-left: 0;
+  margin-right: 0;
   
+  /* Desktop Enhancement: Add sidebar margins for large screens only */
   @media (min-width: ${props => props.theme?.breakpoints?.lg || '1024px'}) {
     margin-left: ${props => props.sidebarCollapsed ? '72px' : '280px'};
+    transition: margin-left ${props => props.theme?.animation?.duration?.standard || '300ms'} ${props => props.theme?.animation?.easing?.easeInOut || 'ease-in-out'};
     
     /* RTL Support */
     [dir="rtl"] & {
@@ -64,8 +82,8 @@ function AppContent() {
   const navigate = useNavigate();
   const location = useLocation();
   const store = useStore();
-  const { preferences, setTheme } = useUserStore();
-  const { ui = {}, toggleSidebar, setSidebarMobileOpen, setCurrentPage } = store || {};
+  const { preferences, setTheme, isAuthenticated } = useUserStore();
+  const { ui = {}, toggleSidebar, setSidebarMobileOpen, setCurrentPage, setIsMobile } = store || {};
   
   // Ensure we always have a valid store
   if (!store) {
@@ -93,6 +111,17 @@ function AppContent() {
     const path = location.pathname.slice(1) || 'dashboard';
     setCurrentPage?.(path);
   }, [location.pathname, setCurrentPage]);
+
+  // Monitor mobile state globally - Mobile First approach
+  useEffect(() => {
+    // Use the mobile-first utility for consistent detection
+    const cleanup = createMobileListener((isMobile) => {
+      setIsMobile?.(isMobile);
+    });
+    
+    return cleanup;
+  }, [setIsMobile]);
+
   
   // Mock notifications for demo
   const notifications = [
@@ -139,7 +168,7 @@ function AppContent() {
   const currentTheme = getTheme();
 
   const handleMenuToggle = () => {
-    if (window.innerWidth < 1024) {
+    if (ui.isMobile) {
       setSidebarMobileOpen?.(!ui.sidebarMobileOpen);
     } else {
       toggleSidebar?.();
@@ -148,15 +177,21 @@ function AppContent() {
 
   const handleUserMenuAction = (action) => {
     console.log('User menu action:', action);
-    if (action === 'settings') {
+    if (action === 'profile' || action === 'settings') {
       navigate('/settings');
+    } else if (action === 'logout') {
+      // Logout user and redirect to login
+      useUserStore.getState().logout();
+      navigate('/login', { replace: true });
     }
   };
 
   const handleNavigate = (page) => {
     navigate(`/${page}`);
     // Close sidebar on mobile after navigation
-    setSidebarMobileOpen?.(false);
+    if (ui.isMobile) {
+      setSidebarMobileOpen?.(false);
+    }
   };
 
   const handleNotificationClick = (notification) => {
@@ -171,53 +206,106 @@ function AppContent() {
     console.log('Search query:', query);
   };
 
+  // Check if we're on login page
+  const isLoginPage = location.pathname === '/login';
+
   return (
-    <ThemeProvider theme={currentTheme}>
-      <GlobalStyles />
-      <ErrorBoundary showError={true}>
+    <ModalProvider>
+      <ThemeProvider theme={currentTheme}>
+        <GlobalStyles />
+        <ErrorBoundary showError={true}>
         <OfflineIndicator />
-        <AppContainer>
-          <Sidebar
-            collapsed={ui?.sidebarCollapsed || false}
-            mobileOpen={ui?.sidebarMobileOpen || false}
-            onClose={() => setSidebarMobileOpen?.(false)}
-            onCollapse={toggleSidebar}
-            currentPage={ui?.currentPage || 'dashboard'}
-            onNavigate={handleNavigate}
-          />
+        
+        <Routes>
+          {/* Public routes */}
+          <Route path="/login" element={<Login />} />
+          <Route path="/register" element={<Register />} />
+          <Route path="/reset-password" element={<ResetPassword />} />
+          <Route path="/forgot-password" element={<ResetPassword />} />
           
-          <MainContent sidebarCollapsed={ui?.sidebarCollapsed || false}>
-            <Header
-              notifications={notifications}
-              onMenuToggle={handleMenuToggle}
-              onUserMenuAction={handleUserMenuAction}
-              onNotificationClick={handleNotificationClick}
-              onNotificationClear={handleNotificationClear}
-              onSearch={handleSearch}
-            />
-            
-            {/* Debug panel for development */}
-            {import.meta.env.DEV && <ApiDebug />}
-            
-            <ContentArea>
-              <PageTransition variant="default">
-                <Routes>
-                  <Route path="/" element={<Navigate to="/dashboard" replace />} />
-                  <Route path="/dashboard" element={<Dashboard />} />
-                  <Route path="/products" element={<Products />} />
-                  <Route path="/products/:id" element={<ProductDetail />} />
-                  <Route path="/alerts" element={<Alerts />} />
-                  <Route path="/recommendations" element={<Recommendations />} />
-                  <Route path="/analytics" element={<Analytics />} />
-                  <Route path="/settings" element={<Settings />} />
-                  <Route path="*" element={<Navigate to="/dashboard" replace />} />
-                </Routes>
-              </PageTransition>
-            </ContentArea>
-          </MainContent>
-        </AppContainer>
+          {/* Protected routes */}
+          <Route path="/*" element={
+            <ProtectedRoute>
+              <AppContainer>
+                <Sidebar
+                  collapsed={ui?.sidebarCollapsed || false}
+                  mobileOpen={ui?.sidebarMobileOpen || false}
+                  onClose={() => setSidebarMobileOpen?.(false)}
+                  onCollapse={toggleSidebar}
+                  currentPage={ui?.currentPage || 'dashboard'}
+                  onNavigate={handleNavigate}
+                />
+                
+                <MainContent sidebarCollapsed={ui?.sidebarCollapsed || false}>
+                  <Header
+                    notifications={notifications}
+                    onMenuToggle={handleMenuToggle}
+                    onUserMenuAction={handleUserMenuAction}
+                    onNotificationClick={handleNotificationClick}
+                    onNotificationClear={handleNotificationClear}
+                    onSearch={handleSearch}
+                  />
+                  
+                  {/* Debug panel for development */}
+                  {import.meta.env.DEV && <ApiDebug />}
+                  
+                  <ContentArea>
+                    <PageTransition variant="default">
+                      <Routes>
+                        <Route path="/" element={<Navigate to="/dashboard" replace />} />
+                        <Route path="/dashboard" element={<Dashboard />} />
+                        <Route path="/products" element={
+                          <ProtectedRoute requiredResource="products">
+                            <Products />
+                          </ProtectedRoute>
+                        } />
+                        <Route path="/products/:id" element={
+                          <ProtectedRoute requiredResource="products">
+                            <ProductDetail />
+                          </ProtectedRoute>
+                        } />
+                        <Route path="/orders" element={
+                          <ProtectedRoute requiredResource="orders">
+                            <Orders />
+                          </ProtectedRoute>
+                        } />
+                        <Route path="/orders/:id" element={
+                          <ProtectedRoute requiredResource="orders">
+                            <OrderDetail />
+                          </ProtectedRoute>
+                        } />
+                        <Route path="/alerts" element={
+                          <ProtectedRoute requiredResource="alerts">
+                            <Alerts />
+                          </ProtectedRoute>
+                        } />
+                        <Route path="/recommendations" element={
+                          <ProtectedRoute requiredResource="analytics">
+                            <Recommendations />
+                          </ProtectedRoute>
+                        } />
+                        <Route path="/analytics" element={
+                          <ProtectedRoute requiredResource="analytics">
+                            <Analytics />
+                          </ProtectedRoute>
+                        } />
+                        <Route path="/settings" element={
+                          <ProtectedRoute requiredResource="settings">
+                            <Settings />
+                          </ProtectedRoute>
+                        } />
+                        <Route path="*" element={<Navigate to="/dashboard" replace />} />
+                      </Routes>
+                    </PageTransition>
+                  </ContentArea>
+                </MainContent>
+              </AppContainer>
+            </ProtectedRoute>
+          } />
+        </Routes>
       </ErrorBoundary>
-    </ThemeProvider>
+      </ThemeProvider>
+    </ModalProvider>
   );
 }
 

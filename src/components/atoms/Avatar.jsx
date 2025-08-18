@@ -2,7 +2,9 @@ import styled, { css } from 'styled-components';
 import { motion } from 'framer-motion';
 import { useState } from 'react';
 
-const AvatarContainer = styled(motion.div)`
+const AvatarContainer = styled(motion.div).withConfig({
+  shouldForwardProp: (prop) => !['size', 'square', 'clickable', 'bordered'].includes(prop)
+})`
   position: relative;
   display: inline-flex;
   align-items: center;
@@ -35,7 +37,9 @@ const AvatarImage = styled.img`
   border-radius: inherit;
 `;
 
-const AvatarFallback = styled.div`
+const AvatarFallback = styled.div.withConfig({
+  shouldForwardProp: (prop) => !['name', 'size'].includes(prop)
+})`
   display: flex;
   align-items: center;
   justify-content: center;
@@ -50,7 +54,9 @@ const AvatarFallback = styled.div`
   user-select: none;
 `;
 
-const StatusIndicator = styled.div`
+const StatusIndicator = styled.div.withConfig({
+  shouldForwardProp: (prop) => !['status', 'avatarSize'].includes(prop)
+})`
   position: absolute;
   bottom: 0;
   right: 0;
@@ -62,7 +68,9 @@ const StatusIndicator = styled.div`
   ${props => getStatusColor(props.status, props.theme)}
 `;
 
-const NotificationBadge = styled.div`
+const NotificationBadge = styled.div.withConfig({
+  shouldForwardProp: (prop) => !['avatarSize'].includes(prop)
+})`
   position: absolute;
   top: -2px;
   right: -2px;

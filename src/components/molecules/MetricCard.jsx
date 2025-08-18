@@ -143,7 +143,9 @@ const ProgressBar = styled.div`
   margin-top: ${props => props.theme?.spacing?.[3] || '12px'};
 `;
 
-const ProgressFill = styled(motion.div)`
+const ProgressFill = styled(motion.div).withConfig({
+  shouldForwardProp: (prop) => !['status'].includes(prop)
+})`
   height: 100%;
   background: ${props => getProgressColor(props.status, props.theme)};
   border-radius: 2px;

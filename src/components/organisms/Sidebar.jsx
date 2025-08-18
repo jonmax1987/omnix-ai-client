@@ -5,6 +5,7 @@ import { useI18n } from '../../hooks/useI18n';
 import Icon from '../atoms/Icon';
 import Button from '../atoms/Button';
 import Typography from '../atoms/Typography';
+import useStore from '../../store';
 import Badge from '../atoms/Badge';
 import NavItem from '../molecules/NavItem';
 
@@ -228,18 +229,10 @@ const Sidebar = ({
   ...props
 }) => {
   const [hoveredItem, setHoveredItem] = useState(null);
-  const [isMobile, setIsMobile] = useState(false);
+  const { ui } = useStore();
+  const { isMobile } = ui;
   const { t } = useI18n();
 
-  useEffect(() => {
-    const checkIsMobile = () => {
-      setIsMobile(window.innerWidth <= 1024);
-    };
-    
-    checkIsMobile();
-    window.addEventListener('resize', checkIsMobile);
-    return () => window.removeEventListener('resize', checkIsMobile);
-  }, []);
 
   const defaultNavigation = [
     {
@@ -247,6 +240,7 @@ const Sidebar = ({
       items: [
         { id: 'dashboard', label: t('navigation.dashboard'), icon: 'dashboard' },
         { id: 'products', label: t('navigation.products'), icon: 'products', badge: '1.2K' },
+        { id: 'orders', label: 'Orders', icon: 'package', badge: '23' },
         { id: 'analytics', label: t('navigation.analytics'), icon: 'analytics' },
         { id: 'alerts', label: t('navigation.alerts'), icon: 'alerts', badge: { variant: 'error', content: '5' } }
       ]

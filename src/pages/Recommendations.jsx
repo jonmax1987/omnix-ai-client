@@ -1,6 +1,6 @@
 import styled from 'styled-components';
 import { motion } from 'framer-motion';
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import Typography from '../components/atoms/Typography';
 import Button from '../components/atoms/Button';
 import Icon from '../components/atoms/Icon';
@@ -10,6 +10,7 @@ import MetricCard from '../components/molecules/MetricCard';
 import ChartContainer from '../components/organisms/ChartContainer';
 import DataTable from '../components/organisms/DataTable';
 import { useI18n } from '../hooks/useI18n';
+import useRecommendationsStore from '../store/recommendationsStore';
 
 const RecommendationsContainer = styled(motion.div)`
   padding: ${props => props.theme.spacing[6]};
@@ -184,11 +185,27 @@ const getRecommendationIcon = (type) => {
 
 const Recommendations = () => {
   const { t } = useI18n();
-  const [loading, setLoading] = useState(false);
   const [timeRange, setTimeRange] = useState('30d');
 
-  // Mock recommendations data
-  const recommendations = [
+  // Connect to recommendations store
+  const {
+    recommendations,
+    loading,
+    error,
+    stats,
+    fetchRecommendations,
+    acceptRecommendation,
+    dismissRecommendation,
+    clearError
+  } = useRecommendationsStore();
+
+  // Fetch recommendations on component mount
+  useEffect(() => {
+    fetchRecommendations();
+  }, [fetchRecommendations]);
+
+  // Use store data instead of mock data
+  const mockRecommendations = [
     {
       id: 'REC-001',
       type: 'reorder',
@@ -256,25 +273,25 @@ const Recommendations = () => {
     }
   ];
 
-  // Mock metrics
+  // Metrics from store
   const metrics = [
     {
       title: t('recommendations.metrics.totalRecommendations'),
-      value: recommendations.length,
+      value: stats.total,
       icon: 'trending',
       iconColor: 'primary',
       variant: 'compact'
     },
     {
       title: t('recommendations.metrics.highPriority'),
-      value: recommendations.filter(r => r.priority === 'high').length,
+      value: stats.highPriority,
       icon: 'warning',
       iconColor: 'error',
       variant: 'compact'
     },
     {
       title: t('recommendations.metrics.potentialSavings'),
-      value: 54600,
+      value: stats.totalEstimatedValue,
       valueFormat: 'currency',
       icon: 'trending',
       iconColor: 'success',
@@ -282,7 +299,7 @@ const Recommendations = () => {
     },
     {
       title: t('recommendations.metrics.avgConfidence'),
-      value: 85,
+      value: Math.round(stats.avgConfidence),
       valueFormat: 'percentage',
       icon: 'checkCircle',
       iconColor: 'info',
@@ -368,17 +385,32 @@ const Recommendations = () => {
     }
   ];
 
-  const handleApplyRecommendation = (recommendation) => {
-    console.log('Apply recommendation:', recommendation);
+  const handleApplyRecommendation = async (recommendation) => {
+    try {
+      await acceptRecommendation(recommendation.id);
+      // Show success notification in production
+      console.log('Recommendation accepted:', recommendation.title);
+    } catch (error) {
+      console.error('Failed to accept recommendation:', error);
+    }
   };
 
-  const handleDismissRecommendation = (recommendation) => {
-    console.log('Dismiss recommendation:', recommendation);
+  const handleDismissRecommendation = async (recommendation) => {
+    try {
+      await dismissRecommendation(recommendation.id);
+      // Show success notification in production
+      console.log('Recommendation dismissed:', recommendation.title);
+    } catch (error) {
+      console.error('Failed to dismiss recommendation:', error);
+    }
   };
 
-  const handleRefresh = () => {
-    setLoading(true);
-    setTimeout(() => setLoading(false), 1000);
+  const handleRefresh = async () => {
+    try {
+      await fetchRecommendations();
+    } catch (error) {
+      console.error('Failed to refresh recommendations:', error);
+    }
   };
 
   const handleSettings = () => {

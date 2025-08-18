@@ -129,7 +129,7 @@ export default defineConfig(({ command, mode }) => ({
     // Proxy API requests to avoid CORS issues in development
     proxy: {
       '/api': {
-        target: 'https://8r85mpuvt3.execute-api.eu-central-1.amazonaws.com/dev',
+        target: 'https://18sz01wxsi.execute-api.eu-central-1.amazonaws.com/dev',
         changeOrigin: true,
         secure: true,
         rewrite: (path) => path.replace(/^\/api/, '/v1'),

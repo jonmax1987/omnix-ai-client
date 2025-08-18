@@ -170,7 +170,9 @@ const ErrorList = styled.ul`
   }
 `;
 
-const ValidationIcon = styled.div`
+const ValidationIcon = styled.div.withConfig({
+  shouldForwardProp: (prop) => !['status'].includes(prop)
+})`
   display: flex;
   align-items: center;
   color: ${props => getValidationColor(props.status, props.theme)};
@@ -500,18 +502,85 @@ const ProductForm = ({
       return;
     }
 
+    // Build payload matching backend API schema exactly
     const processedData = {
-      ...formData,
-      price: formData.price ? Number(formData.price) : null,
-      cost: formData.cost ? Number(formData.cost) : null,
-      currentStock: formData.currentStock ? Number(formData.currentStock) : 0,
-      minStock: formData.minStock ? Number(formData.minStock) : null,
-      maxStock: formData.maxStock ? Number(formData.maxStock) : null,
-      reorderPoint: formData.reorderPoint ? Number(formData.reorderPoint) : null,
-      weight: formData.weight ? Number(formData.weight) : null,
-      tags: formData.tags ? formData.tags.split(',').map(tag => tag.trim()).filter(Boolean) : []
+      name: formData.name,
+      quantity: formData.currentStock ? Number(formData.currentStock) : 0,
+      price: formData.price ? Number(formData.price) : 0
     };
+    
+    // SKU is only allowed during creation, not updates
+    if (mode === 'create') {
+      processedData.sku = formData.sku;
+    }
+    
+    // Add optional fields only if they have valid values
+    if (formData.category && formData.category.trim()) {
+      processedData.category = formData.category.trim();
+    }
+    
+    if (formData.supplier && formData.supplier.trim()) {
+      // Ensure supplier meets validation requirements (1-255 chars, string)
+      const supplierValue = formData.supplier.trim();
+      if (supplierValue.length >= 1 && supplierValue.length <= 255) {
+        processedData.supplier = supplierValue;
+      }
+    } else {
+      // Backend seems to require supplier field - provide minimal valid value
+      processedData.supplier = "Unknown";
+    }
+    
+    if (formData.description && formData.description.trim()) {
+      processedData.description = formData.description.trim();
+    }
+    
+    if (formData.cost) {
+      processedData.cost = Number(formData.cost);
+    }
+    
+    if (formData.unit && formData.unit.trim()) {
+      processedData.unit = formData.unit.trim();
+    }
+    
+    if (formData.location && formData.location.trim()) {
+      processedData.location = formData.location.trim();
+    }
+    
+    if (formData.barcode && formData.barcode.trim()) {
+      processedData.barcode = formData.barcode.trim();
+    }
+    
+    // Backend expects minThreshold instead of minStock (must be integer >= 0)
+    if (formData.minStock) {
+      const minThreshold = Math.max(0, Math.floor(Number(formData.minStock)));
+      processedData.minThreshold = minThreshold;
+    }
+    
+    // reorderPoint is only allowed during creation, not updates
+    if (mode === 'create' && formData.reorderPoint) {
+      processedData.reorderPoint = Number(formData.reorderPoint);
+    }
+    
+    if (formData.weight) {
+      processedData.weight = Number(formData.weight);
+    }
+    
+    if (formData.dimensions && formData.dimensions.trim()) {
+      processedData.dimensions = formData.dimensions.trim();
+    }
+    
+    if (formData.expirationDate) {
+      processedData.expirationDate = formData.expirationDate;
+    }
+    
+    // Remove null values to avoid backend validation issues
+    Object.keys(processedData).forEach(key => {
+      if (processedData[key] === null || processedData[key] === '') {
+        delete processedData[key];
+      }
+    });
 
+    console.log('📦 ProductForm - Mode:', mode, '- Processed data being sent:', processedData);
     onSubmit?.(processedData);
   };
 

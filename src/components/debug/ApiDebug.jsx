@@ -21,9 +21,9 @@ const ApiDebug = () => {
       PROD: import.meta.env.PROD
     };
 
-    console.group('🔍 API Debug Information');
-    console.log('Environment Variables:', envInfo);
-    console.groupEnd();
+    // console.group('🔍 API Debug Information');
+    // console.log('Environment Variables:', envInfo);
+    // console.groupEnd();
 
     setDebugInfo(prev => ({
       ...prev,
@@ -35,14 +35,14 @@ const ApiDebug = () => {
       setDebugInfo(prev => ({ ...prev, loading: true }));
       
       try {
-        console.log('🧪 Testing API call to dashboard/summary...');
+        // console.log('🧪 Testing API call to dashboard/summary...');
         const result = await analyticsAPI.getDashboardMetrics();
         
-        console.group('✅ API Test Result');
-        console.log('Success! Data received:', result);
-        console.log('Total Items:', result?.inventory?.totalItems || result?.totalItems);
-        console.log('Inventory Value:', result?.inventory?.totalValue || result?.totalInventoryValue);
-        console.groupEnd();
+        // console.group('✅ API Test Result');
+        // console.log('Success! Data received:', result);
+        // console.log('Total Items:', result?.inventory?.totalItems || result?.totalItems);
+        // console.log('Inventory Value:', result?.inventory?.totalValue || result?.totalInventoryValue);
+        // console.groupEnd();
         
         setDebugInfo(prev => ({
           ...prev,
@@ -54,11 +54,11 @@ const ApiDebug = () => {
           loading: false
         }));
       } catch (error) {
-        console.group('❌ API Test Failed');
-        console.error('Error:', error);
-        console.error('Message:', error.message);
-        console.error('Status:', error.status);
-        console.groupEnd();
+        // console.group('❌ API Test Failed');
+        // console.error('Error:', error);
+        // console.error('Message:', error.message);
+        // console.error('Status:', error.status);
+        // console.groupEnd();
         
         setDebugInfo(prev => ({
           ...prev,

@@ -56,7 +56,9 @@ const RefreshSpinner = styled(motion.div)`
   box-shadow: ${props => props.theme.shadows.sm};
 `;
 
-const PullArrow = styled(motion.div)`
+const PullArrow = styled(motion.div).withConfig({
+  shouldForwardProp: (prop) => !['pullDistance', 'threshold'].includes(prop)
+})`
   display: flex;
   align-items: center;
   justify-content: center;
@@ -71,7 +73,9 @@ const PullArrow = styled(motion.div)`
   margin-bottom: ${props => props.theme.spacing[1]};
 `;
 
-const PullText = styled(Typography).attrs({
+const PullText = styled(Typography).withConfig({
+  shouldForwardProp: (prop) => !['pullDistance', 'threshold'].includes(prop)
+}).attrs({
   variant: 'caption',
   weight: 'medium'
 })`

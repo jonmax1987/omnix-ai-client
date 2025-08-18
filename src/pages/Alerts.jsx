@@ -100,45 +100,60 @@ const Alerts = () => {
     // Navigate to related page or show details
   };
 
-  const handleAlertAction = (action, alert) => {
-    console.log('Alert action:', action, alert);
-    
-    switch (action) {
-      case 'markRead':
-        // Mark alert as read
-        break;
-      case 'markUnread':
-        // Mark alert as unread
-        break;
-      case 'archive':
-        // Archive alert
-        break;
-      case 'delete':
-        // Delete alert
-        break;
-      default:
-        break;
+  const handleAlertAction = async (action, alert) => {
+    try {
+      switch (action) {
+        case 'markRead':
+          await acknowledgeAlert(alert.id);
+          break;
+        case 'markUnread':
+          // TODO: Implement unacknowledge if API supports it
+          console.log('Mark unread not yet implemented');
+          break;
+        case 'archive':
+          await dismissAlert(alert.id);
+          break;
+        case 'delete':
+          await dismissAlert(alert.id);
+          break;
+        default:
+          break;
+      }
+      // Refresh alerts after action
+      await fetchAlerts();
+    } catch (error) {
+      console.error('Error performing alert action:', error);
+      // TODO: Show error notification
     }
   };
 
-  const handleBulkAction = (action, alertIds) => {
-    console.log('Bulk action:', action, alertIds);
-    
-    switch (action) {
-      case 'markRead':
-        // Mark selected alerts as read
-        break;
-      case 'markUnread':
-        // Mark selected alerts as unread
-        break;
-      case 'archive':
-        // Archive selected alerts
-        break;
-      case 'delete':
-        // Delete selected alerts
-        break;
-      default:
-        break;
+  const handleBulkAction = async (action, alertIds) => {
+    try {
+      switch (action) {
+        case 'markRead':
+          // Acknowledge multiple alerts
+          await Promise.all(alertIds.map(id => acknowledgeAlert(id)));
+          break;
+        case 'markUnread':
+          // TODO: Implement bulk unacknowledge if API supports it
+          console.log('Bulk mark unread not yet implemented');
+          break;
+        case 'archive':
+          // Dismiss multiple alerts
+          await Promise.all(alertIds.map(id => dismissAlert(id)));
+          break;
+        case 'delete':
+          // Dismiss multiple alerts (same as archive for now)
+          await Promise.all(alertIds.map(id => dismissAlert(id)));
+          break;
+        default:
+          break;
+      }
+      // Refresh alerts after bulk action
+      await fetchAlerts();
+    } catch (error) {
+      console.error('Error performing bulk alert action:', error);
+      // TODO: Show error notification
     }
   };
 

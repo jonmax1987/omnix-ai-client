@@ -15,21 +15,21 @@ import useUserStore from '../store/userStore';
 // API Configuration  
 const API_CONFIG = {
   baseURL: import.meta.env.DEV 
-    ? 'http://localhost:3001'  // Use CORS proxy in development to avoid CORS issues
+    ? '/api'  // Use Vite proxy in development (/api -> backend/v1)
     : (import.meta.env.VITE_API_BASE_URL || 'https://8r85mpuvt3.execute-api.eu-central-1.amazonaws.com/dev') + '/v1',
   timeout: 30000,
   retryAttempts: 3,
   retryDelay: 1000
 };
 
-// Debug API configuration
-if (typeof window !== 'undefined' && import.meta.env.DEV) {
-  console.group('🔧 API Configuration Debug');
-  console.log('🌍 VITE_API_BASE_URL:', import.meta.env.VITE_API_BASE_URL);
-  console.log('📡 Final baseURL:', API_CONFIG.baseURL);
-  console.log('🎯 Example endpoint:', `${API_CONFIG.baseURL}/dashboard/summary`);
-  console.groupEnd();
-}
+// Debug API configuration (disabled for cleaner console)
+// if (typeof window !== 'undefined' && import.meta.env.DEV) {
+//   console.group('🔧 API Configuration Debug');
+//   console.log('🌍 VITE_API_BASE_URL:', import.meta.env.VITE_API_BASE_URL);
+//   console.log('📡 Final baseURL:', API_CONFIG.baseURL);
+//   console.log('🎯 Example endpoint:', `${API_CONFIG.baseURL}/dashboard/summary`);
+//   console.groupEnd();
+// }
 
 // Request/Response interceptors
 const createApiHeaders = () => {
@@ -69,7 +69,7 @@ const apiRequest = async (endpoint, options = {}) => {
       const controller = new AbortController();
       const timeoutId = setTimeout(() => controller.abort(), config.timeout);
       
-      // API Request Logging
+      // API Request Logging (enabled for debugging)
       if (import.meta.env.DEV) {
         console.group(`🔄 API Request [Attempt ${attempt}]`);
         console.log('📤 URL:', url);
@@ -90,7 +90,7 @@ const apiRequest = async (endpoint, options = {}) => {
       
       clearTimeout(timeoutId);
       
-      // API Response Logging
+      // API Response Logging (enabled for debugging)
       if (import.meta.env.DEV) {
         console.group(`📡 API Response [${response.status}] - ${requestDuration.toFixed(2)}ms`);
         console.log('✅ Status:', response.status, response.statusText);
@@ -127,22 +127,22 @@ const apiRequest = async (endpoint, options = {}) => {
       if (contentType && contentType.includes('application/json')) {
         const data = await response.json();
         
-        // Log successful response data
-        if (import.meta.env.DEV) {
-          console.group(`📦 API Response Data`);
-          console.log('🔍 Raw Data:', data);
-          console.groupEnd();
-        }
+        // Log successful response data (disabled for cleaner console)
+        // if (import.meta.env.DEV) {
+        //   console.group(`📦 API Response Data`);
+        //   console.log('🔍 Raw Data:', data);
+        //   console.groupEnd();
+        // }
         
         // Handle backend response format transformation
         const transformedData = transformBackendResponse(data, endpoint);
         
-        // Log transformed data if different
-        if (import.meta.env.DEV && transformedData !== data) {
-          console.group(`🔄 Transformed Data`);
-          console.log('✨ Transformed:', transformedData);
-          console.groupEnd();
-        }
+        // Log transformed data if different (disabled for cleaner console)
+        // if (import.meta.env.DEV && transformedData !== data) {
+        //   console.group(`🔄 Transformed Data`);
+        //   console.log('✨ Transformed:', transformedData);
+        //   console.groupEnd();
+        // }
         
         return transformedData;
       }
@@ -152,16 +152,9 @@ const apiRequest = async (endpoint, options = {}) => {
     } catch (error) {
       lastError = error;
       
-      // Log API errors in development
-      if (import.meta.env.DEV) {
-        console.group(`❌ API Error [Attempt ${attempt}]`);
-        console.error('🚨 Error:', error.message);
-        console.error('📊 Status:', error.status || 'N/A');
-        console.error('🔢 Code:', error.code || 'N/A');
-        if (error.details) {
-          console.error('📋 Details:', error.details);
-        }
-        console.groupEnd();
+      // Log API errors in development (keep for debugging)
+      if (import.meta.env.DEV && error.status >= 400) {
+        console.error(`API Error [${attempt}]:`, error.message, error.status || 'N/A');
       }
       
       if (error.name === 'AbortError') {
@@ -409,13 +402,21 @@ export const alertsAPI = {
 // Dashboard API (matches backend spec)
 export const dashboardAPI = {
   getSummary: (params = {}) => api.get('/dashboard/summary', params),
-  getInventoryGraph: (params = {}) => api.get('/dashboard/inventory-graph', params)
+  getInventoryGraph: (params = {}) => {
+    // Backend doesn't accept timeRange parameter, so don't pass it
+    const { timeRange, ...backendParams } = params;
+    return api.get('/dashboard/inventory-graph', backendParams);
+  }
 };
 
 // Analytics API (mapped to backend endpoints where available)
 export const analyticsAPI = {
   getDashboardMetrics: (params = {}) => api.get('/dashboard/summary', params), // Maps to backend endpoint
-  getInventoryGraph: (params = {}) => api.get('/dashboard/inventory-graph', params), // Maps to backend endpoint
+  getInventoryGraph: (params = {}) => {
+    // Backend doesn't accept timeRange parameter, so don't pass it
+    const { timeRange, ...backendParams } = params;
+    return api.get('/dashboard/inventory-graph', backendParams);
+  }, // Maps to backend endpoint
   // Legacy endpoints (may need backend implementation)
   getRevenueMetrics: (params = {}) => api.get('/analytics/revenue', params),
   getInventoryMetrics: (params = {}) => api.get('/analytics/inventory', params),

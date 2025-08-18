@@ -233,11 +233,24 @@ const Settings = () => {
 
   const handleSave = async () => {
     setLoading(true);
-    // Simulate save
-    setTimeout(() => {
+    try {
+      // Save preferences to the backend via the store
+      await updatePreferences(null, {
+        ...preferences,
+        notifications: settings.notifications,
+        security: settings.security,
+        integration: settings.integration,
+        backup: settings.backup
+      });
+      
+      // TODO: Show success notification
+      console.log('Settings saved successfully');
+    } catch (error) {
+      console.error('Error saving settings:', error);
+      // TODO: Show error notification
+    } finally {
       setLoading(false);
-      console.log('Settings saved');
-    }, 1000);
+    }
   };
 
   const handleToggle = (section, key) => {

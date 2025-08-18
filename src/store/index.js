@@ -1,6 +1,7 @@
 import { create } from 'zustand';
 import { subscribeWithSelector, devtools } from 'zustand/middleware';
 import { immer } from 'zustand/middleware/immer';
+import { getInitialIsMobile } from '../utils/viewport';
 
 // Create root store with middleware
 const useStore = create()(
@@ -25,10 +26,11 @@ const useStore = create()(
           analytics: null
         },
 
-        // UI state
+        // UI state - Mobile First initialization
         ui: {
           sidebarCollapsed: false,
           sidebarMobileOpen: false,
+          isMobile: getInitialIsMobile(),
           theme: 'light',
           currentPage: 'dashboard',
           notifications: []
@@ -66,6 +68,11 @@ const useStore = create()(
         setSidebarMobileOpen: (open) => 
           set((state) => {
             state.ui.sidebarMobileOpen = open;
+          }),
+
+        setIsMobile: (isMobile) => 
+          set((state) => {
+            state.ui.isMobile = isMobile;
           }),
 
         setTheme: (theme) => 

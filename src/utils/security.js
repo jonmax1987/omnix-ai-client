@@ -351,7 +351,7 @@ export function initializeSecurity() {
     });
   }
   
-  console.log('Security measures initialized');
+  // console.log('Security measures initialized');
 }
 
 // Export instances

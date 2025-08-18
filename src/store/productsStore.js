@@ -15,8 +15,8 @@ const useProductsStore = create()(
           search: '',
           category: '',
           supplier: '',
-          status: 'active',
-          stockLevel: 'all', // all, low, out, healthy
+          status: 'all', // all, active, inactive, discontinued (client-side filtering)
+          stockLevel: 'all', // all, low, out, healthy (client-side filtering)
           location: '',
           tags: []
         },
@@ -54,9 +54,79 @@ const useProductsStore = create()(
 
           try {
             const { productsAPI } = await import('../services/api.js');
-            const response = await productsAPI.getProducts(params);
             
-            get().setProducts(response);
+            // Combine filters from store with any additional params
+            const currentFilters = get().filters;
+            const apiParams = {
+              page: get().currentPage,
+              limit: get().itemsPerPage,
+              sortBy: get().sortBy,
+              sortOrder: get().sortOrder,
+              // Map frontend filters to backend parameters (only include supported params)
+              search: currentFilters.search || undefined,
+              category: currentFilters.category || undefined,
+              supplier: currentFilters.supplier || undefined,
+              location: currentFilters.location || undefined,
+              // Note: status, stockLevel, and tags are not supported by backend API
+              // These will be filtered client-side after fetching
+              ...params // Allow override with explicit params
+            };
+            
+            // Remove undefined values to clean up the request
+            Object.keys(apiParams).forEach(key => {
+              if (apiParams[key] === undefined || apiParams[key] === '') {
+                delete apiParams[key];
+              }
+            });
+            
+            const response = await productsAPI.getProducts(apiParams);
+            
+            // Apply client-side filtering for unsupported backend parameters
+            let filteredProducts = response.products || response.data || [];
+            
+            // Filter by status if specified
+            if (currentFilters.status && currentFilters.status !== 'all') {
+              filteredProducts = filteredProducts.filter(product => {
+                // Since backend doesn't have status field, assume all products are 'active'
+                // In production, this would be based on actual product status logic
+                return currentFilters.status === 'active';
+              });
+            }
+            
+            // Filter by stock level if specified
+            if (currentFilters.stockLevel && currentFilters.stockLevel !== 'all') {
+              filteredProducts = filteredProducts.filter(product => {
+                const stockRatio = product.quantity / (product.minThreshold || 1);
+                switch (currentFilters.stockLevel) {
+                  case 'low':
+                    return stockRatio <= 1.2; // Low stock: 120% or less of minimum
+                  case 'out':
+                    return product.quantity === 0;
+                  case 'healthy':
+                    return stockRatio > 1.2;
+                  default:
+                    return true;
+                }
+              });
+            }
+            
+            // Filter by tags if specified (client-side since backend doesn't support)
+            if (currentFilters.tags && currentFilters.tags.length > 0) {
+              filteredProducts = filteredProducts.filter(product => {
+                // Since backend products don't have tags, this would need to be added
+                // For now, we'll skip tag filtering until backend supports it
+                return true;
+              });
+            }
+            
+            // Create modified response with filtered products
+            const filteredResponse = {
+              ...response,
+              products: filteredProducts,
+              data: filteredProducts // Support both formats
+            };
+            
+            get().setProducts(filteredResponse);
             
             // Update pagination if provided
             if (response.pagination) {
@@ -250,17 +320,28 @@ const useProductsStore = create()(
           }),
           
         // Filtering actions
-        setFilter: (key, value) => 
+        setFilter: (key, value) => {
           set((state) => {
             state.filters[key] = value;
             state.currentPage = 1; // Reset to first page when filtering
-          }),
+          });
+          // Automatically refetch with new filters
+          get().fetchProducts();
+        },
           
-        setFilters: (filters) => 
+        setFilters: (filters) => {
           set((state) => {
             state.filters = { ...state.filters, ...filters };
             state.currentPage = 1;
-          }),
+          });
+          // Automatically refetch with new filters
+          get().fetchProducts();
+        },
+
+        applyFilters: () => {
+          // Force refetch with current filters
+          get().fetchProducts();
+        },
           
         clearFilters: () => 
           set((state) => {

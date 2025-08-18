@@ -1,13 +1,18 @@
 import styled from 'styled-components';
 import { motion } from 'framer-motion';
 import { useState, useMemo, useEffect } from 'react';
+import { useNavigate } from 'react-router-dom';
 import Typography from '../components/atoms/Typography';
 import Button from '../components/atoms/Button';
 import Icon from '../components/atoms/Icon';
 import Badge from '../components/atoms/Badge';
 import Avatar from '../components/atoms/Avatar';
+import Modal from '../components/atoms/Modal';
+import ConfirmDialog from '../components/molecules/ConfirmDialog';
 import DataTable from '../components/organisms/DataTable';
+import ProductForm from '../components/organisms/ProductForm';
 import { useI18n } from '../hooks/useI18n';
+import { useModal } from '../contexts/ModalContext';
 import useProductsStore from '../store/productsStore';
 
 const ProductsContainer = styled(motion.div)`
@@ -124,7 +129,12 @@ const formatPrice = (price) => {
 
 const Products = () => {
   const { t } = useI18n();
+  const navigate = useNavigate();
+  const { openModal, closeModal, isModalOpen } = useModal();
   const [selectedProducts, setSelectedProducts] = useState([]);
+  const [productToEdit, setProductToEdit] = useState(null);
+  const [productToDelete, setProductToDelete] = useState(null);
+  const [bulkDeleteIds, setBulkDeleteIds] = useState([]);
   
   // Products store
   const { 
@@ -132,6 +142,10 @@ const Products = () => {
     loading, 
     error, 
     fetchProducts,
+    createProduct,
+    updateProduct,
+    deleteProduct,
+    deleteMultipleProducts,
     setFilters,
     filters 
   } = useProductsStore();
@@ -326,25 +340,34 @@ const Products = () => {
   };
 
   const handleRowClick = (product) => {
-    console.log('Row clicked:', product);
-    // Navigate to product detail page
+    navigate(`/products/${product.id}`);
   };
 
   const handleAction = (actionId, product) => {
-    console.log('Action:', actionId, product);
-    
     switch (actionId) {
       case 'view':
-        // Navigate to product detail
+        navigate(`/products/${product.id}`);
         break;
       case 'edit':
-        // Open edit form
+        setProductToEdit(product);
+        openModal('productForm', {
+          title: t('products.editProduct', 'Edit Product'),
+          size: 'lg'
+        });
         break;
       case 'duplicate':
-        // Duplicate product
+        setProductToEdit({ ...product, id: null, sku: `${product.sku}-copy` });
+        openModal('productForm', {
+          title: t('products.duplicateProduct', 'Duplicate Product'),
+          size: 'lg'
+        });
         break;
       case 'delete':
-        // Delete product
+        setProductToDelete(product);
+        openModal('deleteConfirm', {
+          title: t('products.deleteProduct', 'Delete Product'),
+          size: 'sm'
+        });
         break;
       default:
         break;
@@ -352,20 +375,25 @@ const Products = () => {
   };
 
   const handleBulkAction = (actionId, productIds) => {
-    console.log('Bulk action:', actionId, productIds);
-    
     switch (actionId) {
       case 'updateStatus':
         // Open status update dialog
+        console.log('Update status for:', productIds);
         break;
       case 'updateLocation':
         // Open location update dialog
+        console.log('Update location for:', productIds);
         break;
       case 'export':
         // Export selected products
+        console.log('Export products:', productIds);
         break;
       case 'delete':
-        // Delete selected products
+        setBulkDeleteIds(productIds);
+        openModal('bulkDeleteConfirm', {
+          title: t('products.deleteProducts', 'Delete Products'),
+          size: 'sm'
+        });
         break;
       default:
         break;
@@ -389,11 +417,63 @@ const Products = () => {
   };
 
   const handleAddProduct = () => {
-    console.log('Add new product');
+    setProductToEdit(null);
+    openModal('productForm', {
+      title: t('products.addProduct', 'Add Product'),
+      size: 'lg'
+    });
   };
 
   const handleExport = () => {
     console.log('Export all products');
+  };
+
+  // ProductForm submit handler
+  const handleProductSubmit = async (productData) => {
+    try {
+      if (productToEdit?.id) {
+        // Update existing product
+        await updateProduct(productToEdit.id, productData);
+      } else {
+        // Create new product
+        await createProduct(productData);
+      }
+      closeModal('productForm');
+      setProductToEdit(null);
+      // Refresh products list
+      await fetchProducts();
+    } catch (error) {
+      console.error('Error saving product:', error);
+      // TODO: Show error notification
+    }
+  };
+
+  // Delete confirmation handlers
+  const handleDeleteConfirm = async () => {
+    try {
+      await deleteProduct(productToDelete.id);
+      closeModal('deleteConfirm');
+      setProductToDelete(null);
+      // Refresh products list
+      await fetchProducts();
+    } catch (error) {
+      console.error('Error deleting product:', error);
+      // TODO: Show error notification
+    }
+  };
+
+  const handleBulkDeleteConfirm = async () => {
+    try {
+      await deleteMultipleProducts(bulkDeleteIds);
+      closeModal('bulkDeleteConfirm');
+      setBulkDeleteIds([]);
+      setSelectedProducts([]);
+      // Refresh products list
+      await fetchProducts();
+    } catch (error) {
+      console.error('Error deleting products:', error);
+      // TODO: Show error notification
+    }
   };
 
   return (
@@ -475,6 +555,48 @@ const Products = () => {
         exportable
         exportFilename="products-inventory"
         exportFormats={['csv', 'pdf']}
+      />
+
+      {/* Product Form Modal */}
+      <Modal
+        isOpen={isModalOpen('productForm')}
+        onClose={() => closeModal('productForm')}
+        title={productToEdit?.id ? t('products.editProduct', 'Edit Product') : t('products.addProduct', 'Add Product')}
+        size="lg"
+      >
+        <ProductForm
+          initialData={productToEdit || {}}
+          mode={productToEdit?.id ? 'edit' : 'create'}
+          onSubmit={handleProductSubmit}
+          onCancel={() => closeModal('productForm')}
+          loading={loading}
+        />
+      </Modal>
+
+      {/* Delete Confirmation Dialog */}
+      <ConfirmDialog
+        isOpen={isModalOpen('deleteConfirm')}
+        onClose={() => closeModal('deleteConfirm')}
+        onConfirm={handleDeleteConfirm}
+        title={t('products.deleteProduct', 'Delete Product')}
+        description={t('products.deleteConfirmation', `Are you sure you want to delete "${productToDelete?.name}"? This action cannot be undone.`)}
+        confirmLabel={t('common.delete', 'Delete')}
+        cancelLabel={t('common.cancel', 'Cancel')}
+        variant="error"
+        isLoading={loading}
+      />
+
+      {/* Bulk Delete Confirmation Dialog */}
+      <ConfirmDialog
+        isOpen={isModalOpen('bulkDeleteConfirm')}
+        onClose={() => closeModal('bulkDeleteConfirm')}
+        onConfirm={handleBulkDeleteConfirm}
+        title={t('products.deleteProducts', 'Delete Products')}
+        description={t('products.bulkDeleteConfirmation', `Are you sure you want to delete ${bulkDeleteIds.length} products? This action cannot be undone.`)}
+        confirmLabel={t('common.delete', 'Delete')}
+        cancelLabel={t('common.cancel', 'Cancel')}
+        variant="error"
+        isLoading={loading}
       />
     </ProductsContainer>
   );

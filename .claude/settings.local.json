@@ -104,7 +104,10 @@
       "Bash(git init:*)",
       "Bash(git branch:*)",
       "Bash(git add:*)",
-      "Bash(npm info:*)"
+      "Bash(npm info:*)",
+      "Bash(echo:*)",
+      "Bash(./test-auth-flow.sh:*)",
+      "Bash(clear)"
     ],
     "deny": [],
     "defaultMode": "acceptEdits"
