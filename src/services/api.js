@@ -14,9 +14,9 @@ import useUserStore from '../store/userStore';
 
 // API Configuration  
 const API_CONFIG = {
-  baseURL: import.meta.env.DEV 
-    ? '/api'  // Use Vite proxy in development (/api -> backend/v1)
-    : (import.meta.env.VITE_API_BASE_URL || 'https://8r85mpuvt3.execute-api.eu-central-1.amazonaws.com/dev') + '/v1',
+  baseURL: (import.meta.env.VITE_API_BASE_URL) 
+    ? (import.meta.env.VITE_API_BASE_URL + '/v1')  // Use environment variable if set (production)
+    : (import.meta.env.DEV ? '/api' : 'https://18sz01wxsi.execute-api.eu-central-1.amazonaws.com/dev/v1'),  // Fallback logic
   timeout: 30000,
   retryAttempts: 3,
   retryDelay: 1000
@@ -39,9 +39,9 @@ const createApiHeaders = () => {
     'Accept': 'application/json'
   };
   
-  // Add API Key if available
+  // Add API Key if available and not a placeholder
   const apiKey = import.meta.env.VITE_API_KEY;
-  if (apiKey) {
+  if (apiKey && apiKey !== 'your_api_key_here_if_required') {
     headers['X-API-Key'] = apiKey;
   }
   
@@ -233,6 +233,11 @@ const transformBackendResponse = (data, endpoint) => {
         forecasts: data.data,
         pagination: data.pagination || data.meta
       };
+    }
+    
+    // Auth endpoints - preserve the original structure
+    if (endpoint.includes('/auth/')) {
+      return data;
     }
     
     // Default transformation - return data directly

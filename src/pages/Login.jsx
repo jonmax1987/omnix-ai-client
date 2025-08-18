@@ -3,6 +3,7 @@ import { useNavigate, useLocation, Link } from 'react-router-dom';
 import styled, { keyframes } from 'styled-components';
 import { motion } from 'framer-motion';
 import useUserStore from '../store/userStore';
+import { authAPI } from '../services/api';
 import Button from '../components/atoms/Button';
 import Input from '../components/atoms/Input';
 import Typography from '../components/atoms/Typography';
@@ -191,21 +192,13 @@ function Login() {
     setIsLoading(true);
 
     try {
-      // Use the proxy endpoint to avoid CORS issues
-      const response = await fetch('/api/auth/login', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({
-          email: formData.email,
-          password: formData.password
-        })
+      // Use the API service layer with correct endpoint configuration
+      const data = await authAPI.login({
+        email: formData.email,
+        password: formData.password
       });
 
-      const data = await response.json();
-
-      if (response.ok && data.data) {
+      if (data && data.data) {
         // Update user store with real backend data
         useUserStore.setState({
           isAuthenticated: true,

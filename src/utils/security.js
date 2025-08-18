@@ -44,7 +44,10 @@ export const CSP_CONFIG = {
     "https://api.mixpanel.com",
     "https://sentry.io",
     "wss:",
-    ...(import.meta.env.VITE_API_BASE_URL ? [import.meta.env.VITE_API_BASE_URL] : []),
+    // Add API base URL (extract hostname to allow all paths)
+    ...(import.meta.env.VITE_API_BASE_URL ? [
+      new URL(import.meta.env.VITE_API_BASE_URL).origin
+    ] : []),
     ...(import.meta.env.VITE_WEBSOCKET_URL ? [import.meta.env.VITE_WEBSOCKET_URL] : [])
   ].filter(Boolean),
   
@@ -58,14 +61,22 @@ export const CSP_CONFIG = {
 };
 
 // Generate CSP header value
-export function generateCSPHeader() {
-  const directives = Object.entries(CSP_CONFIG).map(([key, value]) => {
-    const directiveName = key.replace(/[A-Z]/g, letter => `-${letter.toLowerCase()}`);
-    if (Array.isArray(value)) {
-      return `${directiveName} ${value.join(' ')}`;
-    }
-    return `${directiveName} ${value}`;
-  });
+export function generateCSPHeader(excludeReportUri = false) {
+  const directives = Object.entries(CSP_CONFIG)
+    .filter(([key]) => {
+      // Exclude report-uri when used in meta tags (doesn't work there)
+      if (excludeReportUri && key === 'reportUri') {
+        return false;
+      }
+      return true;
+    })
+    .map(([key, value]) => {
+      const directiveName = key.replace(/[A-Z]/g, letter => `-${letter.toLowerCase()}`);
+      if (Array.isArray(value)) {
+        return `${directiveName} ${value.join(' ')}`;
+      }
+      return `${directiveName} ${value}`;
+    });
   
   return directives.join('; ');
 }
@@ -331,7 +342,8 @@ export function initializeSecurity() {
   if (import.meta.env.VITE_ENABLE_SECURITY_HEADERS === 'true' && !document.querySelector('meta[http-equiv="Content-Security-Policy"]')) {
     const meta = document.createElement('meta');
     meta.httpEquiv = 'Content-Security-Policy';
-    meta.content = generateCSPHeader();
+    // Exclude report-uri from meta CSP as it's not supported
+    meta.content = generateCSPHeader(true);
     document.head.appendChild(meta);
   }
   
