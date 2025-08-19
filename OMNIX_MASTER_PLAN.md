@@ -144,8 +144,8 @@ Transform supermarket management through AI-powered predictive analytics, delive
 | Task ID | Description | Status | Priority | Dependencies | Assignee | ETA |
 |---------|-------------|--------|----------|--------------|----------|-----|
 | API-001 | HTTP client with interceptors and retry | ✅ | P0 | AUTH-008 | - | Jan 25 |
-| API-002 | Authentication service integration | 📋 | P0 | API-001 | - | Jan 26 |
-| API-003 | Customer analytics service | 📋 | P0 | API-002 | - | Jan 26 |
+| API-002 | Authentication service integration | ✅ | P0 | API-001 | - | Jan 26 |
+| API-003 | Customer analytics service | ✅ | P0 | API-002 | - | Jan 26 |
 | API-004 | Inventory management service | 📋 | P0 | API-003 | - | Jan 27 |
 | API-005 | Real-time streaming service (WebSocket) | 📋 | P0 | API-004 | - | Jan 27 |
 | API-006 | A/B testing service integration | 📋 | P1 | API-005 | - | Jan 28 |
