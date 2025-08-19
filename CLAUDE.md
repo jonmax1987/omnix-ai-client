@@ -1,16 +1,56 @@
 # OMNIX AI — Project Overview
-Smart management system: FE=React(Vite,JS), Mobile First, Atomic Design, Styled Components, Framer Motion, Zustand, ES6+, Hooks, ARIA.  
-BE=Nest.js+Python(AI), AWS Lambda, DynamoDB, Serverless.  
-API First — spec=omnix-api.yaml.  
+Dual-interface smart retail management system: Manager dashboards + Customer personalization.  
+FE=React(Vite,TypeScript), Mobile First, Atomic Design, Styled Components, Framer Motion, Zustand, ES6+, Hooks, ARIA.  
+BE=NestJS+Python(AI), AWS Lambda, DynamoDB, AWS Bedrock (Claude 3 Haiku & Sonnet).  
+API First — spec=FRONTEND_INTEGRATION_GUIDE.md + omnix-api.yaml.  
 Design System=atoms→molecules→organisms→pages→templates.  
-Principles: Clean & performant code, reusable/testable components, accessibility, state in Zustand, animations via Framer Motion.  
-**Workflow: Work must be based on tasks in `task_status.md`. Upon task completion, its status must be updated. At the beginning of each session, check the last worked-on task and its completion status.** Sources of truth: omnix-api.yaml, task_status.md, CLAUDE.md.  
-Goal: Implement FE tasks based on API & status files, matching spec exactly.
+Principles: Clean & performant code, AI-powered insights, reusable/testable components, accessibility, dual-role architecture.
+
+**CRITICAL WORKFLOW**: 
+1. **Master Plan**: All work based on tasks in `OMNIX_MASTER_PLAN.md` (267 tasks across 6 phases)
+2. **Context Preservation**: Every task completion updates `task_status.md` AND master plan status
+3. **Session Startup**: Always check master plan → identify next task → update to IN_PROGRESS
+4. **Sources of Truth**: OMNIX_MASTER_PLAN.md, task_status.md, FRONTEND_INTEGRATION_GUIDE.md, CLAUDE.md
+
+**Current Status**: Phase 1 (Foundation) - 22/267 tasks complete (8.2%)  
+**Next Critical Task**: API-001 - HTTP client with interceptors and retry  
+**Goal**: Production launch May 16, 2025
 
 # OMNIX AI — Story Overview
 
-OMNIX AI was born from daily pain in supermarkets: unsold stock, empty shelves, and manual processes wasting precious time. Its goal is a smart system that learns from past sales, predicts demand, and provides managers with clear, actionable insights.
+OMNIX AI transforms supermarket operations through dual-role AI intelligence:
 
-The system acts like a "super-smart manager": showing real-time alerts, intuitive dashboards, and AI-powered order recommendations. It forecasts demand by season, promotions, and trends, turning inventory and ordering into data-driven decisions instead of guesswork.
+## For Managers: Business Intelligence Platform
+- Real-time revenue and customer analytics dashboards
+- AI-powered inventory depletion forecasting (Claude Sonnet: 94% accuracy)
+- Customer segmentation wheel with 8-segment behavioral analysis
+- A/B testing for AI model performance optimization
+- Predictive order recommendations with supplier integration
 
-OMNIX AI is more than a management tool — it’s a strategic partner, automating tedious tasks, enabling growth, and giving managers back time and profitability through predictive intelligence and a clear, interactive interface.
+## For Customers: Personal Shopping Assistant
+- AI-driven product recommendations based on purchase patterns
+- Consumption prediction: "You usually buy milk every 7 days"
+- Smart replenishment alerts and shopping list generation
+- Personal analytics: spending patterns, health insights, savings optimization
+- Meal planning integration with recipe suggestions
+
+## Technical Innovation
+- **Dual Interface Architecture**: Separate but integrated manager/customer experiences
+- **Real-time Streaming**: WebSocket-powered live updates and notifications
+- **AI Model A/B Testing**: Haiku vs Sonnet performance comparison
+- **Mobile-First PWA**: Professional desktop power in mobile-optimized interface
+- **Privacy-First Design**: Customer data anonymized in manager analytics
+
+## Business Impact
+- 40% faster decision making through visual AI insights
+- 95% inventory prediction accuracy reducing waste
+- 15-20% revenue optimization through demand forecasting
+- Enhanced customer loyalty through personalized experiences
+
+OMNIX AI is the "super-smart manager" that turns data into decisions and transforms both business operations and customer relationships.
+
+# important-instruction-reminders
+Do what has been asked; nothing more, nothing less.
+NEVER create files unless they're absolutely necessary for achieving your goal.
+ALWAYS prefer editing an existing file to creating a new one.
+NEVER proactively create documentation files (*.md) or README files. Only create documentation files if explicitly requested by the User.

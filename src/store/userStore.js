@@ -1,6 +1,7 @@
 import { create } from 'zustand';
 import { subscribeWithSelector, devtools, persist } from 'zustand/middleware';
 import { immer } from 'zustand/middleware/immer';
+import authService from '../services/authService';
 
 const useUserStore = create()(
   devtools(
@@ -188,52 +189,42 @@ const useUserStore = create()(
             });
             
             try {
-              // Real API authentication
-              const response = await fetch('https://18sz01wxsi.execute-api.eu-central-1.amazonaws.com/dev/v1/auth/login', {
-                method: 'POST',
-                headers: {
-                  'Content-Type': 'application/json',
-                },
-                body: JSON.stringify({
-                  email: credentials.email,
-                  password: credentials.password
-                })
-              });
-
-              const data = await response.json();
-
-              if (response.ok && data.data) {
+              const result = await authService.login(credentials);
+              
+              if (result.success && result.data) {
+                const { user, accessToken, refreshToken, expiresAt } = result.data;
+                
                 // Set permissions based on user role
                 const permissions = {
-                  products: { view: true, create: true, edit: true, delete: data.data.user.role === 'admin', export: true },
-                  inventory: { view: true, adjust: true, transfer: true, audit: data.data.user.role === 'admin' },
+                  products: { view: true, create: true, edit: true, delete: user.role === 'admin', export: true },
+                  inventory: { view: true, adjust: true, transfer: true, audit: user.role === 'admin' },
                   orders: { view: true, create: true, edit: true, cancel: true, fulfill: true },
-                  analytics: { view: true, export: true, advanced: data.data.user.role === 'admin' },
-                  alerts: { view: true, acknowledge: true, resolve: true, manage: data.data.user.role === 'admin' },
-                  settings: { view: true, edit: true, admin: data.data.user.role === 'admin' },
+                  analytics: { view: true, export: true, advanced: user.role === 'admin' },
+                  alerts: { view: true, acknowledge: true, resolve: true, manage: user.role === 'admin' },
+                  settings: { view: true, edit: true, admin: user.role === 'admin' },
                   users: { 
-                    view: data.data.user.role === 'admin', 
-                    create: data.data.user.role === 'admin', 
-                    edit: data.data.user.role === 'admin', 
-                    delete: data.data.user.role === 'admin' 
+                    view: user.role === 'admin', 
+                    create: user.role === 'admin', 
+                    edit: user.role === 'admin', 
+                    delete: user.role === 'admin' 
                   }
                 };
 
                 set((state) => {
                   state.isAuthenticated = true;
-                  state.token = data.data.accessToken;
-                  state.refreshToken = data.data.refreshToken;
-                  state.tokenExpiry = Date.now() + (60 * 60 * 1000); // 1 hour
-                  state.user = data.data.user;
+                  state.token = accessToken;
+                  state.refreshToken = refreshToken;
+                  state.tokenExpiry = expiresAt;
+                  state.user = user;
                   state.permissions = permissions;
                   
                   state.profile = {
                     ...state.profile,
-                    id: data.data.user.id,
-                    email: data.data.user.email,
-                    firstName: data.data.user.name?.split(' ')[0] || '',
-                    lastName: data.data.user.name?.split(' ').slice(1).join(' ') || '',
-                    role: data.data.user.role,
+                    id: user.id,
+                    email: user.email,
+                    firstName: user.name?.split(' ')[0] || '',
+                    lastName: user.name?.split(' ').slice(1).join(' ') || '',
+                    role: user.role,
                     lastLogin: new Date().toISOString()
                   };
                   
@@ -244,9 +235,9 @@ const useUserStore = create()(
                 });
                 
                 return { success: true };
-              } else {
-                throw new Error(data.message || 'Login failed');
               }
+              
+              throw new Error('Login failed: Invalid response');
             } catch (error) {
               set((state) => {
                 state.errors.auth = error.message || 'Login failed';
@@ -256,7 +247,15 @@ const useUserStore = create()(
             }
           },
           
-          logout: () =>
+          logout: async () => {
+            const { refreshToken } = get();
+            
+            try {
+              await authService.logout(refreshToken);
+            } catch (error) {
+              console.warn('Logout API call failed:', error.message);
+            }
+            
             set((state) => {
               state.isAuthenticated = false;
               state.user = null;
@@ -266,29 +265,37 @@ const useUserStore = create()(
               state.session.startTime = null;
               state.session.lastActivity = null;
               state.session.isSessionWarningShown = false;
-            }),
+            });
+          },
             
           refreshSession: async () => {
             const { refreshToken, tokenExpiry } = get();
             
             if (!refreshToken || Date.now() >= tokenExpiry) {
-              get().logout();
+              await get().logout();
               return false;
             }
             
             try {
-              // Simulate token refresh - replace with actual API call
-              await new Promise(resolve => setTimeout(resolve, 500));
+              const result = await authService.refreshToken(refreshToken);
               
-              set((state) => {
-                state.token = 'new-mock-jwt-token';
-                state.tokenExpiry = Date.now() + (24 * 60 * 60 * 1000);
-                state.session.lastActivity = Date.now();
-              });
+              if (result.success && result.data) {
+                const { accessToken, refreshToken: newRefreshToken, expiresAt } = result.data;
+                
+                set((state) => {
+                  state.token = accessToken;
+                  state.refreshToken = newRefreshToken;
+                  state.tokenExpiry = expiresAt;
+                  state.session.lastActivity = Date.now();
+                });
+                
+                return true;
+              }
               
-              return true;
+              throw new Error('Token refresh failed');
             } catch (error) {
-              get().logout();
+              console.error('Session refresh failed:', error.message);
+              await get().logout();
               return false;
             }
           },
@@ -301,19 +308,9 @@ const useUserStore = create()(
             });
             
             try {
-              const { token } = get();
-              const response = await fetch('/api/user/profile', {
-                method: 'PATCH',
-                headers: {
-                  'Content-Type': 'application/json',
-                  'Authorization': `Bearer ${token}`
-                },
-                body: JSON.stringify(updates)
-              });
-
-              const data = await response.json();
-
-              if (response.ok) {
+              const result = await authService.updateUserProfile(updates);
+              
+              if (result.success) {
                 set((state) => {
                   state.profile = { ...state.profile, ...updates };
                   if (state.user) {
@@ -328,7 +325,7 @@ const useUserStore = create()(
                 
                 return { success: true };
               } else {
-                throw new Error(data.message || 'Profile update failed');
+                throw new Error('Profile update failed');
               }
             } catch (error) {
               set((state) => {
@@ -445,16 +442,22 @@ const useUserStore = create()(
             });
             
             try {
-              // Simulate API call
-              await new Promise(resolve => setTimeout(resolve, 1000));
-              
-              set((state) => {
-                state.security.lastPasswordChange = new Date().toISOString();
-                state.security.loginAttempts = 0;
-                state.loading.auth = false;
+              const result = await authService.changePassword({
+                currentPassword,
+                newPassword
               });
               
-              return { success: true };
+              if (result.success) {
+                set((state) => {
+                  state.security.lastPasswordChange = new Date().toISOString();
+                  state.security.loginAttempts = 0;
+                  state.loading.auth = false;
+                });
+                
+                return { success: true, message: result.message };
+              }
+              
+              throw new Error('Password change failed');
             } catch (error) {
               set((state) => {
                 state.errors.auth = error.message || 'Password change failed';
@@ -465,44 +468,8 @@ const useUserStore = create()(
           },
 
           updatePassword: async (currentPassword, newPassword) => {
-            set((state) => {
-              state.loading.profile = true;
-              state.errors.profile = null;
-            });
-            
-            try {
-              const { token } = get();
-              const response = await fetch('/api/auth/change-password', {
-                method: 'POST',
-                headers: {
-                  'Content-Type': 'application/json',
-                  'Authorization': `Bearer ${token}`
-                },
-                body: JSON.stringify({
-                  currentPassword,
-                  newPassword
-                })
-              });
-
-              const data = await response.json();
-
-              if (response.ok) {
-                set((state) => {
-                  state.security.lastPasswordChange = new Date().toISOString();
-                  state.security.loginAttempts = 0;
-                  state.loading.profile = false;
-                });
-                return { success: true };
-              } else {
-                throw new Error(data.message || 'Password change failed');
-              }
-            } catch (error) {
-              set((state) => {
-                state.errors.profile = error.message || 'Password change failed';
-                state.loading.profile = false;
-              });
-              throw error;
-            }
+            // Delegate to changePassword for consistency
+            return get().changePassword(currentPassword, newPassword);
           },
           
           enableTwoFactor: async () => {
@@ -512,15 +479,20 @@ const useUserStore = create()(
             });
             
             try {
-              // Simulate API call
-              await new Promise(resolve => setTimeout(resolve, 1200));
+              const result = await authService.setupTwoFactor();
               
-              set((state) => {
-                state.security.twoFactorEnabled = true;
-                state.loading.auth = false;
-              });
+              if (result.success) {
+                set((state) => {
+                  state.loading.auth = false;
+                });
+                
+                return { 
+                  success: true, 
+                  data: result.data // Contains QR code, backup codes, etc.
+                };
+              }
               
-              return { success: true };
+              throw new Error('Two-factor setup failed');
             } catch (error) {
               set((state) => {
                 state.errors.auth = error.message || 'Two-factor setup failed';
@@ -529,23 +501,54 @@ const useUserStore = create()(
               return { success: false, error: error.message };
             }
           },
-          
-          disableTwoFactor: async () => {
+
+          verifyTwoFactor: async (code) => {
             set((state) => {
               state.loading.auth = true;
               state.errors.auth = null;
             });
             
             try {
-              // Simulate API call
-              await new Promise(resolve => setTimeout(resolve, 800));
+              const result = await authService.verifyTwoFactor(code);
               
+              if (result.success) {
+                set((state) => {
+                  state.security.twoFactorEnabled = true;
+                  state.loading.auth = false;
+                });
+                
+                return { success: true, message: result.message };
+              }
+              
+              throw new Error('Two-factor verification failed');
+            } catch (error) {
               set((state) => {
-                state.security.twoFactorEnabled = false;
+                state.errors.auth = error.message || 'Two-factor verification failed';
                 state.loading.auth = false;
               });
+              return { success: false, error: error.message };
+            }
+          },
+          
+          disableTwoFactor: async (code) => {
+            set((state) => {
+              state.loading.auth = true;
+              state.errors.auth = null;
+            });
+            
+            try {
+              const result = await authService.disableTwoFactor(code);
               
-              return { success: true };
+              if (result.success) {
+                set((state) => {
+                  state.security.twoFactorEnabled = false;
+                  state.loading.auth = false;
+                });
+                
+                return { success: true, message: result.message };
+              }
+              
+              throw new Error('Two-factor disable failed');
             } catch (error) {
               set((state) => {
                 state.errors.auth = error.message || 'Two-factor disable failed';
