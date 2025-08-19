@@ -15,15 +15,36 @@ function ProtectedRoute({ children, requiredPermission = null, requiredResource 
   // Check specific permission if required
   if (requiredPermission && requiredResource) {
     if (!hasPermission(requiredResource, requiredPermission)) {
-      // Redirect to unauthorized page or dashboard
-      return <Navigate to="/dashboard" replace />;
+      // Redirect to unauthorized page with context
+      return (
+        <Navigate 
+          to="/unauthorized" 
+          state={{
+            reason: 'insufficient_permissions',
+            requiredPermissions: [{ resource: requiredResource, action: requiredPermission }],
+            resource: requiredResource,
+            from: location
+          }}
+          replace 
+        />
+      );
     }
   }
 
   // Check resource access if required
   if (requiredResource && !requiredPermission) {
     if (!canAccess(requiredResource)) {
-      return <Navigate to="/dashboard" replace />;
+      return (
+        <Navigate 
+          to="/unauthorized" 
+          state={{
+            reason: 'insufficient_permissions',
+            resource: requiredResource,
+            from: location
+          }}
+          replace 
+        />
+      );
     }
   }
 

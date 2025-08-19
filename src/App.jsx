@@ -37,9 +37,11 @@ import Settings from './pages/Settings';
 import Login from './pages/Login';
 import Register from './pages/Register';
 import ResetPassword from './pages/ResetPassword';
+import Unauthorized from './pages/Unauthorized';
 
 // Auth components
 import ProtectedRoute from './components/auth/ProtectedRoute';
+import AuthProvider from './components/auth/AuthProvider';
 
 // Context providers
 import { ModalProvider } from './contexts/ModalContext';
@@ -221,11 +223,18 @@ function AppContent() {
   const isLoginPage = location.pathname === '/login';
 
   return (
-    <ModalProvider>
-      <ThemeProvider theme={currentTheme}>
-        <GlobalStyles />
-        <ErrorBoundary showError={true}>
-        <OfflineIndicator />
+    <AuthProvider 
+      enableSessionManagement={true}
+      showSessionIndicator={import.meta.env.DEV}
+      onAuthStateChange={(authState) => {
+        console.log('🔐 Auth state changed:', authState);
+      }}
+    >
+      <ModalProvider>
+        <ThemeProvider theme={currentTheme}>
+          <GlobalStyles />
+          <ErrorBoundary showError={true}>
+          <OfflineIndicator />
         
         <Routes>
           {/* Public routes */}
@@ -233,6 +242,7 @@ function AppContent() {
           <Route path="/register" element={<Register />} />
           <Route path="/reset-password" element={<ResetPassword />} />
           <Route path="/forgot-password" element={<ResetPassword />} />
+          <Route path="/unauthorized" element={<Unauthorized />} />
           
           {/* Protected routes */}
           <Route path="/*" element={
@@ -323,6 +333,7 @@ function AppContent() {
       </ErrorBoundary>
       </ThemeProvider>
     </ModalProvider>
+    </AuthProvider>
   );
 }
 
