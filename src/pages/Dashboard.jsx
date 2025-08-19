@@ -15,6 +15,7 @@ import { exportDashboardReport } from '../utils/exportUtils';
 import { isTouchDevice } from '../utils/mobileGestures';
 import { useI18n } from '../hooks/useI18n';
 import useDashboardStore from '../store/dashboardStore';
+import { useRealtimeDashboard } from '../hooks/useWebSocket';
 
 const DashboardContainer = styled(motion.div)`
   padding: ${props => props.theme.spacing[6]};
@@ -150,6 +151,9 @@ const Dashboard = () => {
   } = useDashboardStore();
   
   const [lastUpdated, setLastUpdated] = useState(new Date().toLocaleTimeString());
+
+  // Enable real-time dashboard updates
+  useRealtimeDashboard();
 
   // Fetch dashboard data on component mount
   useEffect(() => {

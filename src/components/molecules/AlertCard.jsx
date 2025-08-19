@@ -7,7 +7,9 @@ import Typography from '../atoms/Typography';
 import Badge from '../atoms/Badge';
 import { useI18n } from '../../hooks/useI18n';
 
-const AlertContainer = styled(motion.div)`
+const AlertContainer = styled(motion.div).withConfig({
+  shouldForwardProp: (prop) => !['severity', 'variant', 'read', 'dismissible', 'badge', 'category', 'timestamp', 'actions'].includes(prop)
+})`
   display: flex;
   align-items: flex-start;
   gap: ${props => props.theme.spacing[3]};

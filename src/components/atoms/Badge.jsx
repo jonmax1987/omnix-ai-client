@@ -1,7 +1,9 @@
 import styled, { css } from 'styled-components';
 import { motion } from 'framer-motion';
 
-const StyledBadge = styled(motion.span)`
+const StyledBadge = styled(motion.span).withConfig({
+  shouldForwardProp: (prop) => !['variant', 'size', 'dot', 'pulse', 'uppercase'].includes(prop)
+})`
   display: inline-flex;
   align-items: center;
   justify-content: center;

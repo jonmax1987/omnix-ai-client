@@ -8,6 +8,8 @@ import Badge from '../components/atoms/Badge';
 import AlertCenter from '../components/organisms/AlertCenter';
 import { useI18n } from '../hooks/useI18n';
 import useAlertsStore from '../store/alertsStore';
+import { useRealtimeAlerts } from '../hooks/useWebSocket';
+import { useNotificationStore } from '../store/notificationStore';
 
 const AlertsContainer = styled(motion.div)`
   padding: ${props => props.theme.spacing[6]};
@@ -85,11 +87,20 @@ const Alerts = () => {
     acknowledgeAlert,
     dismissAlert 
   } = useAlertsStore();
+  
+  // Notification store for push notifications
+  const { requestPermission } = useNotificationStore();
+  
+  // Enable real-time alert updates
+  useRealtimeAlerts();
 
-  // Fetch alerts on component mount
+  // Fetch alerts on component mount and request notification permission
   useEffect(() => {
     fetchAlerts();
-  }, [fetchAlerts]);
+    
+    // Request browser notification permission for critical alerts
+    requestPermission();
+  }, [fetchAlerts, requestPermission]);
 
   const handleRefresh = async () => {
     await fetchAlerts();

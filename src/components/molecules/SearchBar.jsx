@@ -23,7 +23,9 @@ const SearchInputContainer = styled.div`
   align-items: center;
 `;
 
-const SearchInput = styled(Input)`
+const SearchInput = styled(Input).withConfig({
+  shouldForwardProp: (prop) => prop !== 'hasValue'
+})`
   padding-left: ${props => props.theme.spacing[10]};
   padding-right: ${props => props.hasValue ? props.theme.spacing[10] : props.theme.spacing[4]};
 `;

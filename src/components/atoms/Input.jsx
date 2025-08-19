@@ -7,7 +7,9 @@ const InputContainer = styled.div`
   width: 100%;
 `;
 
-const StyledInput = styled(motion.input)`
+const StyledInput = styled(motion.input).withConfig({
+  shouldForwardProp: (prop) => !['size', 'error', 'success'].includes(prop)
+})`
   width: 100%;
   padding: ${props => getInputPadding(props.size, props.theme)};
   font-family: ${props => props.theme.typography.fontFamily.sans.join(', ')};

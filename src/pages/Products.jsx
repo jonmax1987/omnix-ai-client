@@ -14,6 +14,7 @@ import ProductForm from '../components/organisms/ProductForm';
 import { useI18n } from '../hooks/useI18n';
 import { useModal } from '../contexts/ModalContext';
 import useProductsStore from '../store/productsStore';
+import { useRealtimeProducts } from '../hooks/useWebSocket';
 
 const ProductsContainer = styled(motion.div)`
   padding: ${props => props.theme.spacing[6]};
@@ -149,6 +150,9 @@ const Products = () => {
     setFilters,
     filters 
   } = useProductsStore();
+  
+  // Enable real-time product updates for all products
+  useRealtimeProducts();
 
   // Fetch products on component mount
   useEffect(() => {

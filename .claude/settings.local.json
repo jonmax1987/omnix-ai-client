@@ -107,7 +107,20 @@
       "Bash(npm info:*)",
       "Bash(echo:*)",
       "Bash(./test-auth-flow.sh:*)",
-      "Bash(clear)"
+      "Bash(clear)",
+      "Bash(sudo apt:*)",
+      "Bash(sudo apt install:*)",
+      "Bash(./deploy-simple.sh)",
+      "Bash(VITE_API_BASE_URL=https://18sz01wxsi.execute-api.eu-central-1.amazonaws.com/dev npm run build)",
+      "Bash(VITE_API_BASE_URL=https://18sz01wxsi.execute-api.eu-central-1.amazonaws.com/dev node -e \"\nimport(''./src/services/api.js'').then(api => {\n  console.log(''import.meta.env would be:'', {\n    DEV: false, // This should be false in production build\n    PROD: true,\n    VITE_API_BASE_URL: process.env.VITE_API_BASE_URL\n  });\n  console.log(''Expected baseURL should be:'', process.env.VITE_API_BASE_URL + ''/v1'');\n}).catch(console.error);\n\")",
+      "Bash(find:*)",
+      "Bash(VITE_API_BASE_URL=https://18sz01wxsi.execute-api.eu-central-1.amazonaws.com/dev node -e \"console.log(''VITE_API_BASE_URL:'', process.env.VITE_API_BASE_URL)\")",
+      "Bash(VITE_API_BASE_URL=https://18sz01wxsi.execute-api.eu-central-1.amazonaws.com/dev node test-api-config.js)",
+      "Bash(git rm:*)",
+      "WebFetch(domain:d1vu6p9f5uc16.cloudfront.net)",
+      "Bash(VITE_API_BASE_URL=https://18sz01wxsi.execute-api.eu-central-1.amazonaws.com/dev/v1 npm run build)",
+      "Bash(VITE_API_BASE_URL=https://18sz01wxsi.execute-api.eu-central-1.amazonaws.com/dev/v1 VITE_WEBSOCKET_URL=wss://5oo31khrrj.execute-api.eu-central-1.amazonaws.com/dev npm start)",
+      "Bash(VITE_API_BASE_URL=https://18sz01wxsi.execute-api.eu-central-1.amazonaws.com/dev/v1 VITE_WEBSOCKET_URL=wss://5oo31khrrj.execute-api.eu-central-1.amazonaws.com/dev npm run build)"
     ],
     "deny": [],
     "defaultMode": "acceptEdits"

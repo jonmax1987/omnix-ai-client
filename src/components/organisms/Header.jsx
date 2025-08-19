@@ -8,6 +8,7 @@ import Avatar from '../atoms/Avatar';
 import Badge from '../atoms/Badge';
 import SearchBar from '../molecules/SearchBar';
 import LanguageSwitcher from '../molecules/LanguageSwitcher';
+import WebSocketStatus from '../atoms/WebSocketStatus';
 
 const HeaderContainer = styled.header`
   position: sticky;
@@ -227,7 +228,9 @@ const NotificationHeader = styled.div`
   border-bottom: 1px solid ${props => props.theme.colors.border.subtle};
 `;
 
-const NotificationItem = styled(motion.div)`
+const NotificationItem = styled(motion.div).withConfig({
+  shouldForwardProp: (prop) => !['unread'].includes(prop),
+})`
   display: flex;
   align-items: flex-start;
   gap: ${props => props.theme.spacing[3]};
@@ -370,6 +373,8 @@ const Header = ({
         <RightSection>
           {children}
 
+          <WebSocketStatus showText={false} />
+          
           <LanguageSwitcher />
 
           <div ref={notificationRef} style={{ position: 'relative' }}>

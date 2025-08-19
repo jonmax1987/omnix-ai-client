@@ -1,7 +1,9 @@
 import styled from 'styled-components';
 import { motion } from 'framer-motion';
 
-const StyledIcon = styled(motion.svg)`
+const StyledIcon = styled(motion.svg).withConfig({
+  shouldForwardProp: (prop) => !['size', 'color', 'clickable'].includes(prop)
+})`
   display: inline-block;
   width: ${props => props.size}px;
   height: ${props => props.size}px;

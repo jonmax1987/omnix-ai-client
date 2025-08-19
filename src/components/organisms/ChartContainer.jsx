@@ -9,7 +9,9 @@ import Spinner from '../atoms/Spinner';
 import { exportChartAsImage } from '../../utils/exportUtils';
 import { useI18n } from '../../hooks/useI18n';
 
-const ChartWrapper = styled(motion.div)`
+const ChartWrapper = styled(motion.div).withConfig({
+  shouldForwardProp: (prop) => !['fullScreen'].includes(prop),
+})`
   display: flex;
   flex-direction: column;
   background: ${props => props.theme.colors.background.elevated};
@@ -92,7 +94,9 @@ const TimeRangeSelector = styled.div`
   overflow: hidden;
 `;
 
-const TimeRangeButton = styled(Button).attrs({
+const TimeRangeButton = styled(Button).withConfig({
+  shouldForwardProp: (prop) => !['active'].includes(prop),
+}).attrs({
   variant: 'ghost',
   size: 'sm'
 })`
@@ -195,7 +199,9 @@ const Legend = styled.div`
   }
 `;
 
-const LegendItem = styled(motion.div)`
+const LegendItem = styled(motion.div).withConfig({
+  shouldForwardProp: (prop) => !['interactive', 'disabled'].includes(prop),
+})`
   display: flex;
   align-items: center;
   gap: ${props => props.theme.spacing[1]};

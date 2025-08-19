@@ -1,5 +1,6 @@
 // API service layer for OMNIX AI
 import useUserStore from '../store/userStore';
+// Socket.IO is imported dynamically when needed
 
 /**
  * @typedef {import('../types/api.js').APIResponse} APIResponse
@@ -14,20 +15,18 @@ import useUserStore from '../store/userStore';
 
 // API Configuration  
 const API_CONFIG = {
-  baseURL: (import.meta.env.VITE_API_BASE_URL) 
-    ? (import.meta.env.VITE_API_BASE_URL + '/v1')  // Use environment variable if set (production)
-    : (import.meta.env.DEV ? '/api' : 'https://18sz01wxsi.execute-api.eu-central-1.amazonaws.com/dev/v1'),  // Fallback logic
+  baseURL: import.meta.env.VITE_API_BASE_URL || 'https://18sz01wxsi.execute-api.eu-central-1.amazonaws.com/dev/v1',
   timeout: 30000,
   retryAttempts: 3,
   retryDelay: 1000
 };
 
-// Debug API configuration (disabled for cleaner console)
+// Debug API configuration (disabled for production)
 // if (typeof window !== 'undefined' && import.meta.env.DEV) {
 //   console.group('🔧 API Configuration Debug');
 //   console.log('🌍 VITE_API_BASE_URL:', import.meta.env.VITE_API_BASE_URL);
 //   console.log('📡 Final baseURL:', API_CONFIG.baseURL);
-//   console.log('🎯 Example endpoint:', `${API_CONFIG.baseURL}/dashboard/summary`);
+//   console.log('🎯 Example endpoint:', `${API_CONFIG.baseURL}/auth/login`);
 //   console.groupEnd();
 // }
 
@@ -487,7 +486,7 @@ export const systemAPI = {
   deleteBackup: (backupId) => api.delete(`/system/backups/${backupId}`)
 };
 
-// WebSocket connection management
+// Socket.IO connection management
 export class WebSocketService {
   constructor() {
     this.socket = null;
@@ -498,71 +497,89 @@ export class WebSocketService {
     this.isConnecting = false;
   }
   
-  connect() {
-    if (this.socket && this.socket.readyState === WebSocket.OPEN) {
+  async connect() {
+    // Check if WebSocket is disabled in production
+    const wsUrl = import.meta.env.VITE_WEBSOCKET_URL;
+    if (!wsUrl) {
+      console.log('WebSocket disabled - using HTTP polling fallback');
       return Promise.resolve();
+    }
+    
+    // Check if already connected
+    if (this.socket) {
+      // Check connection based on socket type
+      if (this.socket.connected !== undefined) {
+        // Socket.IO connection
+        if (this.socket.connected) return Promise.resolve();
+      } else {
+        // Raw WebSocket connection
+        if (this.socket.readyState === WebSocket.OPEN) return Promise.resolve();
+      }
     }
     
     if (this.isConnecting) {
-      return Promise.resolve();
+      return this.connectionPromise || Promise.resolve();
     }
     
     this.isConnecting = true;
-    const wsUrl = import.meta.env.VITE_WEBSOCKET_URL || 'ws://localhost:3001';
     const token = useUserStore.getState().token;
     
-    this.socket = new WebSocket(`${wsUrl}?token=${token}`);
+    // Create Socket.IO connection - handle both local and AWS WebSocket
+    if (wsUrl.includes('amazonaws.com')) {
+      // AWS API Gateway WebSocket - use raw WebSocket
+      this.socket = new WebSocket(`${wsUrl}?token=${token}`);
+      this._setupRawWebSocket();
+    } else if (wsUrl && wsUrl.includes('localhost')) {
+      // Local development - use Socket.IO (dynamically import)
+      const { io } = await import('socket.io-client');
+      this.socket = io(wsUrl + '/ws', {
+        auth: { token },
+        transports: ['websocket'],
+        forceNew: true
+      });
+      this._setupSocketIO();
+    } else {
+      // Invalid or missing WebSocket URL - should not happen due to early check
+      console.error('Invalid WebSocket URL:', wsUrl);
+      this.isConnecting = false;
+      return Promise.reject(new Error('Invalid WebSocket URL'));
+    }
     
-    return new Promise((resolve, reject) => {
-      this.socket.onopen = () => {
-        console.log('WebSocket connected');
-        this.isConnecting = false;
-        this.reconnectAttempts = 0;
-        resolve();
-      };
-      
-      this.socket.onmessage = (event) => {
-        try {
-          const data = JSON.parse(event.data);
-          this.handleMessage(data);
-        } catch (error) {
-          console.error('WebSocket message parsing error:', error);
-        }
-      };
-      
-      this.socket.onclose = () => {
-        console.log('WebSocket disconnected');
-        this.isConnecting = false;
-        this.attemptReconnect();
-      };
-      
-      this.socket.onerror = (error) => {
-        console.error('WebSocket error:', error);
-        this.isConnecting = false;
-        reject(error);
-      };
-    });
+    return this.connectionPromise;
   }
   
   disconnect() {
     if (this.socket) {
-      this.socket.close();
+      if (this.socket.disconnect) {
+        // Socket.IO connection
+        this.socket.disconnect();
+      } else {
+        // Raw WebSocket connection
+        this.socket.close();
+      }
       this.socket = null;
     }
     this.listeners.clear();
+    this.isConnecting = false;
   }
   
   subscribe(channel, callback) {
+    const wsUrl = import.meta.env.VITE_WEBSOCKET_URL;
+    if (!wsUrl) return;
+    
     if (!this.listeners.has(channel)) {
       this.listeners.set(channel, new Set());
     }
     this.listeners.get(channel).add(callback);
     
-    // Send subscription message
+    // Send subscription message via Socket.IO
     this.send({ type: 'subscribe', channel });
   }
   
   unsubscribe(channel, callback) {
+    const wsUrl = import.meta.env.VITE_WEBSOCKET_URL;
+    if (!wsUrl) return;
+    
     if (this.listeners.has(channel)) {
       this.listeners.get(channel).delete(callback);
       if (this.listeners.get(channel).size === 0) {
@@ -573,21 +590,118 @@ export class WebSocketService {
   }
   
   send(data) {
-    if (this.socket && this.socket.readyState === WebSocket.OPEN) {
-      this.socket.send(JSON.stringify(data));
+    const wsUrl = import.meta.env.VITE_WEBSOCKET_URL;
+    if (!wsUrl || !this.socket) return;
+    
+    // Handle different WebSocket types
+    if (this.socket.emit) {
+      // Socket.IO connection
+      if (this.socket.connected) {
+        this.socket.emit('message', data);
+      }
+    } else {
+      // Raw WebSocket connection
+      if (this.socket.readyState === WebSocket.OPEN) {
+        this.socket.send(JSON.stringify(data));
+      }
     }
   }
   
   handleMessage(data) {
-    const { channel, type, payload } = data;
+    const { channel, type, payload, event } = data;
     
-    if (this.listeners.has(channel)) {
-      this.listeners.get(channel).forEach(callback => {
-        callback({ type, payload });
+    // Handle different message formats from backend
+    const messageChannel = channel || event || type;
+    const messageData = payload || data;
+    
+    // Emit to specific channel listeners
+    if (this.listeners.has(messageChannel)) {
+      this.listeners.get(messageChannel).forEach(callback => {
+        callback({ type: messageChannel, payload: messageData });
+      });
+    }
+    
+    // Also emit to global listeners for cross-cutting concerns
+    if (this.listeners.has('*')) {
+      this.listeners.get('*').forEach(callback => {
+        callback({ type: messageChannel, payload: messageData });
       });
     }
   }
   
+  _setupRawWebSocket() {
+    this.connectionPromise = new Promise((resolve, reject) => {
+      this.socket.onopen = () => {
+        console.log('AWS WebSocket connected');
+        this.reconnectAttempts = 0;
+        this.isConnecting = false;
+        resolve();
+      };
+      
+      this.socket.onmessage = (event) => {
+        try {
+          const data = JSON.parse(event.data);
+          this.handleMessage(data);
+        } catch (error) {
+          console.error('Error parsing WebSocket message:', error);
+        }
+      };
+      
+      this.socket.onclose = (event) => {
+        console.log('AWS WebSocket disconnected:', event.code, event.reason);
+        this.isConnecting = false;
+        if (event.code !== 1000) { // Not a normal closure
+          this.attemptReconnect();
+        }
+      };
+      
+      this.socket.onerror = (error) => {
+        console.error('AWS WebSocket error:', error);
+        this.isConnecting = false;
+        reject(error);
+      };
+    });
+  }
+  
+  _setupSocketIO() {
+    this.connectionPromise = new Promise((resolve, reject) => {
+      this.socket.on('connect', () => {
+        console.log('Socket.IO connected');
+        this.reconnectAttempts = 0;
+        this.isConnecting = false;
+        resolve();
+      });
+      
+      this.socket.on('message', (data) => {
+        this.handleMessage(data);
+      });
+      
+      this.socket.on('disconnect', (reason) => {
+        console.log('Socket.IO disconnected:', reason);
+        this.isConnecting = false;
+        if (reason === 'io server disconnect') {
+          // Reconnection will be handled by Socket.IO
+          this.socket.connect();
+        } else {
+          this.attemptReconnect();
+        }
+      });
+      
+      this.socket.on('connect_error', (error) => {
+        console.error('Socket.IO connection error:', error);
+        this.isConnecting = false;
+        reject(error);
+      });
+      
+      // Handle specific event channels
+      ['products', 'dashboard', 'alerts', 'orders', 'notifications'].forEach(channel => {
+        this.socket.on(channel, (data) => {
+          this.handleMessage({ channel, payload: data });
+        });
+      });
+    });
+  }
+
   attemptReconnect() {
     if (this.reconnectAttempts >= this.maxReconnectAttempts) {
       console.error('Max reconnection attempts reached');

@@ -5,6 +5,7 @@ import { lightTheme, darkTheme } from './styles/theme';
 import GlobalStyles from './styles/globalStyles';
 import useStore from './store';
 import useUserStore from './store/userStore';
+import { useWebSocket } from './hooks/useWebSocket';
 
 // Layout components
 import Header from './components/organisms/Header';
@@ -15,6 +16,8 @@ import PageTransition from './components/molecules/PageTransition';
 
 // Debug components (development only)
 import ApiDebug from './components/debug/ApiDebug';
+import WebSocketDebug from './components/debug/WebSocketDebug';
+import EnvDebug from './components/debug/EnvDebug';
 
 // Pages
 import Dashboard from './pages/Dashboard';
@@ -84,6 +87,9 @@ function AppContent() {
   const store = useStore();
   const { preferences, setTheme, isAuthenticated } = useUserStore();
   const { ui = {}, toggleSidebar, setSidebarMobileOpen, setCurrentPage, setIsMobile } = store || {};
+  
+  // Initialize WebSocket connection
+  useWebSocket();
   
   // Ensure we always have a valid store
   if (!store) {
@@ -246,8 +252,10 @@ function AppContent() {
                     onSearch={handleSearch}
                   />
                   
-                  {/* Debug panel for development */}
+                  {/* Debug panels for development */}
+                  {import.meta.env.DEV && <EnvDebug />}
                   {import.meta.env.DEV && <ApiDebug />}
+                  {import.meta.env.DEV && <WebSocketDebug />}
                   
                   <ContentArea>
                     <PageTransition variant="default">
