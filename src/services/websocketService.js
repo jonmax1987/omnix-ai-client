@@ -1,6 +1,50 @@
 // Enhanced WebSocket Service with Queue Management and Offline Support
 // Implementation of API-005: Real-time streaming service (WebSocket)
-import { EventEmitter } from 'events';
+
+// Browser-compatible EventEmitter implementation
+class EventEmitter {
+  constructor() {
+    this.events = {};
+  }
+
+  on(event, listener) {
+    if (!this.events[event]) {
+      this.events[event] = [];
+    }
+    this.events[event].push(listener);
+    return this;
+  }
+
+  off(event, listenerToRemove) {
+    if (!this.events[event]) return this;
+    
+    this.events[event] = this.events[event].filter(listener => listener !== listenerToRemove);
+    return this;
+  }
+
+  emit(event, ...args) {
+    if (!this.events[event]) return false;
+    
+    this.events[event].forEach(listener => {
+      try {
+        listener.apply(this, args);
+      } catch (error) {
+        console.error('EventEmitter listener error:', error);
+      }
+    });
+    
+    return true;
+  }
+
+  removeAllListeners(event) {
+    if (event) {
+      delete this.events[event];
+    } else {
+      this.events = {};
+    }
+    return this;
+  }
+}
 import useUserStore from '../store/userStore';
 
 /**

@@ -20,6 +20,9 @@ import ApiDebug from './components/debug/ApiDebug';
 import WebSocketDebug from './components/debug/WebSocketDebug';
 import EnvDebug from './components/debug/EnvDebug';
 import QueryDebug from './components/debug/QueryDebug';
+import NotificationDemo from './components/debug/NotificationDemo';
+import ProductDemo from './components/debug/ProductDemo';
+import AIInsightsDemo from './components/debug/AIInsightsDemo';
 
 // Pages
 import Dashboard from './pages/Dashboard';
@@ -258,6 +261,9 @@ function AppContent() {
                   {import.meta.env.DEV && <EnvDebug />}
                   {import.meta.env.DEV && <ApiDebug />}
                   {import.meta.env.DEV && <QueryDebug />}
+                  {import.meta.env.DEV && <NotificationDemo />}
+                  {import.meta.env.DEV && <ProductDemo />}
+                  {import.meta.env.DEV && <AIInsightsDemo />}
                   {import.meta.env.DEV && <WebSocketDebug />}
                   
                   <ContentArea>
