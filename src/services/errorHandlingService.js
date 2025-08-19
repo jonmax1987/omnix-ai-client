@@ -600,4 +600,4 @@ if (typeof window !== 'undefined') {
 }
 
 export default errorHandlingService;
-export { ErrorHandlingService, EnhancedError, RetryConfig, ErrorSeverity, ErrorCategory };
+export { ErrorHandlingService };

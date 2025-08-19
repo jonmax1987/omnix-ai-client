@@ -6,6 +6,7 @@ import GlobalStyles from './styles/globalStyles';
 import useStore from './store';
 import useUserStore from './store/userStore';
 import { useWebSocket } from './hooks/useWebSocket';
+import QueryProvider from './components/providers/QueryProvider';
 
 // Layout components
 import Header from './components/organisms/Header';
@@ -18,6 +19,7 @@ import PageTransition from './components/molecules/PageTransition';
 import ApiDebug from './components/debug/ApiDebug';
 import WebSocketDebug from './components/debug/WebSocketDebug';
 import EnvDebug from './components/debug/EnvDebug';
+import QueryDebug from './components/debug/QueryDebug';
 
 // Pages
 import Dashboard from './pages/Dashboard';
@@ -255,6 +257,7 @@ function AppContent() {
                   {/* Debug panels for development */}
                   {import.meta.env.DEV && <EnvDebug />}
                   {import.meta.env.DEV && <ApiDebug />}
+                  {import.meta.env.DEV && <QueryDebug />}
                   {import.meta.env.DEV && <WebSocketDebug />}
                   
                   <ContentArea>
@@ -320,9 +323,11 @@ function AppContent() {
 // Main App component
 function App() {
   return (
-    <Router>
-      <AppContent />
-    </Router>
+    <QueryProvider>
+      <Router>
+        <AppContent />
+      </Router>
+    </QueryProvider>
   );
 }
 
