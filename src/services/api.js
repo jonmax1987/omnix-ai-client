@@ -3,6 +3,7 @@
 import httpService, { ApiError } from './httpClient';
 import useUserStore from '../store/userStore';
 import { wsService } from './websocketService';
+import { abTestingService } from './abTestingService';
 // Socket.IO is imported dynamically when needed
 
 /**
@@ -261,4 +262,4 @@ export const systemAPI = {
 
 // Export main API object and services for advanced usage
 export default api;
-export { httpService, wsService };
+export { httpService, wsService, abTestingService };
