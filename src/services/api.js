@@ -139,8 +139,9 @@ export const dashboardAPI = {
   }
 };
 
-// Analytics API (mapped to backend endpoints where available)
+// Analytics API (preserving original functionality + extended capabilities)
 export const analyticsAPI = {
+  // Original methods (preserved exactly as they were)
   getDashboardMetrics: (params = {}) => api.get('/dashboard/summary', params), // Maps to backend endpoint
   getInventoryGraph: (params = {}) => {
     // Backend doesn't accept timeRange parameter, so don't pass it
@@ -157,7 +158,50 @@ export const analyticsAPI = {
   generateReport: (type, params = {}) => api.post(`/analytics/reports/${type}`, params),
   getReports: (params = {}) => api.get('/analytics/reports', params),
   downloadReport: (reportId) => api.get(`/analytics/reports/${reportId}/download`),
-  deleteReport: (reportId) => api.delete(`/analytics/reports/${reportId}`)
+  deleteReport: (reportId) => api.delete(`/analytics/reports/${reportId}`),
+
+  // Extended analytics capabilities (new methods)
+  getDashboardSummary: (params = {}) => api.get('/dashboard/summary', params),
+  getRevenueAnalytics: (params = {}) => api.get('/analytics/revenue', params),
+  getRevenueForecast: (params = {}) => api.get('/analytics/revenue/forecast', params),
+
+  // Customer analytics
+  getCustomerSegmentation: (params = {}) => api.get('/analytics/customers/segmentation', params),
+  getCustomerLifetimeValue: (params = {}) => api.get('/analytics/customers/lifetime-value', params),
+  getChurnAnalysis: (params = {}) => api.get('/analytics/customers/churn-analysis', params),
+  getSegmentTrends: (params = {}) => api.get('/analytics/customers/segment-trends', params),
+
+  // Extended inventory analytics
+  getInventoryAnalytics: (params = {}) => api.get('/analytics/inventory', params),
+  getInventoryForecasting: (params = {}) => api.get('/analytics/inventory/forecasting', params),
+  getInventoryOptimization: (params = {}) => api.get('/analytics/inventory/optimization', params),
+  getInventoryAlerts: (params = {}) => api.get('/analytics/inventory/alerts', params),
+
+  // Extended order analytics
+  getOrderAnalytics: (params = {}) => api.get('/analytics/orders', params),
+  getOrderPatterns: (params = {}) => api.get('/analytics/orders/patterns', params),
+  getOrderSeasonality: (params = {}) => api.get('/analytics/orders/seasonality', params),
+
+  // Product analytics
+  getProductAnalytics: (params = {}) => api.get('/analytics/products', params),
+  getProductRecommendations: (params = {}) => api.get('/analytics/products/recommendations', params),
+  getProductPerformance: (params = {}) => api.get('/analytics/products/performance', params),
+  getProductCorrelations: (params = {}) => api.get('/analytics/products/correlations', params),
+
+  // Predictive analytics
+  getDemandPredictions: (params = {}) => api.get('/analytics/predictions/demand', params),
+  getRevenuePredictions: (params = {}) => api.get('/analytics/predictions/revenue', params),
+  getChurnPredictions: (params = {}) => api.get('/analytics/predictions/churn', params),
+  getInventoryPredictions: (params = {}) => api.get('/analytics/predictions/inventory', params),
+
+  // Real-time analytics
+  getRealTimeAnalytics: (params = {}) => api.get('/analytics/realtime', params),
+  getRealTimeMetrics: (params = {}) => api.get('/analytics/realtime', params),
+
+  // Extended report generation and export
+  generateCustomReport: (params = {}) => api.post('/analytics/reports/generate', params),
+  getReport: (reportId) => api.get(`/analytics/reports/${reportId}`),
+  exportAnalytics: (type, params = {}) => api.get(`/analytics/export/${type}`, params)
 };
 
 // Recommendations API (matches backend spec)
