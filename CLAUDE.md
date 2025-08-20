@@ -6,14 +6,17 @@ API First — spec=FRONTEND_INTEGRATION_GUIDE.md + omnix-api.yaml.
 Design System=atoms→molecules→organisms→pages→templates.  
 Principles: Clean & performant code, AI-powered insights, reusable/testable components, accessibility, dual-role architecture.
 
-**CRITICAL WORKFLOW**: 
-1. **Master Plan**: All work based on tasks in `OMNIX_MASTER_PLAN.md` (267 tasks across 6 phases)
-2. **Context Preservation**: Every task completion updates `task_status.md` AND master plan status
-3. **Session Startup**: Always check master plan → identify next task → update to IN_PROGRESS
-4. **Sources of Truth**: OMNIX_MASTER_PLAN.md, task_status.md, FRONTEND_INTEGRATION_GUIDE.md, CLAUDE.md
 
-**Current Status**: Phase 1 (Foundation) - 22/267 tasks complete (8.2%)  
-**Next Critical Task**: API-001 - HTTP client with interceptors and retry  
+**CRITICAL WORKFLOW**: 
+1. **Master Plan**: All work based on tasks in `OMNIX_MASTER_PLAN.md` (267 tasks across 6 phases)  
+2. **Context Preservation**: Every task completion updates `task_status.md` AND master plan status  
+3. **Session Startup**: Always check master plan → identify next task → update to IN_PROGRESS  
+4. **Sources of Truth**: OMNIX_MASTER_PLAN.md, task_status.md, FRONTEND_INTEGRATION_GUIDE.md, CLAUDE.md  
+5. **Sequential Execution**: Work strictly task-by-task in order until all tasks are complete, ensuring no errors before moving forward
+
+
+**Current Status**: Phase 2 (Manager Dashboard) - 92/267 tasks complete (34.5%)  
+**Next Critical Task**: BI-005 - Profitability analysis by category  
 **Goal**: Production launch May 16, 2025
 
 # OMNIX AI — Story Overview
