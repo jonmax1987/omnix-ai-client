@@ -1178,6 +1178,73 @@ class InventoryService {
   }
 
   /**
+   * Get seasonal demand forecasting data
+   * @param {Object} params - Forecasting parameters
+   * @returns {Promise<Object>} Seasonal forecasting data
+   */
+  async getSeasonalForecasting(params = {}) {
+    const {
+      timeHorizon = '12m',
+      categories = null,
+      includeHistorical = true,
+      includePatterns = true,
+      includePredictions = true
+    } = params;
+
+    const cacheKey = `seasonal_forecasting_${timeHorizon}_${JSON.stringify({ categories })}`;
+    
+    if (this.getForecastCache(cacheKey)) {
+      return this.getForecastCache(cacheKey);
+    }
+
+    // TODO: Replace with real API calls once backend endpoints are implemented
+    // For now, return mock data to prevent 404 errors
+    try {
+      const mockData = this.getMockSeasonalForecasting(params);
+      this.setForecastCache(cacheKey, mockData);
+      return mockData;
+    } catch (error) {
+      console.warn('Mock seasonal forecasting data failed, falling back to real API calls:', error);
+      
+      try {
+        // Fallback to real API calls if mock fails
+        const [forecasting, patterns, predictions] = await Promise.allSettled([
+          httpService.get('/analytics/inventory/seasonal-forecasting', {
+            timeHorizon,
+            categories,
+            includeHistorical,
+            includeConfidence: true
+          }),
+          includePatterns ? httpService.get('/analytics/seasonal-patterns', {
+            timeHorizon,
+            categories,
+            includeCorrelations: true
+          }) : Promise.resolve(null),
+          includePredictions ? httpService.get('/analytics/demand-predictions', {
+            timeHorizon,
+            categories,
+            includeScenarios: true
+          }) : Promise.resolve(null)
+        ]);
+
+        const result = {
+          forecasting: forecasting.status === 'fulfilled' ? forecasting.value : null,
+          patterns: patterns.status === 'fulfilled' ? patterns.value : null,
+          predictions: predictions.status === 'fulfilled' ? predictions.value : null,
+          insights: this.generateSeasonalInsights(forecasting.value, patterns.value),
+          recommendations: this.generateSeasonalRecommendations(forecasting.value),
+          generatedAt: Date.now()
+        };
+
+        this.setForecastCache(cacheKey, result);
+        return result;
+      } catch (apiError) {
+        throw this.handleInventoryError('Seasonal forecasting fetch failed', apiError);
+      }
+    }
+  }
+
+  /**
    * Generate mock optimization recommendations data
    * TODO: Remove when backend endpoints are implemented
    */
@@ -1331,6 +1398,329 @@ class InventoryService {
       ],
       generatedAt: Date.now()
     };
+  }
+
+  /**
+   * Generate mock seasonal forecasting data
+   * TODO: Remove when backend endpoints are implemented
+   */
+  getMockSeasonalForecasting(params = {}) {
+    const { timeHorizon = '12m', categories = null } = params;
+    
+    // Generate seasonal patterns based on historical retail data
+    const seasonalPatterns = [
+      {
+        id: 'winter-electronics',
+        season: 'winter',
+        category: 'Electronics',
+        peakMonths: ['November', 'December'],
+        demandIncrease: 45,
+        confidence: 94,
+        historicalData: {
+          year2023: { increase: 42, accuracy: 91 },
+          year2024: { increase: 48, accuracy: 96 },
+          year2025: { increase: 45, accuracy: 94 }
+        },
+        drivingFactors: ['Holiday shopping', 'Gift giving', 'Black Friday', 'End of year bonuses'],
+        affectedProducts: ['Gaming Consoles', 'Smart TVs', 'Headphones', 'Smartphones'],
+        recommendedActions: [
+          'Increase stock levels by 40% in October',
+          'Secure additional suppliers',
+          'Plan promotional campaigns'
+        ]
+      },
+      {
+        id: 'spring-clothing',
+        season: 'spring',
+        category: 'Clothing & Fashion',
+        peakMonths: ['March', 'April', 'May'],
+        demandIncrease: 32,
+        confidence: 87,
+        historicalData: {
+          year2023: { increase: 35, accuracy: 85 },
+          year2024: { increase: 29, accuracy: 89 },
+          year2025: { increase: 32, accuracy: 87 }
+        },
+        drivingFactors: ['Weather transition', 'Easter holiday', 'Spring break', 'Wedding season'],
+        affectedProducts: ['Spring Jackets', 'Dresses', 'Casual Wear', 'Shoes'],
+        recommendedActions: [
+          'Launch spring collection early',
+          'Clear winter inventory',
+          'Focus on trending colors'
+        ]
+      },
+      {
+        id: 'summer-outdoors',
+        season: 'summer',
+        category: 'Sports & Outdoors',
+        peakMonths: ['June', 'July', 'August'],
+        demandIncrease: 78,
+        confidence: 91,
+        historicalData: {
+          year2023: { increase: 75, accuracy: 88 },
+          year2024: { increase: 82, accuracy: 93 },
+          year2025: { increase: 78, accuracy: 91 }
+        },
+        drivingFactors: ['Summer vacation', 'Outdoor activities', 'Sports season', 'Pool season'],
+        affectedProducts: ['Camping Gear', 'Sports Equipment', 'Pool Supplies', 'Outdoor Furniture'],
+        recommendedActions: [
+          'Stock up on popular outdoor items',
+          'Partner with tourism businesses',
+          'Plan summer promotions'
+        ]
+      },
+      {
+        id: 'autumn-home',
+        season: 'autumn',
+        category: 'Home & Garden',
+        peakMonths: ['September', 'October'],
+        demandIncrease: 28,
+        confidence: 82,
+        historicalData: {
+          year2023: { increase: 25, accuracy: 79 },
+          year2024: { increase: 31, accuracy: 84 },
+          year2025: { increase: 28, accuracy: 82 }
+        },
+        drivingFactors: ['Back to school', 'Home preparation', 'Garden maintenance', 'Holiday prep'],
+        affectedProducts: ['Home Decor', 'Gardening Tools', 'Heating Equipment', 'Storage Solutions'],
+        recommendedActions: [
+          'Focus on home comfort items',
+          'Prepare for heating season',
+          'Market organization products'
+        ]
+      },
+      {
+        id: 'holiday-gifting',
+        season: 'holiday',
+        category: 'All Categories',
+        peakMonths: ['November', 'December'],
+        demandIncrease: 156,
+        confidence: 96,
+        historicalData: {
+          year2023: { increase: 149, accuracy: 95 },
+          year2024: { increase: 163, accuracy: 97 },
+          year2025: { increase: 156, accuracy: 96 }
+        },
+        drivingFactors: ['Christmas shopping', 'Holiday parties', 'Gift giving', 'Year-end celebrations'],
+        affectedProducts: ['Gift Cards', 'Jewelry', 'Toys', 'Books', 'Food & Beverages'],
+        recommendedActions: [
+          'Increase inventory across all categories',
+          'Enhance gift wrapping services',
+          'Extend operating hours'
+        ]
+      }
+    ];
+
+    // Generate demand forecast periods
+    const months = timeHorizon === '6m' ? 6 : timeHorizon === '12m' ? 12 : timeHorizon === '18m' ? 18 : 24;
+    const forecastPeriods = [];
+    
+    for (let i = 0; i < months; i++) {
+      const date = new Date();
+      date.setMonth(date.getMonth() + i);
+      
+      const month = date.getMonth();
+      const monthName = date.toLocaleString('default', { month: 'long' });
+      const year = date.getFullYear();
+      
+      // Calculate seasonal multiplier based on patterns
+      const seasonalMultiplier = this.calculateSeasonalMultiplier(month);
+      const baselineDemand = 1000;
+      const forecastedDemand = Math.round(baselineDemand * seasonalMultiplier);
+      
+      // Add some realistic variance
+      const variance = (Math.random() - 0.5) * 0.1; // ±5% variance
+      const adjustedDemand = Math.round(forecastedDemand * (1 + variance));
+      
+      forecastPeriods.push({
+        period: `${monthName} ${year}`,
+        month: monthName,
+        year: year,
+        baseline: baselineDemand,
+        forecasted: adjustedDemand,
+        seasonalMultiplier: seasonalMultiplier,
+        trendPercentage: ((seasonalMultiplier - 1) * 100).toFixed(1),
+        confidence: Math.round(85 + Math.random() * 10), // 85-95% confidence
+        factors: this.getSeasonalFactors(month),
+        categories: this.getCategoryForecasts(month, baselineDemand)
+      });
+    }
+
+    return {
+      forecasting: {
+        periods: forecastPeriods,
+        overallAccuracy: 89,
+        confidenceRange: '85-95%',
+        lastUpdated: Date.now(),
+        modelVersion: '2.1.0',
+        trainingData: '5 years historical data'
+      },
+      patterns: seasonalPatterns.filter(pattern => 
+        !categories || categories.includes(pattern.category) || pattern.category === 'All Categories'
+      ),
+      insights: [
+        {
+          type: 'trend',
+          title: 'Strong Holiday Season Expected',
+          description: 'Forecasting shows 156% increase in demand during November-December',
+          confidence: 96,
+          impact: 'high',
+          actionable: true,
+          recommendation: 'Begin inventory buildup in September'
+        },
+        {
+          type: 'opportunity',
+          title: 'Summer Sports Equipment Surge',
+          description: 'Sports & outdoors category showing 78% seasonal increase',
+          confidence: 91,
+          impact: 'medium',
+          actionable: true,
+          recommendation: 'Partner with local sports organizations'
+        },
+        {
+          type: 'warning',
+          title: 'Winter Clothing Clearance Needed',
+          description: 'Post-winter demand drops significantly, plan clearance sales',
+          confidence: 88,
+          impact: 'medium',
+          actionable: true,
+          recommendation: 'Start clearance sales in February'
+        }
+      ],
+      recommendations: [
+        {
+          id: 'seasonal-1',
+          title: 'Optimize Holiday Inventory',
+          description: 'Increase inventory levels by 40-60% for November-December peak',
+          priority: 'high',
+          estimatedImpact: '$125,000 additional revenue',
+          implementation: 'Begin October 1st',
+          confidence: 96
+        },
+        {
+          id: 'seasonal-2',
+          title: 'Summer Outdoor Expansion',
+          description: 'Expand sports and outdoor equipment selection for summer season',
+          priority: 'medium',
+          estimatedImpact: '$45,000 additional revenue',
+          implementation: 'Begin May 1st',
+          confidence: 91
+        },
+        {
+          id: 'seasonal-3',
+          title: 'Spring Fashion Focus',
+          description: 'Launch targeted spring fashion campaigns in March-April',
+          priority: 'medium',
+          estimatedImpact: '$32,000 additional revenue',
+          implementation: 'Begin February 15th',
+          confidence: 87
+        }
+      ],
+      summary: {
+        overallTrend: 18.5,
+        peakSeason: 'Holiday (Nov-Dec)',
+        expectedIncrease: '156%',
+        riskLevel: 'low',
+        forecastReliability: 89,
+        keyOpportunities: 3,
+        seasonalImpact: 'high'
+      },
+      generatedAt: Date.now()
+    };
+  }
+
+  /**
+   * Calculate seasonal demand multiplier for a given month
+   * @param {number} month - Month (0-11)
+   * @returns {number} Seasonal multiplier
+   */
+  calculateSeasonalMultiplier(month) {
+    const seasonalPatterns = {
+      0: 0.75,  // January - post-holiday slowdown
+      1: 0.85,  // February - gradual recovery
+      2: 1.15,  // March - spring surge
+      3: 1.20,  // April - spring peak
+      4: 1.10,  // May - spring maintenance
+      5: 1.35,  // June - summer start
+      6: 1.40,  // July - summer peak
+      7: 1.30,  // August - back to school
+      8: 1.05,  // September - autumn start
+      9: 1.10,  // October - autumn activities
+      10: 1.45, // November - holiday prep
+      11: 2.20  // December - holiday peak
+    };
+    
+    return seasonalPatterns[month] || 1.0;
+  }
+
+  /**
+   * Get seasonal factors for a given month
+   * @param {number} month - Month (0-11)
+   * @returns {Array} Seasonal factors
+   */
+  getSeasonalFactors(month) {
+    const factorsByMonth = {
+      0: ['Post-holiday recovery', 'New Year resolutions', 'January sales'],
+      1: ['Valentine\'s Day', 'Winter sports', 'Indoor activities'],
+      2: ['Spring preparation', 'Easter shopping', 'Garden planning'],
+      3: ['Easter holiday', 'Spring cleaning', 'Wardrobe refresh'],
+      4: ['Mother\'s Day', 'Graduation season', 'Wedding planning'],
+      5: ['Summer vacation prep', 'Father\'s Day', 'Outdoor activities start'],
+      6: ['Peak summer', 'Vacation season', 'BBQ and outdoor dining'],
+      7: ['Back to school prep', 'Late summer activities', 'Vacation end'],
+      8: ['Back to school', 'Fall preparation', 'Home organization'],
+      9: ['Halloween prep', 'Autumn activities', 'Home comfort'],
+      10: ['Thanksgiving', 'Black Friday', 'Holiday shopping starts'],
+      11: ['Christmas shopping', 'Holiday parties', 'Year-end celebrations']
+    };
+    
+    return factorsByMonth[month] || ['Seasonal variation'];
+  }
+
+  /**
+   * Get category-specific forecasts for a given month
+   * @param {number} month - Month (0-11)
+   * @param {number} baseline - Baseline demand
+   * @returns {Object} Category forecasts
+   */
+  getCategoryForecasts(month, baseline) {
+    const categories = {
+      electronics: this.calculateSeasonalMultiplier(month) * (month === 11 ? 1.5 : 1.0),
+      clothing: this.calculateSeasonalMultiplier(month) * ([2,3,4].includes(month) ? 1.3 : 1.0),
+      home_garden: this.calculateSeasonalMultiplier(month) * ([8,9].includes(month) ? 1.2 : 1.0),
+      sports_outdoors: this.calculateSeasonalMultiplier(month) * ([5,6,7].includes(month) ? 1.6 : 1.0),
+      food_beverages: this.calculateSeasonalMultiplier(month) * ([10,11].includes(month) ? 1.4 : 1.0)
+    };
+    
+    const result = {};
+    Object.entries(categories).forEach(([category, multiplier]) => {
+      result[category] = Math.round(baseline * multiplier);
+    });
+    
+    return result;
+  }
+
+  /**
+   * Generate seasonal insights
+   * @param {Object} forecasting - Forecasting data
+   * @param {Object} patterns - Seasonal patterns
+   * @returns {Array} Insights
+   */
+  generateSeasonalInsights(forecasting, patterns) {
+    return [
+      { type: 'seasonal', description: 'Seasonal forecasting analysis available' }
+    ];
+  }
+
+  /**
+   * Generate seasonal recommendations
+   * @param {Object} forecasting - Forecasting data
+   * @returns {Array} Recommendations
+   */
+  generateSeasonalRecommendations(forecasting) {
+    return [
+      { type: 'seasonal_recommendation', description: 'Review seasonal recommendations' }
+    ];
   }
 }
 

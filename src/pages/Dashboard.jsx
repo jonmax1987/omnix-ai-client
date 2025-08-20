@@ -12,6 +12,7 @@ import ChartContainer from '../components/organisms/ChartContainer';
 import PredictiveInventoryPanel from '../components/organisms/PredictiveInventoryPanel';
 import InventoryHealthOverview from '../components/organisms/InventoryHealthOverview';
 import InventoryOptimizationRecommendations from '../components/organisms/InventoryOptimizationRecommendations';
+import SeasonalDemandForecasting from '../components/organisms/SeasonalDemandForecasting';
 import StockDepletionTimeline from '../components/organisms/StockDepletionTimeline';
 import AutomatedOrderSuggestions from '../components/organisms/AutomatedOrderSuggestions';
 import SupplierIntegrationHub from '../components/organisms/SupplierIntegrationHub';
@@ -376,6 +377,39 @@ const Dashboard = () => {
     // 4. Show historical data and reasoning
   };
 
+  // Seasonal forecasting handlers
+  const handleSeasonalAdjust = async (pattern) => {
+    try {
+      console.log('Applying seasonal adjustment:', pattern);
+      // In a real implementation, this would:
+      // 1. Apply seasonal multipliers to inventory levels
+      // 2. Update reorder points based on seasonal patterns
+      // 3. Adjust safety stock for peak periods
+      // 4. Create seasonal ordering schedules
+      // 5. Update supplier lead time expectations
+    } catch (error) {
+      console.error('Failed to apply seasonal adjustment:', error);
+    }
+  };
+
+  const handlePatternUpdate = (pattern) => {
+    console.log('Updating seasonal pattern:', pattern);
+    // In a real implementation, this would:
+    // 1. Update machine learning models with new pattern data
+    // 2. Recalculate forecasting accuracy
+    // 3. Adjust future predictions
+    // 4. Create audit trail of pattern changes
+  };
+
+  const handleExportForecast = (forecastData) => {
+    console.log('Exporting forecast data:', forecastData);
+    // In a real implementation, this would:
+    // 1. Generate comprehensive forecast report
+    // 2. Include seasonal patterns and recommendations
+    // 3. Export to Excel/PDF format
+    // 4. Schedule automated forecast reports
+  };
+
   const allComponents = [
     <InventoryHealthOverview
       key="inventory-health"
@@ -728,6 +762,29 @@ const Dashboard = () => {
               onViewDetails={handleOptimizationDetails}
               autoRefresh={true}
               refreshInterval={300000}
+            />
+          </GridItem>
+        </DashboardGrid>
+      </div>
+
+      {/* Seasonal Demand Forecasting Section */}
+      <div style={{ marginBottom: '2rem' }}>
+        <Typography variant="h5" weight="semibold" style={{ marginBottom: '1.5rem', display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+          <Icon name="calendar" size={24} />
+          Seasonal Demand Forecasting
+          <Badge variant="success" size="sm">89% Accuracy</Badge>
+        </Typography>
+        <DashboardGrid
+          {...DASHBOARD_LAYOUTS.default}
+          spacing="lg"
+        >
+          <GridItem span={4}>
+            <SeasonalDemandForecasting
+              onSeasonalAdjust={handleSeasonalAdjust}
+              onPatternUpdate={handlePatternUpdate}
+              onExportForecast={handleExportForecast}
+              autoRefresh={true}
+              refreshInterval={600000}
             />
           </GridItem>
         </DashboardGrid>
