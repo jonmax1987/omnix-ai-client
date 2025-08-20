@@ -404,8 +404,8 @@ const SizeLimit = styled.div`
   align-items: center;
   gap: ${props => props.theme.spacing[2]};
   padding: ${props => props.theme.spacing[2]} ${props => props.theme.spacing[3]};
-  background: ${props => props.theme.colors.blue[50]};
-  border: 1px solid ${props => props.theme.colors.blue[200]};
+  background: ${props => props.theme.colors.primary[50]};
+  border: 1px solid ${props => props.theme.colors.primary[200]};
   border-radius: ${props => props.theme.spacing[2]};
   margin-top: ${props => props.theme.spacing[2]};
 `;
