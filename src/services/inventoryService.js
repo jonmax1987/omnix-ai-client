@@ -3163,6 +3163,353 @@ class InventoryService {
       'Consider customer communication strategy'
     ];
   }
+
+  /**
+   * Get comprehensive product performance analytics
+   * @param {Object} params - Analytics parameters
+   * @returns {Promise<Object>} Product performance data
+   */
+  async getProductPerformanceAnalytics(params = {}) {
+    const {
+      timeframe = '30days',
+      category = 'all',
+      includeInsights = true,
+      includeTrends = true,
+      includeComparison = true
+    } = params;
+
+    const cacheKey = `product_analytics_${timeframe}_${category}`;
+    
+    if (this.getCachedData(cacheKey)) {
+      return this.getCachedData(cacheKey);
+    }
+
+    try {
+      const mockData = this.getMockProductAnalytics(params);
+      this.setCachedData(cacheKey, mockData);
+      return mockData;
+    } catch (error) {
+      throw this.handleInventoryError('Product analytics fetch failed', error);
+    }
+  }
+
+  /**
+   * Get individual product performance metrics
+   * @param {string} productId - Product ID
+   * @param {Object} params - Parameters
+   * @returns {Promise<Object>} Product metrics
+   */
+  async getProductMetrics(productId, params = {}) {
+    const {
+      timeframe = '30days',
+      includeCompetitorData = true,
+      includeRecommendations = true
+    } = params;
+
+    try {
+      const mockData = this.getMockProductMetrics(productId, params);
+      return mockData;
+    } catch (error) {
+      throw this.handleInventoryError('Product metrics fetch failed', error);
+    }
+  }
+
+  /**
+   * Generate mock product performance analytics
+   * @param {Object} params - Parameters
+   * @returns {Object} Mock analytics data
+   */
+  getMockProductAnalytics(params = {}) {
+    const { timeframe = '30days', category = 'all' } = params;
+    
+    // Generate realistic data based on timeframe
+    const timeframeDays = {
+      '7days': 7,
+      '30days': 30,
+      '90days': 90,
+      '6months': 180,
+      '1year': 365
+    };
+    
+    const days = timeframeDays[timeframe] || 30;
+    const baseRevenue = 125000;
+    const revenueVariation = Math.random() * 0.3 + 0.85; // 85-115% of base
+    const totalRevenue = Math.round(baseRevenue * revenueVariation * (days / 30));
+    
+    return {
+      timeframe,
+      category,
+      lastUpdated: new Date().toISOString(),
+      
+      // Overview metrics
+      overview: {
+        totalRevenue: totalRevenue,
+        revenueGrowth: Math.round((Math.random() - 0.2) * 30 * 10) / 10, // -6% to +24%
+        totalUnitsSold: Math.round(totalRevenue / 45), // Average price ~45
+        unitsSoldGrowth: Math.round((Math.random() - 0.1) * 25 * 10) / 10, // -2.5% to +22.5%
+        averageRating: Math.round((Math.random() * 1.5 + 3.5) * 10) / 10, // 3.5-5.0
+        ratingCount: Math.floor(Math.random() * 500) + 100,
+        conversionRate: Math.round((Math.random() * 3 + 2) * 10) / 10, // 2-5%
+        conversionGrowth: Math.round((Math.random() - 0.3) * 20 * 10) / 10 // -6% to +14%
+      },
+
+      // Product list with performance metrics
+      products: this.generateMockProductsList(),
+
+      // Chart data
+      charts: {
+        revenueTrend: this.generateMockChartData('revenue', days),
+        categoryTrends: this.generateMockCategoryTrends(),
+        seasonalPatterns: this.generateMockSeasonalData()
+      },
+
+      // AI insights
+      insights: this.generateMockProductInsights(),
+
+      // Performance benchmarks
+      benchmarks: {
+        industryAverage: {
+          conversionRate: 3.2,
+          averageOrderValue: 67.50,
+          customerRetention: 68.5
+        },
+        topPerformers: {
+          conversionRate: 5.8,
+          averageOrderValue: 95.20,
+          customerRetention: 89.2
+        }
+      },
+
+      // Summary statistics
+      summary: {
+        totalProducts: 1247,
+        activeProducts: 1186,
+        topPerforming: 89,
+        underperforming: 156,
+        outOfStock: 12
+      }
+    };
+  }
+
+  /**
+   * Generate mock product metrics for individual product
+   * @param {string} productId - Product ID
+   * @param {Object} params - Parameters
+   * @returns {Object} Mock product metrics
+   */
+  getMockProductMetrics(productId, params = {}) {
+    const { timeframe = '30days' } = params;
+    
+    return {
+      productId,
+      productName: 'Premium Coffee Beans - 1kg',
+      sku: 'COFFEE-PREM-1KG',
+      category: 'Coffee & Beverages',
+      
+      performance: {
+        revenue: Math.round(Math.random() * 5000 + 3000),
+        unitsSold: Math.round(Math.random() * 100 + 50),
+        averagePrice: 89.99,
+        growthRate: Math.round((Math.random() - 0.2) * 30 * 10) / 10,
+        profitMargin: Math.round((Math.random() * 20 + 40) * 10) / 10,
+        performanceScore: Math.round(Math.random() * 40 + 60) // 60-100
+      },
+      
+      customerMetrics: {
+        averageRating: Math.round((Math.random() * 1.5 + 3.5) * 10) / 10,
+        reviewCount: Math.floor(Math.random() * 50) + 10,
+        repeatPurchaseRate: Math.round((Math.random() * 30 + 40) * 10) / 10,
+        customerSatisfaction: Math.round((Math.random() * 20 + 75) * 10) / 10
+      },
+      
+      competitiveAnalysis: {
+        marketPosition: 'Premium',
+        competitorCount: 8,
+        priceCompetitiveness: 'Above Average',
+        marketShare: Math.round(Math.random() * 10 + 5) // 5-15%
+      },
+      
+      recommendations: [
+        'Consider seasonal pricing strategy',
+        'Optimize inventory levels based on demand patterns',
+        'Implement targeted marketing campaigns',
+        'Monitor competitor pricing changes'
+      ]
+    };
+  }
+
+  /**
+   * Generate mock products list with performance data
+   * @returns {Array} Products with performance metrics
+   */
+  generateMockProductsList() {
+    const products = [];
+    const productNames = [
+      'Premium Coffee Beans - 1kg',
+      'Organic Whole Milk - 1L',
+      'Fresh Avocados (Pack of 4)',
+      'Artisan Sourdough Bread',
+      'Greek Yogurt Natural - 500g',
+      'Free-Range Eggs (12 pack)',
+      'Extra Virgin Olive Oil - 500ml',
+      'Organic Bananas (1kg)',
+      'Smoked Salmon - 200g',
+      'Himalayan Pink Salt - 250g',
+      'Fresh Spinach Leaves - 150g',
+      'Dark Chocolate 85% - 100g',
+      'Quinoa Organic - 500g',
+      'Cherry Tomatoes - 250g',
+      'Coconut Oil Virgin - 400ml',
+      'Almonds Raw - 200g',
+      'Honey Raw Unfiltered - 340g',
+      'Green Tea Leaves - 100g',
+      'Blueberries Fresh - 150g',
+      'Parmesan Cheese Aged - 200g'
+    ];
+
+    const categories = [
+      'Coffee & Beverages', 'Dairy Products', 'Fresh Produce', 
+      'Bakery', 'Proteins', 'Condiments & Oils', 'Snacks & Confectionery'
+    ];
+
+    for (let i = 0; i < 20; i++) {
+      const revenue = Math.round(Math.random() * 8000 + 2000);
+      const unitsSold = Math.round(Math.random() * 200 + 50);
+      const averagePrice = Math.round(revenue / unitsSold * 100) / 100;
+      
+      products.push({
+        id: `prod_${i + 1}`,
+        name: productNames[i],
+        sku: `SKU-${String(i + 1).padStart(3, '0')}`,
+        category: categories[Math.floor(Math.random() * categories.length)],
+        image: `/api/placeholder/40/40?text=${productNames[i].charAt(0)}`,
+        revenue,
+        units_sold: unitsSold,
+        average_price: averagePrice,
+        growth_rate: Math.round((Math.random() - 0.3) * 50 * 10) / 10, // -15% to +35%
+        performance_score: Math.round(Math.random() * 40 + 60), // 60-100
+        profit_margin: Math.round((Math.random() * 25 + 30) * 10) / 10, // 30-55%
+        rating: Math.round((Math.random() * 1.5 + 3.5) * 10) / 10,
+        stock_level: Math.floor(Math.random() * 200) + 20,
+        last_ordered: new Date(Date.now() - Math.random() * 30 * 24 * 60 * 60 * 1000).toISOString()
+      });
+    }
+
+    return products.sort((a, b) => b.revenue - a.revenue);
+  }
+
+  /**
+   * Generate mock chart data
+   * @param {string} type - Chart type
+   * @param {number} days - Number of days
+   * @returns {Array} Chart data points
+   */
+  generateMockChartData(type, days) {
+    const data = [];
+    const now = new Date();
+    
+    for (let i = days; i >= 0; i--) {
+      const date = new Date(now.getTime() - (i * 24 * 60 * 60 * 1000));
+      let value;
+      
+      switch (type) {
+        case 'revenue':
+          value = Math.round(Math.random() * 2000 + 3000 + Math.sin(i / 7) * 500);
+          break;
+        case 'units':
+          value = Math.round(Math.random() * 50 + 75 + Math.sin(i / 7) * 20);
+          break;
+        default:
+          value = Math.random() * 100;
+      }
+      
+      data.push({
+        date: date.toISOString().split('T')[0],
+        value,
+        label: date.toLocaleDateString()
+      });
+    }
+    
+    return data;
+  }
+
+  /**
+   * Generate mock category trends data
+   * @returns {Array} Category trend data
+   */
+  generateMockCategoryTrends() {
+    const categories = [
+      'Coffee & Beverages',
+      'Fresh Produce', 
+      'Dairy Products',
+      'Bakery',
+      'Frozen Foods',
+      'Snacks & Confectionery'
+    ];
+
+    return categories.map(category => ({
+      category,
+      revenue: Math.round(Math.random() * 15000 + 8000),
+      growth: Math.round((Math.random() - 0.2) * 30 * 10) / 10,
+      products: Math.floor(Math.random() * 200) + 50
+    }));
+  }
+
+  /**
+   * Generate mock seasonal data
+   * @returns {Array} Seasonal pattern data
+   */
+  generateMockSeasonalData() {
+    const months = [
+      'Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun',
+      'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'
+    ];
+
+    return months.map((month, index) => ({
+      month,
+      value: Math.round(Math.random() * 20000 + 15000 + Math.sin(index / 2) * 5000),
+      growth: Math.round((Math.random() - 0.2) * 25 * 10) / 10
+    }));
+  }
+
+  /**
+   * Generate mock product insights
+   * @returns {Array} AI-generated insights
+   */
+  generateMockProductInsights() {
+    const insights = [
+      {
+        title: 'Strong Performance in Coffee Category',
+        description: 'Coffee products showing 18.3% growth vs last period, driven by premium coffee beans and seasonal drinks.',
+        severity: 'success',
+        impact: 'High Revenue Impact (+₪12,400)',
+        actions: ['Increase Coffee Inventory', 'Launch Premium Line']
+      },
+      {
+        title: 'Declining Fresh Produce Sales',
+        description: 'Fresh produce category down 8.2% this month. Weather patterns and supplier issues contributing to decline.',
+        severity: 'warning',
+        impact: 'Medium Revenue Impact (-₪5,800)',
+        actions: ['Review Supplier Contracts', 'Adjust Pricing Strategy']
+      },
+      {
+        title: 'Opportunity in Organic Products',
+        description: 'Organic products growing 24% faster than conventional alternatives. Customer demand increasing significantly.',
+        severity: 'info',
+        impact: 'Growth Opportunity (+₪8,200)',
+        actions: ['Expand Organic Range', 'Partner with Organic Suppliers']
+      },
+      {
+        title: 'Inventory Risk Alert',
+        description: 'Several high-performing products showing low stock levels. Risk of stockouts in next 5-7 days.',
+        severity: 'critical',
+        impact: 'Revenue Risk (-₪15,000)',
+        actions: ['Emergency Reorder', 'Review Safety Stock Levels']
+      }
+    ];
+
+    return insights;
+  }
 }
 
 // Export singleton instance

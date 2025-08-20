@@ -17,6 +17,7 @@ import CostAnalysisMarginOptimization from '../components/organisms/CostAnalysis
 import ProductCatalogManagement from '../components/organisms/ProductCatalogManagement';
 import CategoryTagManager from '../components/organisms/CategoryTagManager';
 import PriceHistoryOptimization from '../components/organisms/PriceHistoryOptimization';
+import ProductPerformanceAnalytics from '../components/organisms/ProductPerformanceAnalytics';
 import StockDepletionTimeline from '../components/organisms/StockDepletionTimeline';
 import AutomatedOrderSuggestions from '../components/organisms/AutomatedOrderSuggestions';
 import SupplierIntegrationHub from '../components/organisms/SupplierIntegrationHub';
@@ -596,6 +597,40 @@ const Dashboard = () => {
     // 6. Show analysis results in dashboard
   };
 
+  // Product performance analytics handlers
+  const handleProductSelect = (product) => {
+    console.log('Selecting product for detailed analysis:', product);
+    // In a real implementation, this would:
+    // 1. Navigate to detailed product analytics page
+    // 2. Load comprehensive product performance data
+    // 3. Show historical trends and forecasts
+    // 4. Display customer feedback and ratings
+    // 5. Generate personalized improvement recommendations
+    // 6. Enable direct product management actions
+  };
+
+  const handleAnalyticsExport = (exportData) => {
+    console.log('Exporting analytics report:', exportData);
+    // In a real implementation, this would:
+    // 1. Generate comprehensive analytics report
+    // 2. Include charts, tables, and insights
+    // 3. Apply user-selected filters and timeframes
+    // 4. Format data for Excel/PDF export
+    // 5. Include executive summary and recommendations
+    // 6. Download file or send via email
+  };
+
+  const handleAnalyticsOptimization = (optimizationRequest) => {
+    console.log('Requesting analytics-based optimization:', optimizationRequest);
+    // In a real implementation, this would:
+    // 1. Trigger AI analysis of performance patterns
+    // 2. Generate optimization recommendations
+    // 3. Identify underperforming products for action
+    // 4. Suggest inventory adjustments and pricing changes
+    // 5. Create implementation roadmap with priorities
+    // 6. Schedule follow-up performance monitoring
+  };
+
   const allComponents = [
     <InventoryHealthOverview
       key="inventory-health"
@@ -1064,6 +1099,28 @@ const Dashboard = () => {
               onPriceUpdate={handlePriceUpdate}
               onOptimizationApply={handleOptimizationApply}
               onAnalysisRequest={handleAnalysisRequest}
+            />
+          </GridItem>
+        </DashboardGrid>
+      </div>
+
+      {/* Product Performance Analytics Section */}
+      <div style={{ marginBottom: '2rem' }}>
+        <Typography variant="h5" weight="semibold" style={{ marginBottom: '1.5rem', display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+          <Icon name="bar-chart-3" size={24} />
+          Product Performance Analytics
+          <Badge variant="success" size="sm">Live Data</Badge>
+          <Badge variant="primary" size="sm">AI Insights</Badge>
+        </Typography>
+        <DashboardGrid
+          {...DASHBOARD_LAYOUTS.default}
+          spacing="lg"
+        >
+          <GridItem span={4}>
+            <ProductPerformanceAnalytics
+              onProductSelect={handleProductSelect}
+              onExportReport={handleAnalyticsExport}
+              onOptimizationRequest={handleAnalyticsOptimization}
             />
           </GridItem>
         </DashboardGrid>
