@@ -1937,6 +1937,407 @@ class InventoryService {
       { type: 'cost_recommendation', description: 'Review cost optimization recommendations' }
     ];
   }
+
+  /**
+   * Get products catalog data
+   * @param {Object} params - Catalog parameters
+   * @returns {Promise<Object>} Products data
+   */
+  async getProductsCatalog(params = {}) {
+    const {
+      page = 1,
+      limit = 20,
+      search = '',
+      category = null,
+      status = null,
+      sortBy = 'name',
+      sortOrder = 'asc',
+      includeMetrics = true
+    } = params;
+
+    const cacheKey = `products_catalog_${page}_${limit}_${search}_${category}_${status}_${sortBy}_${sortOrder}`;
+    
+    if (this.getCachedData(cacheKey)) {
+      return this.getCachedData(cacheKey);
+    }
+
+    // TODO: Replace with real API calls once backend endpoints are implemented
+    // For now, return mock data to prevent 404 errors
+    try {
+      const mockData = this.getMockProductsCatalog(params);
+      this.setCachedData(cacheKey, mockData);
+      return mockData;
+    } catch (error) {
+      console.warn('Mock products catalog data failed, falling back to real API calls:', error);
+      
+      try {
+        // Fallback to real API calls if mock fails
+        const [products, categories, metrics] = await Promise.allSettled([
+          httpService.get('/products', {
+            page,
+            limit,
+            search,
+            category,
+            status,
+            sortBy,
+            sortOrder
+          }),
+          httpService.get('/products/categories'),
+          includeMetrics ? httpService.get('/products/metrics') : Promise.resolve(null)
+        ]);
+
+        const result = {
+          products: products.status === 'fulfilled' ? products.value : null,
+          categories: categories.status === 'fulfilled' ? categories.value : null,
+          metrics: metrics.status === 'fulfilled' ? metrics.value : null,
+          pagination: this.generatePaginationInfo(products.value, page, limit),
+          insights: this.generateProductInsights(products.value),
+          generatedAt: Date.now()
+        };
+
+        this.setCachedData(cacheKey, result);
+        return result;
+      } catch (apiError) {
+        throw this.handleInventoryError('Products catalog fetch failed', apiError);
+      }
+    }
+  }
+
+  /**
+   * Create a new product
+   * @param {Object} productData - Product data
+   * @returns {Promise<Object>} Created product
+   */
+  async createProduct(productData) {
+    try {
+      this.validateProduct(productData);
+      
+      // TODO: Replace with real API call
+      const response = await httpService.post('/products', productData);
+      
+      // Clear related caches
+      this.clearProductCaches();
+      
+      return response;
+    } catch (error) {
+      throw this.handleInventoryError('Product creation failed', error);
+    }
+  }
+
+  /**
+   * Update an existing product
+   * @param {string} productId - Product ID
+   * @param {Object} productData - Updated product data
+   * @returns {Promise<Object>} Updated product
+   */
+  async updateProduct(productId, productData) {
+    try {
+      this.validateProduct(productData);
+      
+      // TODO: Replace with real API call
+      const response = await httpService.put(`/products/${productId}`, productData);
+      
+      // Clear related caches
+      this.clearProductCaches();
+      
+      return response;
+    } catch (error) {
+      throw this.handleInventoryError('Product update failed', error);
+    }
+  }
+
+  /**
+   * Delete a product
+   * @param {string} productId - Product ID
+   * @returns {Promise<void>}
+   */
+  async deleteProduct(productId) {
+    try {
+      // TODO: Replace with real API call
+      await httpService.delete(`/products/${productId}`);
+      
+      // Clear related caches
+      this.clearProductCaches();
+    } catch (error) {
+      throw this.handleInventoryError('Product deletion failed', error);
+    }
+  }
+
+  /**
+   * Generate mock products catalog data
+   * TODO: Remove when backend endpoints are implemented
+   */
+  getMockProductsCatalog(params = {}) {
+    const { search = '', category = null, status = null } = params;
+    
+    const mockProducts = [
+      {
+        id: 'prod-001',
+        sku: 'ELEC-001',
+        name: 'iPhone 15 Pro Max',
+        description: 'Latest flagship smartphone with advanced camera system and titanium design',
+        category: 'Electronics',
+        price: 1199.99,
+        cost: 850.00,
+        stock: 45,
+        reorderPoint: 10,
+        supplier: 'Apple Inc.',
+        status: 'in_stock',
+        image: null,
+        lastOrderDate: '2025-01-15',
+        salesVelocity: 8.5,
+        profitMargin: 29.2,
+        barcode: '123456789012',
+        weight: 221,
+        dimensions: '6.7 × 3.0 × 0.33 in',
+        tags: ['premium', 'smartphone', 'apple'],
+        createdAt: '2024-12-01T00:00:00Z',
+        updatedAt: '2025-01-15T10:30:00Z'
+      },
+      {
+        id: 'prod-002',
+        sku: 'CLTH-001',
+        name: 'Premium Cotton T-Shirt',
+        description: 'High-quality 100% cotton t-shirt in various colors and sizes',
+        category: 'Clothing',
+        price: 29.99,
+        cost: 12.50,
+        stock: 8,
+        reorderPoint: 20,
+        supplier: 'Fashion Co.',
+        status: 'low_stock',
+        image: null,
+        lastOrderDate: '2025-01-10',
+        salesVelocity: 15.2,
+        profitMargin: 58.3,
+        barcode: '234567890123',
+        weight: 180,
+        dimensions: 'S, M, L, XL',
+        tags: ['clothing', 'cotton', 'basic'],
+        createdAt: '2024-11-15T00:00:00Z',
+        updatedAt: '2025-01-10T14:20:00Z'
+      },
+      {
+        id: 'prod-003',
+        sku: 'HOME-001',
+        name: 'Smart Home Hub',
+        description: 'Central control hub for all smart home devices with voice control',
+        category: 'Home & Garden',
+        price: 149.99,
+        cost: 89.00,
+        stock: 0,
+        reorderPoint: 5,
+        supplier: 'Smart Tech Ltd.',
+        status: 'out_of_stock',
+        image: null,
+        lastOrderDate: '2025-01-08',
+        salesVelocity: 4.8,
+        profitMargin: 40.7,
+        barcode: '345678901234',
+        weight: 450,
+        dimensions: '5.5 × 5.5 × 1.2 in',
+        tags: ['smart-home', 'hub', 'iot'],
+        createdAt: '2024-10-20T00:00:00Z',
+        updatedAt: '2025-01-08T09:15:00Z'
+      },
+      {
+        id: 'prod-004',
+        sku: 'BOOK-001',
+        name: 'The Art of Programming',
+        description: 'Comprehensive guide to modern programming techniques and best practices',
+        category: 'Books',
+        price: 49.99,
+        cost: 20.00,
+        stock: 156,
+        reorderPoint: 25,
+        supplier: 'Tech Books Publisher',
+        status: 'in_stock',
+        image: null,
+        lastOrderDate: '2025-01-12',
+        salesVelocity: 3.2,
+        profitMargin: 60.0,
+        barcode: '456789012345',
+        weight: 680,
+        dimensions: '9.2 × 7.4 × 1.8 in',
+        tags: ['books', 'programming', 'education'],
+        createdAt: '2024-09-10T00:00:00Z',
+        updatedAt: '2025-01-12T11:45:00Z'
+      },
+      {
+        id: 'prod-005',
+        sku: 'SPORT-001',
+        name: 'Professional Tennis Racket',
+        description: 'High-performance carbon fiber tennis racket for professional players',
+        category: 'Sports',
+        price: 299.99,
+        cost: 180.00,
+        stock: 23,
+        reorderPoint: 8,
+        supplier: 'Sports Equipment Pro',
+        status: 'in_stock',
+        image: null,
+        lastOrderDate: '2025-01-14',
+        salesVelocity: 2.1,
+        profitMargin: 40.0,
+        barcode: '567890123456',
+        weight: 310,
+        dimensions: '27 × 11 × 1 in',
+        tags: ['sports', 'tennis', 'professional'],
+        createdAt: '2024-08-05T00:00:00Z',
+        updatedAt: '2025-01-14T16:20:00Z'
+      },
+      {
+        id: 'prod-006',
+        sku: 'DISC-001',
+        name: 'Vintage Vinyl Collection',
+        description: 'Classic rock vinyl records from the 1970s - discontinued item',
+        category: 'Music',
+        price: 89.99,
+        cost: 45.00,
+        stock: 3,
+        reorderPoint: 0,
+        supplier: 'Vintage Music Store',
+        status: 'discontinued',
+        image: null,
+        lastOrderDate: '2024-12-20',
+        salesVelocity: 0.8,
+        profitMargin: 50.0,
+        barcode: '678901234567',
+        weight: 180,
+        dimensions: '12.2 × 12.2 × 0.3 in',
+        tags: ['music', 'vintage', 'vinyl'],
+        createdAt: '2024-07-01T00:00:00Z',
+        updatedAt: '2024-12-20T13:10:00Z'
+      }
+    ];
+
+    // Apply filters
+    let filteredProducts = mockProducts;
+    
+    if (search) {
+      const searchLower = search.toLowerCase();
+      filteredProducts = filteredProducts.filter(product => 
+        product.name.toLowerCase().includes(searchLower) ||
+        product.sku.toLowerCase().includes(searchLower) ||
+        product.description.toLowerCase().includes(searchLower) ||
+        product.tags.some(tag => tag.toLowerCase().includes(searchLower))
+      );
+    }
+    
+    if (category && category !== 'all') {
+      filteredProducts = filteredProducts.filter(product => product.category === category);
+    }
+    
+    if (status && status !== 'all') {
+      filteredProducts = filteredProducts.filter(product => product.status === status);
+    }
+
+    return {
+      products: filteredProducts,
+      categories: ['Electronics', 'Clothing', 'Home & Garden', 'Books', 'Sports', 'Music'],
+      metrics: {
+        totalProducts: filteredProducts.length,
+        inStock: filteredProducts.filter(p => p.status === 'in_stock').length,
+        lowStock: filteredProducts.filter(p => p.status === 'low_stock').length,
+        outOfStock: filteredProducts.filter(p => p.status === 'out_of_stock').length,
+        discontinued: filteredProducts.filter(p => p.status === 'discontinued').length,
+        totalValue: filteredProducts.reduce((sum, p) => sum + (p.price * p.stock), 0),
+        averageMargin: filteredProducts.reduce((sum, p) => sum + p.profitMargin, 0) / filteredProducts.length
+      },
+      pagination: {
+        currentPage: params.page || 1,
+        totalPages: Math.ceil(filteredProducts.length / (params.limit || 20)),
+        totalItems: filteredProducts.length,
+        itemsPerPage: params.limit || 20
+      },
+      insights: [
+        {
+          type: 'stock_alert',
+          title: 'Low Stock Items Detected',
+          description: `${filteredProducts.filter(p => p.status === 'low_stock').length} products are running low on stock`,
+          priority: 'high',
+          actionable: true
+        },
+        {
+          type: 'performance',
+          title: 'High Velocity Products',
+          description: `${filteredProducts.filter(p => p.salesVelocity > 5).length} products showing strong sales performance`,
+          priority: 'medium',
+          actionable: false
+        }
+      ],
+      generatedAt: Date.now()
+    };
+  }
+
+  /**
+   * Validate product data
+   * @param {Object} productData - Product data to validate
+   */
+  validateProduct(productData) {
+    const required = ['name', 'sku', 'price', 'cost', 'category'];
+    
+    for (const field of required) {
+      if (!productData[field]) {
+        throw new Error(`${field} is required`);
+      }
+    }
+
+    if (productData.price <= 0) {
+      throw new Error('Price must be greater than 0');
+    }
+
+    if (productData.cost < 0) {
+      throw new Error('Cost cannot be negative');
+    }
+
+    if (productData.stock < 0) {
+      throw new Error('Stock cannot be negative');
+    }
+  }
+
+  /**
+   * Clear product-related caches
+   */
+  clearProductCaches() {
+    // Clear all product-related cache entries
+    const cacheKeys = Object.keys(this.cache).filter(key => 
+      key.startsWith('products_catalog_') || 
+      key.startsWith('product_') ||
+      key.startsWith('inventory_')
+    );
+    
+    cacheKeys.forEach(key => {
+      delete this.cache[key];
+    });
+  }
+
+  /**
+   * Generate pagination information
+   * @param {Object} productsResponse - Products API response
+   * @param {number} page - Current page
+   * @param {number} limit - Items per page
+   * @returns {Object} Pagination info
+   */
+  generatePaginationInfo(productsResponse, page, limit) {
+    return {
+      currentPage: page,
+      totalPages: Math.ceil((productsResponse?.total || 0) / limit),
+      totalItems: productsResponse?.total || 0,
+      itemsPerPage: limit
+    };
+  }
+
+  /**
+   * Generate product insights
+   * @param {Object} productsData - Products data
+   * @returns {Array} Insights
+   */
+  generateProductInsights(productsData) {
+    return [
+      { type: 'product_insight', description: 'Product insights available' }
+    ];
+  }
 }
 
 // Export singleton instance

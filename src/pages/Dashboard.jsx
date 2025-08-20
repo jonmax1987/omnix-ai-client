@@ -14,6 +14,7 @@ import InventoryHealthOverview from '../components/organisms/InventoryHealthOver
 import InventoryOptimizationRecommendations from '../components/organisms/InventoryOptimizationRecommendations';
 import SeasonalDemandForecasting from '../components/organisms/SeasonalDemandForecasting';
 import CostAnalysisMarginOptimization from '../components/organisms/CostAnalysisMarginOptimization';
+import ProductCatalogManagement from '../components/organisms/ProductCatalogManagement';
 import StockDepletionTimeline from '../components/organisms/StockDepletionTimeline';
 import AutomatedOrderSuggestions from '../components/organisms/AutomatedOrderSuggestions';
 import SupplierIntegrationHub from '../components/organisms/SupplierIntegrationHub';
@@ -446,6 +447,57 @@ const Dashboard = () => {
     // 5. Send to stakeholders and finance team
   };
 
+  // Product catalog handlers
+  const handleProductCreate = () => {
+    console.log('Creating new product');
+    // In a real implementation, this would:
+    // 1. Open product creation modal/form
+    // 2. Validate product data
+    // 3. Submit to inventory service
+    // 4. Refresh product list
+    // 5. Show success notification
+  };
+
+  const handleProductEdit = (product) => {
+    console.log('Editing product:', product);
+    // In a real implementation, this would:
+    // 1. Open product edit modal/form with pre-filled data
+    // 2. Allow modifications to product details
+    // 3. Validate and submit changes
+    // 4. Update product in catalog
+    // 5. Refresh product list
+  };
+
+  const handleProductDelete = (product) => {
+    console.log('Deleting product:', product);
+    // In a real implementation, this would:
+    // 1. Show confirmation dialog
+    // 2. Delete product from inventory
+    // 3. Update related orders and forecasts
+    // 4. Remove from catalog
+    // 5. Show success notification
+  };
+
+  const handleProductView = (product) => {
+    console.log('Viewing product details:', product);
+    // In a real implementation, this would:
+    // 1. Navigate to product detail page
+    // 2. Show detailed product information
+    // 3. Display inventory levels and history
+    // 4. Show sales analytics and performance
+    // 5. Present related products and recommendations
+  };
+
+  const handleProductBulkAction = (action, products) => {
+    console.log('Bulk action:', action, 'on products:', products);
+    // In a real implementation, this would:
+    // 1. Process bulk operations (delete, export, update status)
+    // 2. Show progress indicator for large operations
+    // 3. Validate permissions for bulk actions
+    // 4. Update all affected products
+    // 5. Generate bulk operation report
+  };
+
   const allComponents = [
     <InventoryHealthOverview
       key="inventory-health"
@@ -844,6 +896,29 @@ const Dashboard = () => {
               onExportReport={handleCostReportExport}
               autoRefresh={true}
               refreshInterval={900000}
+            />
+          </GridItem>
+        </DashboardGrid>
+      </div>
+
+      {/* Product Catalog Management Section */}
+      <div style={{ marginBottom: '2rem' }}>
+        <Typography variant="h5" weight="semibold" style={{ marginBottom: '1.5rem', display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+          <Icon name="package" size={24} />
+          Product Catalog Management
+          <Badge variant="secondary" size="sm">6 Products</Badge>
+        </Typography>
+        <DashboardGrid
+          {...DASHBOARD_LAYOUTS.default}
+          spacing="lg"
+        >
+          <GridItem span={4}>
+            <ProductCatalogManagement
+              onProductCreate={handleProductCreate}
+              onProductEdit={handleProductEdit}
+              onProductDelete={handleProductDelete}
+              onProductView={handleProductView}
+              onBulkAction={handleProductBulkAction}
             />
           </GridItem>
         </DashboardGrid>
