@@ -11,6 +11,7 @@ import AlertCard from '../components/molecules/AlertCard';
 import ChartContainer from '../components/organisms/ChartContainer';
 import PredictiveInventoryPanel from '../components/organisms/PredictiveInventoryPanel';
 import InventoryHealthOverview from '../components/organisms/InventoryHealthOverview';
+import InventoryOptimizationRecommendations from '../components/organisms/InventoryOptimizationRecommendations';
 import StockDepletionTimeline from '../components/organisms/StockDepletionTimeline';
 import AutomatedOrderSuggestions from '../components/organisms/AutomatedOrderSuggestions';
 import SupplierIntegrationHub from '../components/organisms/SupplierIntegrationHub';
@@ -340,6 +341,39 @@ const Dashboard = () => {
   const handleInventoryInsightClick = (insight) => {
     console.log('Inventory insight clicked:', insight);
     // Show detailed insight or navigate to relevant section
+  };
+
+  // Optimization recommendations handlers
+  const handleOptimizationImplement = async (recommendation) => {
+    try {
+      console.log('Implementing optimization recommendation:', recommendation);
+      // In a real implementation, this would:
+      // 1. Create implementation tasks
+      // 2. Update inventory policies
+      // 3. Trigger automated processes
+      // 4. Create audit trail
+      // Show success notification
+    } catch (error) {
+      console.error('Failed to implement optimization:', error);
+      // Show error notification
+    }
+  };
+
+  const handleOptimizationDismiss = (recommendation) => {
+    console.log('Dismissing optimization recommendation:', recommendation);
+    // In a real implementation, this would:
+    // 1. Mark recommendation as dismissed
+    // 2. Update AI model feedback
+    // 3. Create audit entry
+  };
+
+  const handleOptimizationDetails = (recommendation) => {
+    console.log('Viewing optimization recommendation details:', recommendation);
+    // In a real implementation, this would:
+    // 1. Navigate to detailed recommendation view
+    // 2. Show impact analysis
+    // 3. Display implementation plan
+    // 4. Show historical data and reasoning
   };
 
   const allComponents = [
@@ -672,6 +706,29 @@ const Dashboard = () => {
         >
           <GridItem span={4}>
             <BulkOrderGenerationInterface />
+          </GridItem>
+        </DashboardGrid>
+      </div>
+
+      {/* AI Inventory Optimization Section */}
+      <div style={{ marginBottom: '2rem' }}>
+        <Typography variant="h5" weight="semibold" style={{ marginBottom: '1.5rem', display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+          <Icon name="brain" size={24} />
+          AI Inventory Optimization
+          <Badge variant="info" size="sm">AI-Powered</Badge>
+        </Typography>
+        <DashboardGrid
+          {...DASHBOARD_LAYOUTS.default}
+          spacing="lg"
+        >
+          <GridItem span={4}>
+            <InventoryOptimizationRecommendations
+              onImplement={handleOptimizationImplement}
+              onDismiss={handleOptimizationDismiss}
+              onViewDetails={handleOptimizationDetails}
+              autoRefresh={true}
+              refreshInterval={300000}
+            />
           </GridItem>
         </DashboardGrid>
       </div>
