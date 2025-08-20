@@ -26,7 +26,7 @@ const HTTP_CONFIG = {
   // Use proxy in development to avoid CORS issues
   baseURL: import.meta.env.DEV 
     ? '/api' // Use Vite proxy which forwards to the actual API
-    : (import.meta.env.VITE_API_BASE_URL || 'https://18sz01wxsi.execute-api.eu-central-1.amazonaws.com/dev/v1'),
+    : (import.meta.env.VITE_API_BASE_URL || 'https://wdqm1vpl80.execute-api.eu-central-1.amazonaws.com/dev/v1'),
   timeout: 30000,
   maxRetries: 3,
   retryDelay: 1000,
