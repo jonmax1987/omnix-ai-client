@@ -28,6 +28,7 @@ import ABTestEnvironmentManagement from '../components/organisms/ABTestEnvironme
 import ABTestRiskAssessment from '../components/organisms/ABTestRiskAssessment';
 import ABTestAdvancedStatistics from '../components/organisms/ABTestAdvancedStatistics';
 import ABTestDataGovernance from '../components/organisms/ABTestDataGovernance';
+import ABTestDocumentation from '../components/organisms/ABTestDocumentation';
 import { useI18n } from '../hooks/useI18n';
 import { useModal } from '../contexts/ModalContext';
 
@@ -110,28 +111,28 @@ const TestStatusBadge = styled(Badge).withConfig({
     switch (props.status) {
       case 'running':
         return `
-          background-color: ${props.theme.colors.green[100]};
-          color: ${props.theme.colors.green[700]};
+          background-color: ${props.theme?.colors?.green?.[100] || '#dcfce7'};
+          color: ${props.theme?.colors?.green?.[700] || '#15803d'};
         `;
       case 'draft':
         return `
-          background-color: ${props.theme.colors.gray[100]};
-          color: ${props.theme.colors.gray[700]};
+          background-color: ${props.theme?.colors?.gray?.[100] || '#f3f4f6'};
+          color: ${props.theme?.colors?.gray?.[700] || '#374151'};
         `;
       case 'completed':
         return `
-          background-color: ${props.theme.colors.blue[100]};
-          color: ${props.theme.colors.blue[700]};
+          background-color: ${props.theme?.colors?.blue?.[100] || '#dbeafe'};
+          color: ${props.theme?.colors?.blue?.[700] || '#1d4ed8'};
         `;
       case 'paused':
         return `
-          background-color: ${props.theme.colors.yellow[100]};
-          color: ${props.theme.colors.yellow[700]};
+          background-color: ${props.theme?.colors?.yellow?.[100] || '#fef3c7'};
+          color: ${props.theme?.colors?.yellow?.[700] || '#a16207'};
         `;
       case 'cancelled':
         return `
-          background-color: ${props.theme.colors.red[100]};
-          color: ${props.theme.colors.red[700]};
+          background-color: ${props.theme?.colors?.red?.[100] || '#fee2e2'};
+          color: ${props.theme?.colors?.red?.[700] || '#b91c1c'};
         `;
       default:
         return '';
@@ -847,6 +848,28 @@ const ABTesting = () => {
     // TODO: Show success notification with governance update summary
   }, []);
 
+  // Handle documentation updates
+  const handleDocumentationUpdate = useCallback((docData) => {
+    console.log('Documentation interaction:', docData);
+    
+    // Track documentation usage for analytics
+    if (docData.type === 'download') {
+      setTests(prev => prev.map(t => ({
+        ...t, 
+        documentationExports: [...(t.documentationExports || []), {
+          section: docData.section,
+          format: docData.format,
+          timestamp: docData.timestamp
+        }],
+        lastDocumentationAccess: docData.timestamp
+      })));
+    }
+    
+    // Could track which sections are most accessed for improvement insights
+    
+    // TODO: Show success notification for documentation actions
+  }, []);
+
   return (
     <ABTestingContainer
       initial={{ opacity: 0, y: 20 }}
@@ -1000,6 +1023,14 @@ const ABTesting = () => {
           >
             <Icon name="shield" size={16} />
             Data Governance
+          </Button>
+          <Button
+            variant="secondary"
+            size="sm"
+            onClick={() => openModal('documentation', { size: 'xl' })}
+          >
+            <Icon name="book-open" size={16} />
+            Documentation
           </Button>
           <Button
             variant="secondary"
@@ -1505,6 +1536,20 @@ const ABTesting = () => {
           testData={tests}
           onGovernanceUpdate={handleGovernanceUpdate}
           onClose={() => closeModal('dataGovernance')}
+        />
+      </Modal>
+
+      {/* Documentation Modal */}
+      <Modal
+        isOpen={isModalOpen('documentation')}
+        onClose={() => closeModal('documentation')}
+        title=""
+        size="xl"
+        padding={false}
+      >
+        <ABTestDocumentation
+          onDocumentationUpdate={handleDocumentationUpdate}
+          onClose={() => closeModal('documentation')}
         />
       </Modal>
     </ABTestingContainer>
