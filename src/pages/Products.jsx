@@ -11,6 +11,7 @@ import Modal from '../components/atoms/Modal';
 import ConfirmDialog from '../components/molecules/ConfirmDialog';
 import DataTable from '../components/organisms/DataTable';
 import ProductForm from '../components/organisms/ProductForm';
+import CrossSellUpsellRecommendations from '../components/organisms/CrossSellUpsellRecommendations';
 import { useI18n } from '../hooks/useI18n';
 import { useModal } from '../contexts/ModalContext';
 import useProductsStore from '../store/productsStore';
@@ -480,6 +481,45 @@ const Products = () => {
     }
   };
 
+  // Recommendation handlers
+  const handleRecommendationApply = async (recommendation) => {
+    try {
+      console.log('Applying recommendation:', recommendation);
+      // TODO: Implement recommendation application logic
+      // This could involve:
+      // - Creating product bundles
+      // - Setting up promotional displays
+      // - Updating pricing strategies
+      // - Creating marketing campaigns
+      
+      // For now, just show success message
+      // TODO: Show success notification
+      console.log(`Applied recommendation: ${recommendation.title}`);
+    } catch (error) {
+      console.error('Error applying recommendation:', error);
+      // TODO: Show error notification
+    }
+  };
+
+  const handleRecommendationDismiss = async (recommendation) => {
+    try {
+      console.log('Dismissing recommendation:', recommendation);
+      // TODO: Implement recommendation dismissal logic
+      // This could involve storing user preferences or feedback
+      
+      console.log(`Dismissed recommendation: ${recommendation.title}`);
+    } catch (error) {
+      console.error('Error dismissing recommendation:', error);
+      // TODO: Show error notification
+    }
+  };
+
+  const handleRecommendationDetails = (recommendation) => {
+    console.log('Viewing recommendation details:', recommendation);
+    // TODO: Open recommendation details modal or navigate to details page
+    // For now, just log the recommendation
+  };
+
   return (
     <ProductsContainer
       initial={{ opacity: 0, y: 20 }}
@@ -560,6 +600,17 @@ const Products = () => {
         exportFilename="products-inventory"
         exportFormats={['csv', 'pdf']}
       />
+
+      {/* Cross-sell & Upsell Recommendations */}
+      <div style={{ marginTop: '48px' }}>
+        <CrossSellUpsellRecommendations
+          onRecommendationApply={handleRecommendationApply}
+          onRecommendationDismiss={handleRecommendationDismiss}
+          onViewDetails={handleRecommendationDetails}
+          autoRefresh={true}
+          refreshInterval={5 * 60 * 1000}
+        />
+      </div>
 
       {/* Product Form Modal */}
       <Modal

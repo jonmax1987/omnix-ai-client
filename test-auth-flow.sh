@@ -11,7 +11,7 @@ fi
 
 EMAIL="$1"
 PASSWORD="$2"
-BASE_URL="https://wdqm1vpl80.execute-api.eu-central-1.amazonaws.com/dev/v1"
+BASE_URL="https://wdqm1vpl80.execute-api.eu-central-1.amazonaws.com/dev"
 
 echo "🔐 Testing OMNIX AI Authentication Flow"
 echo "========================================"

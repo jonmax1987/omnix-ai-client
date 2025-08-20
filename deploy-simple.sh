@@ -17,7 +17,7 @@ echo ""
 
 # Step 1: Build for production
 echo "🔨 Building for production..."
-VITE_API_BASE_URL=https://wdqm1vpl80.execute-api.eu-central-1.amazonaws.com/dev/v1 npm run build
+VITE_API_BASE_URL=https://wdqm1vpl80.execute-api.eu-central-1.amazonaws.com/dev npm run build
 echo "✅ Build completed"
 
 # Step 2: Upload files directly to existing bucket

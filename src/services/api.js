@@ -216,7 +216,28 @@ export const recommendationsAPI = {
   getRecommendationHistory: (params = {}) => api.get('/recommendations/history', params),
   getRecommendationSettings: () => api.get('/recommendations/settings'),
   updateRecommendationSettings: (settings) => 
-    api.patch('/recommendations/settings', settings)
+    api.patch('/recommendations/settings', settings),
+    
+  // Cross-sell and Upsell Recommendations (INV-014)
+  getCrossSellRecommendations: (params = {}) => api.get('/recommendations/cross-sell', params),
+  getUpsellRecommendations: (params = {}) => api.get('/recommendations/upsell', params),
+  getCrossSellUpsellRecommendations: (params = {}) => api.get('/recommendations/cross-sell-upsell', params),
+  getProductRecommendations: (productId, params = {}) => api.get(`/products/${productId}/recommendations`, params),
+  getBundleRecommendations: (params = {}) => api.get('/recommendations/bundles', params),
+  getSubstituteRecommendations: (params = {}) => api.get('/recommendations/substitutes', params),
+  
+  // Recommendation analytics
+  getRecommendationAnalytics: (params = {}) => api.get('/recommendations/analytics', params),
+  getRecommendationPerformance: (params = {}) => api.get('/recommendations/performance', params),
+  getRecommendationConversions: (params = {}) => api.get('/recommendations/conversions', params),
+  
+  // Apply recommendations
+  applyRecommendation: (id, params = {}) => api.post(`/recommendations/${id}/apply`, params),
+  bulkApplyRecommendations: (ids, params = {}) => api.post('/recommendations/bulk-apply', { ids, ...params }),
+  
+  // Recommendation feedback
+  provideRecommendationFeedback: (id, feedback) => api.post(`/recommendations/${id}/feedback`, feedback),
+  getRecommendationFeedback: (id) => api.get(`/recommendations/${id}/feedback`)
 };
 
 // Forecasting API (matches backend spec)
