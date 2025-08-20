@@ -1,7 +1,7 @@
 import React, { useState, useCallback, useMemo } from 'react';
 import styled from 'styled-components';
 import { motion, AnimatePresence } from 'framer-motion';
-import { Brain, Algorithm, TrendingUp, Target, Users, Zap, Award, ChevronRight, Play, Settings, BarChart3, Lightbulb, Check, AlertCircle, Info, Star, Clock, DollarSign, Percent, Activity, RefreshCw, Filter, Download, Eye } from 'lucide-react';
+import { Brain, Cpu, TrendingUp, Target, Users, Zap, Award, ChevronRight, Play, Settings, BarChart3, Lightbulb, Check, AlertCircle, Info, Star, Clock, DollarSign, Percent, Activity, RefreshCw, Filter, Download, Eye } from 'lucide-react';
 
 const AlgorithmsContainer = styled(motion.div)`
   padding: 24px;
@@ -329,7 +329,7 @@ const ABTestRecommendationAlgorithms = ({ onClose, onAlgorithmSelect, testData =
   const [refreshing, setRefreshing] = useState(false);
 
   const filters = [
-    { id: 'all', label: 'All Algorithms', icon: Algorithm },
+    { id: 'all', label: 'All Algorithms', icon: Cpu },
     { id: 'recommended', label: 'Recommended', icon: Star },
     { id: 'trending', label: 'Trending', icon: TrendingUp },
     { id: 'performance', label: 'High Performance', icon: Award },
@@ -708,7 +708,7 @@ const ABTestRecommendationAlgorithms = ({ onClose, onAlgorithmSelect, testData =
       <Header>
         <div>
           <Title>
-            <Algorithm size={32} />
+            <Cpu size={32} />
             AI Test Recommendation Algorithms
           </Title>
           <Subtitle>
