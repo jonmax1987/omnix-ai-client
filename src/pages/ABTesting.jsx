@@ -25,6 +25,7 @@ import ABTestResultsPrediction from '../components/organisms/ABTestResultsPredic
 import ABTestAutomatedOptimization from '../components/organisms/ABTestAutomatedOptimization';
 import ABTestModelBenchmarking from '../components/organisms/ABTestModelBenchmarking';
 import ABTestEnvironmentManagement from '../components/organisms/ABTestEnvironmentManagement';
+import ABTestRiskAssessment from '../components/organisms/ABTestRiskAssessment';
 import { useI18n } from '../hooks/useI18n';
 import { useModal } from '../contexts/ModalContext';
 
@@ -727,6 +728,40 @@ const ABTesting = () => {
     // TODO: Show success notification with environment update summary
   }, []);
 
+  // Handle risk assessment updates
+  const handleRiskUpdate = useCallback((riskData) => {
+    console.log('Risk assessment data updated:', riskData);
+    
+    // Update tests with risk assessment data
+    if (riskData.testId) {
+      setTests(prev => prev.map(t => 
+        t.id === riskData.testId
+          ? { 
+              ...t, 
+              riskAssessment: riskData.assessment,
+              riskScore: riskData.overallRisk,
+              mitigationActions: riskData.activeMitigations,
+              lastRiskUpdate: riskData.timestamp
+            }
+          : t
+      ));
+    } else {
+      // Apply to all running tests
+      setTests(prev => prev.map(t => 
+        t.status === 'running'
+          ? { 
+              ...t, 
+              globalRiskLevel: riskData.overallRisk,
+              riskRecommendations: riskData.recommendations,
+              lastGlobalRiskUpdate: riskData.timestamp
+            }
+          : t
+      ));
+    }
+    
+    // TODO: Show success notification with risk assessment summary
+  }, []);
+
   return (
     <ABTestingContainer
       initial={{ opacity: 0, y: 20 }}
@@ -856,6 +891,14 @@ const ABTesting = () => {
           >
             <Icon name="server" size={16} />
             Environments
+          </Button>
+          <Button
+            variant="secondary"
+            size="sm"
+            onClick={() => openModal('riskAssessment', { size: 'xl' })}
+          >
+            <Icon name="shield" size={16} />
+            Risk Assessment
           </Button>
           <Button
             variant="secondary"
@@ -1316,6 +1359,21 @@ const ABTesting = () => {
         <ABTestEnvironmentManagement
           onEnvironmentUpdate={handleEnvironmentUpdate}
           onClose={() => closeModal('environments')}
+        />
+      </Modal>
+
+      {/* Risk Assessment Modal */}
+      <Modal
+        isOpen={isModalOpen('riskAssessment')}
+        onClose={() => closeModal('riskAssessment')}
+        title=""
+        size="xl"
+        padding={false}
+      >
+        <ABTestRiskAssessment
+          testData={tests}
+          onRiskUpdate={handleRiskUpdate}
+          onClose={() => closeModal('riskAssessment')}
         />
       </Modal>
     </ABTestingContainer>

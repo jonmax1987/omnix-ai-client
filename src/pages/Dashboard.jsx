@@ -1098,7 +1098,6 @@ const Dashboard = () => {
             <PriceHistoryOptimization
               onPriceUpdate={handlePriceUpdate}
               onOptimizationApply={handleOptimizationApply}
-              onAnalysisRequest={handleAnalysisRequest}
             />
           </GridItem>
         </DashboardGrid>
