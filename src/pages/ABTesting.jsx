@@ -21,6 +21,7 @@ import MultiVariantTesting from '../components/organisms/MultiVariantTesting';
 import ExperimentSegmentation from '../components/organisms/ExperimentSegmentation';
 import ABTestAdvancedReporting from '../components/organisms/ABTestAdvancedReporting';
 import ABTestRecommendationAlgorithms from '../components/organisms/ABTestRecommendationAlgorithms';
+import ABTestResultsPrediction from '../components/organisms/ABTestResultsPrediction';
 import { useI18n } from '../hooks/useI18n';
 import { useModal } from '../contexts/ModalContext';
 
@@ -644,6 +645,27 @@ const ABTesting = () => {
     // TODO: Show success notification
   }, [closeModal, openModal]);
 
+  // Handle prediction updates
+  const handlePredictionUpdate = useCallback((predictionData) => {
+    console.log('Prediction data updated:', predictionData);
+    
+    // Update test data with prediction information
+    if (predictionData.testId) {
+      setTests(prev => prev.map(t => 
+        t.id === predictionData.testId 
+          ? { 
+              ...t, 
+              predictions: predictionData.predictions,
+              predictedSignificance: predictionData.confidence,
+              recommendedAction: predictionData.recommendedAction
+            }
+          : t
+      ));
+    }
+    
+    // TODO: Show success notification with prediction summary
+  }, []);
+
   return (
     <ABTestingContainer
       initial={{ opacity: 0, y: 20 }}
@@ -725,6 +747,14 @@ const ABTesting = () => {
           >
             <Icon name="cpu" size={16} />
             AI Algorithms
+          </Button>
+          <Button
+            variant="secondary"
+            size="sm"
+            onClick={() => openModal('prediction', { size: 'xl' })}
+          >
+            <Icon name="brain" size={16} />
+            Results Prediction
           </Button>
           <Button
             variant="secondary"
@@ -1136,6 +1166,21 @@ const ABTesting = () => {
           testData={tests}
           onAlgorithmSelect={handleAlgorithmSelect}
           onClose={() => closeModal('algorithms')}
+        />
+      </Modal>
+
+      {/* Results Prediction Modal */}
+      <Modal
+        isOpen={isModalOpen('prediction')}
+        onClose={() => closeModal('prediction')}
+        title=""
+        size="xl"
+        padding={false}
+      >
+        <ABTestResultsPrediction
+          testData={tests}
+          onPredictionUpdate={handlePredictionUpdate}
+          onClose={() => closeModal('prediction')}
         />
       </Modal>
     </ABTestingContainer>
