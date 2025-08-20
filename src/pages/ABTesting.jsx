@@ -17,6 +17,7 @@ import ABTestHistoricalArchive from '../components/organisms/ABTestHistoricalArc
 import ABTestDeployment from '../components/organisms/ABTestDeployment';
 import ABTestPerformanceMonitoring from '../components/organisms/ABTestPerformanceMonitoring';
 import ABTestCostAnalysis from '../components/organisms/ABTestCostAnalysis';
+import MultiVariantTesting from '../components/organisms/MultiVariantTesting';
 import { useI18n } from '../hooks/useI18n';
 import { useModal } from '../contexts/ModalContext';
 
@@ -705,6 +706,14 @@ const ABTesting = () => {
             Compare Models
           </Button>
           <Button
+            variant="secondary"
+            size="sm"
+            onClick={() => openModal('multiVariant', { size: 'xl' })}
+          >
+            <Icon name="git-branch" size={16} />
+            Multi-Variant Test
+          </Button>
+          <Button
             variant="primary"
             size="sm"
             onClick={() => openModal('createTest', { size: 'xl' })}
@@ -901,6 +910,31 @@ const ABTesting = () => {
             runningTests: stats.runningTests
           }}
           onModelSelect={handleModelSelect}
+        />
+      </Modal>
+
+      {/* Multi-Variant Testing Modal */}
+      <Modal
+        isOpen={isModalOpen('multiVariant')}
+        onClose={() => closeModal('multiVariant')}
+        title=""
+        size="xl"
+        padding={false}
+      >
+        <MultiVariantTesting
+          testData={tests}
+          onVariantUpdate={(variantId, updates) => {
+            console.log('Variant updated:', variantId, updates);
+            // Handle variant configuration updates
+          }}
+          onTrafficUpdate={(variantId, allocation) => {
+            console.log('Traffic allocation updated:', variantId, allocation);
+            // Handle traffic allocation changes
+          }}
+          onTestStart={(variants) => {
+            console.log('Starting multi-variant test with variants:', variants);
+            // Handle multi-variant test start
+          }}
         />
       </Modal>
 
