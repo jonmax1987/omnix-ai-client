@@ -1,14 +1,13 @@
 import styled from 'styled-components';
 import { motion } from 'framer-motion';
-import { useState } from 'react';
 import Typography from '../components/atoms/Typography';
 import Button from '../components/atoms/Button';
 import Icon from '../components/atoms/Icon';
 import Badge from '../components/atoms/Badge';
-import DashboardGrid, { GridItem } from '../components/organisms/DashboardGrid';
-import MetricCard from '../components/molecules/MetricCard';
-import ChartContainer from '../components/organisms/ChartContainer';
+import Modal from '../components/atoms/Modal';
+import RevenueAnalyticsDashboard from '../components/organisms/RevenueAnalyticsDashboard';
 import { useI18n } from '../hooks/useI18n';
+import { useModal } from '../contexts/ModalContext';
 
 const AnalyticsContainer = styled(motion.div)`
   padding: ${props => props.theme.spacing[6]};
@@ -55,123 +54,175 @@ const HeaderRight = styled.div`
   }
 `;
 
-const QuickActions = styled.div`
-  display: flex;
-  gap: ${props => props.theme.spacing[2]};
+const AnalyticsGrid = styled.div`
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+  gap: ${props => props.theme.spacing[6]};
+`;
+
+const AnalyticsCard = styled(motion.div)`
+  background: ${props => props.theme.colors.background.elevated};
+  border: 1px solid ${props => props.theme.colors.border.subtle};
+  border-radius: ${props => props.theme.spacing[3]};
+  padding: ${props => props.theme.spacing[6]};
+  cursor: pointer;
+  transition: all 0.2s ease;
   
-  @media (max-width: ${props => props.theme.breakpoints.sm}) {
-    flex-direction: column;
-    width: 100%;
-    
-    & > * {
-      flex: 1;
-    }
+  &:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 8px 25px -8px rgba(0, 0, 0, 0.1);
+    border-color: ${props => props.theme.colors.primary[200]};
   }
 `;
 
-const SectionHeader = styled.div`
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  margin-bottom: ${props => props.theme.spacing[4]};
-  
-  @media (max-width: ${props => props.theme.breakpoints.sm}) {
-    flex-direction: column;
-    align-items: flex-start;
-    gap: ${props => props.theme.spacing[2]};
-  }
-`;
-
-const MockChart = styled.div`
-  width: 100%;
-  height: 300px;
-  background: linear-gradient(135deg, ${props => props.color}20, ${props => props.color}40);
-  border-radius: ${props => props.theme.spacing[2]};
+const CardIcon = styled.div`
   display: flex;
   align-items: center;
   justify-content: center;
-  position: relative;
-  overflow: hidden;
+  width: 60px;
+  height: 60px;
+  border-radius: ${props => props.theme.spacing[3]};
+  background: ${props => props.theme.colors.primary[100]};
+  color: ${props => props.theme.colors.primary[600]};
+  margin-bottom: ${props => props.theme.spacing[4]};
+`;
+
+const CardTitle = styled.h3`
+  color: ${props => props.theme.colors.text.primary};
+  font-size: ${props => props.theme.typography.fontSize.lg};
+  font-weight: ${props => props.theme.typography.fontWeight.semibold};
+  margin-bottom: ${props => props.theme.spacing[2]};
+`;
+
+const CardDescription = styled.p`
+  color: ${props => props.theme.colors.text.secondary};
+  font-size: ${props => props.theme.typography.fontSize.sm};
+  line-height: 1.5;
+  margin-bottom: ${props => props.theme.spacing[4]};
+`;
+
+const CardFeatures = styled.ul`
+  list-style: none;
+  padding: 0;
+  margin: 0;
+`;
+
+const CardFeature = styled.li`
+  display: flex;
+  align-items: center;
+  gap: ${props => props.theme.spacing[2]};
+  padding: ${props => props.theme.spacing[1]} 0;
+  color: ${props => props.theme.colors.text.secondary};
+  font-size: ${props => props.theme.typography.fontSize.sm};
   
   &::before {
-    content: '';
-    position: absolute;
-    top: 0;
-    left: 0;
-    right: 0;
-    bottom: 0;
-    background: repeating-linear-gradient(
-      45deg,
-      transparent,
-      transparent 10px,
-      ${props => props.color}10 10px,
-      ${props => props.color}10 20px
-    );
+    content: '•';
+    color: ${props => props.theme.colors.primary[500]};
+    font-weight: bold;
   }
 `;
 
 const Analytics = () => {
   const { t } = useI18n();
-  const [loading, setLoading] = useState(false);
-  const [timeRange, setTimeRange] = useState('30d');
-  const [forecastPeriod, setForecastPeriod] = useState('90d');
+  const { isModalOpen, openModal, closeModal } = useModal();
 
-  // Mock analytics metrics
-  const metrics = [
+  const analyticsModules = [
     {
-      title: t('analytics.metrics.forecastAccuracy'),
-      value: 87.3,
-      valueFormat: 'percentage',
-      change: 2.1,
-      trend: 'up',
-      icon: 'trending',
-      iconColor: 'success',
-      badge: t('analytics.badges.ai')
+      id: 'revenue',
+      title: 'Revenue Analytics',
+      description: 'Comprehensive revenue tracking and insights with real-time monitoring, trend analysis, and AI-powered recommendations.',
+      icon: 'dollar-sign',
+      features: [
+        'Real-time revenue tracking',
+        'KPI monitoring and alerts',
+        'Trend analysis and forecasting',
+        'Category performance insights',
+        'AI-generated recommendations'
+      ],
+      status: 'available'
     },
     {
-      title: t('analytics.metrics.demandVolatility'),
-      value: 14.2,
-      valueFormat: 'percentage',
-      change: -3.5,
-      trend: 'down',
-      icon: 'analytics',
-      iconColor: 'primary'
+      id: 'customer',
+      title: 'Customer Analytics',
+      description: 'Deep customer behavior analysis, segmentation, and lifetime value tracking with predictive insights.',
+      icon: 'users',
+      features: [
+        'Customer segmentation analysis',
+        'Lifetime value calculation',
+        'Behavior pattern recognition',
+        'Churn prediction and prevention',
+        'Customer journey mapping'
+      ],
+      status: 'coming-soon'
     },
     {
-      title: t('analytics.metrics.stockoutRisk'),
-      value: 8.7,
-      valueFormat: 'percentage',
-      change: 1.2,
-      trend: 'up',
-      icon: 'warning',
-      iconColor: 'warning'
+      id: 'product',
+      title: 'Product Performance',
+      description: 'Comprehensive product analytics including sales performance, inventory optimization, and demand forecasting.',
+      icon: 'package',
+      features: [
+        'Product sales performance',
+        'Inventory turnover analysis',
+        'Demand forecasting',
+        'Cross-sell opportunities',
+        'Product lifecycle tracking'
+      ],
+      status: 'coming-soon'
     },
     {
-      title: t('analytics.metrics.inventoryTurnover'),
-      value: 12.4,
-      change: 8.3,
-      trend: 'up',
-      icon: 'trending',
-      iconColor: 'success',
-      footer: 'times per year'
+      id: 'marketing',
+      title: 'Marketing Analytics',
+      description: 'Marketing campaign performance, customer acquisition costs, and ROI analysis with multi-channel attribution.',
+      icon: 'megaphone',
+      features: [
+        'Campaign performance tracking',
+        'Customer acquisition analysis',
+        'Multi-channel attribution',
+        'ROI optimization',
+        'A/B test integration'
+      ],
+      status: 'coming-soon'
+    },
+    {
+      id: 'operational',
+      title: 'Operational Insights',
+      description: 'Operational efficiency metrics, cost analysis, and process optimization with real-time monitoring.',
+      icon: 'settings',
+      features: [
+        'Operational efficiency metrics',
+        'Cost center analysis',
+        'Process optimization',
+        'Resource utilization',
+        'Performance benchmarking'
+      ],
+      status: 'coming-soon'
+    },
+    {
+      id: 'predictive',
+      title: 'Predictive Analytics',
+      description: 'AI-powered predictive models for sales forecasting, demand planning, and business intelligence.',
+      icon: 'brain',
+      features: [
+        'Sales forecasting models',
+        'Demand prediction',
+        'Risk assessment',
+        'Scenario planning',
+        'Business intelligence'
+      ],
+      status: 'coming-soon'
     }
   ];
 
-  const handleRefresh = () => {
-    setLoading(true);
-    setTimeout(() => setLoading(false), 1000);
+  const handleCardClick = (moduleId) => {
+    if (moduleId === 'revenue') {
+      openModal('revenueAnalytics', { size: 'xl' });
+    }
+    // Other modules will be implemented in future tasks
   };
 
-  const handleExport = () => {
-    console.log('Export analytics data');
-  };
-
-  const handleReportSettings = () => {
-    console.log('Open report settings');
-  };
-
-  const handleScheduleReport = () => {
-    console.log('Schedule automated report');
+  const handleAnalyticsUpdate = (updateData) => {
+    console.log('Analytics update:', updateData);
+    // Handle analytics updates - could show notifications, update state, etc.
   };
 
   return (
@@ -184,368 +235,90 @@ const Analytics = () => {
         <HeaderLeft>
           <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
             <Typography variant="h3" weight="bold" color="primary">
-              {t('analytics.title')}
+              Advanced Analytics
             </Typography>
             <Badge variant="info" size="sm">
-              <Icon name="trending" size={12} />
-              {t('analytics.aiPowered')}
+              <Icon name="zap" size={12} />
+              AI Powered
             </Badge>
           </div>
           <Typography variant="body1" color="secondary">
-            {t('analytics.description')}
+            Comprehensive business intelligence and analytics suite powered by AI insights
           </Typography>
         </HeaderLeft>
         
         <HeaderRight>
           <Typography variant="caption" color="tertiary">
-            {t('common.updatedMinutesAgo')}
+            1 of 6 modules available
           </Typography>
-          
-          <QuickActions>
-            <Button variant="secondary" size="sm" onClick={handleScheduleReport}>
-              <Icon name="calendar" size={16} />
-              {t('analytics.schedule')}
-            </Button>
-            <Button variant="secondary" size="sm" onClick={handleReportSettings}>
-              <Icon name="settings" size={16} />
-              {t('analytics.settings')}
-            </Button>
-            <Button variant="secondary" size="sm" onClick={handleExport}>
-              <Icon name="download" size={16} />
-              {t('common.export')}
-            </Button>
-            <Button variant="primary" size="sm" onClick={handleRefresh} loading={loading}>
-              <Icon name="refresh" size={16} />
-              {t('common.refresh')}
-            </Button>
-          </QuickActions>
+          <Button
+            variant="secondary"
+            size="sm"
+            onClick={() => openModal('revenueAnalytics', { size: 'xl' })}
+          >
+            <Icon name="dollar-sign" size={16} />
+            Revenue Dashboard
+          </Button>
         </HeaderRight>
       </AnalyticsHeader>
 
-      {/* Key Analytics Metrics */}
-      <DashboardGrid columns={{ xs: 1, sm: 2, lg: 4 }} spacing="lg" style={{ marginBottom: '48px' }}>
-        {metrics.map((metric) => (
-          <GridItem key={metric.title}>
-            <MetricCard
-              {...metric}
-              clickable
-              onClick={() => console.log('Metric clicked:', metric.title)}
-            />
-          </GridItem>
+      <AnalyticsGrid>
+        {analyticsModules.map((module) => (
+          <AnalyticsCard
+            key={module.id}
+            whileHover={{ scale: 1.02 }}
+            whileTap={{ scale: 0.98 }}
+            onClick={() => handleCardClick(module.id)}
+            style={{ 
+              opacity: module.status === 'coming-soon' ? 0.7 : 1,
+              cursor: module.status === 'coming-soon' ? 'not-allowed' : 'pointer'
+            }}
+          >
+            <CardIcon>
+              <Icon name={module.icon} size={28} />
+            </CardIcon>
+            
+            <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '8px' }}>
+              <CardTitle>{module.title}</CardTitle>
+              {module.status === 'coming-soon' && (
+                <Badge variant="secondary" size="xs">
+                  Coming Soon
+                </Badge>
+              )}
+              {module.status === 'available' && (
+                <Badge variant="success" size="xs">
+                  <Icon name="check" size={10} />
+                  Available
+                </Badge>
+              )}
+            </div>
+            
+            <CardDescription>{module.description}</CardDescription>
+            
+            <CardFeatures>
+              {module.features.map((feature, index) => (
+                <CardFeature key={index}>
+                  {feature}
+                </CardFeature>
+              ))}
+            </CardFeatures>
+          </AnalyticsCard>
         ))}
-      </DashboardGrid>
+      </AnalyticsGrid>
 
-      {/* Primary Forecasting Charts */}
-      <div style={{ marginBottom: '48px' }}>
-        <SectionHeader>
-          <Typography variant="h5" weight="semibold">
-            {t('analytics.sections.demandForecasting')}
-          </Typography>
-          <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-            <Typography variant="caption" color="tertiary">
-              {t('analytics.forecastPeriod')}
-            </Typography>
-            <select
-              value={forecastPeriod}
-              onChange={(e) => setForecastPeriod(e.target.value)}
-              style={{
-                padding: '4px 8px',
-                border: '1px solid #e5e5e5',
-                borderRadius: '4px',
-                fontSize: '12px'
-              }}
-            >
-              <option value="30d">{t('analytics.periodOptions.30d')}</option>
-              <option value="90d">{t('analytics.periodOptions.90d')}</option>
-              <option value="180d">{t('analytics.periodOptions.180d')}</option>
-              <option value="1y">{t('analytics.periodOptions.1y')}</option>
-            </select>
-          </div>
-        </SectionHeader>
-
-        <DashboardGrid columns={{ xs: 1, lg: 2 }} spacing="lg">
-          <GridItem span={2}>
-            <ChartContainer
-              title={t('analytics.charts.overallDemandForecast')}
-              description={t('analytics.charts.overallDemandForecastDesc')}
-              type="area"
-              badge={t('analytics.badges.ai')}
-              showTimeRange
-              timeRange={timeRange}
-              onTimeRangeChange={setTimeRange}
-              refreshable
-              onRefresh={handleRefresh}
-              exportable
-              fullScreenable
-              showLegend
-              legend={[
-                { id: 'historical', label: t('analytics.legends.historicalDemand'), color: '#3B82F6' },
-                { id: 'forecast', label: t('analytics.legends.forecastedDemand'), color: '#8B5CF6' },
-                { id: 'upper', label: t('analytics.legends.upperConfidence'), color: '#84CC16' },
-                { id: 'lower', label: t('analytics.legends.lowerConfidence'), color: '#F59E0B' }
-              ]}
-            >
-              <MockChart color="#8B5CF6">
-                <Typography variant="h6" color="brand">
-                  Demand Forecast Chart
-                </Typography>
-              </MockChart>
-            </ChartContainer>
-          </GridItem>
-
-          <GridItem>
-            <ChartContainer
-              title={t('analytics.charts.categoryBreakdown')}
-              description={t('analytics.charts.categoryBreakdownDesc')}
-              type="doughnut"
-              refreshable
-              onRefresh={handleRefresh}
-              exportable
-              showLegend
-              legend={[
-                { id: 'electronics', label: t('dashboard.categories.electronics'), color: '#3B82F6' },
-                { id: 'clothing', label: t('dashboard.categories.clothing'), color: '#10B981' },
-                { id: 'food', label: t('analytics.legends.foodAndBeverages'), color: '#F59E0B' },
-                { id: 'home', label: t('analytics.legends.homeAndGarden'), color: '#EF4444' },
-                { id: 'books', label: t('dashboard.categories.books'), color: '#8B5CF6' }
-              ]}
-            >
-              <MockChart color="#10B981">
-                <Typography variant="h6" color="success">
-                  Category Distribution
-                </Typography>
-              </MockChart>
-            </ChartContainer>
-          </GridItem>
-
-          <GridItem>
-            <ChartContainer
-              title={t('analytics.charts.seasonalTrends')}
-              description={t('analytics.charts.seasonalTrendsDesc')}
-              type="line"
-              showTimeRange
-              timeRange={timeRange}
-              onTimeRangeChange={setTimeRange}
-              refreshable
-              onRefresh={handleRefresh}
-              exportable
-            >
-              <MockChart color="#F59E0B">
-                <Typography variant="h6" color="warning">
-                  Seasonal Analysis
-                </Typography>
-              </MockChart>
-            </ChartContainer>
-          </GridItem>
-        </DashboardGrid>
-      </div>
-
-      {/* Inventory Analytics */}
-      <div style={{ marginBottom: '48px' }}>
-        <SectionHeader>
-          <Typography variant="h5" weight="semibold">
-            {t('analytics.sections.inventoryAnalytics')}
-          </Typography>
-        </SectionHeader>
-
-        <DashboardGrid columns={{ xs: 1, lg: 3 }} spacing="lg">
-          <GridItem>
-            <ChartContainer
-              title={t('analytics.charts.inventoryValueTrend')}
-              description={t('analytics.charts.inventoryValueTrendDesc')}
-              type="line"
-              showTimeRange
-              timeRange={timeRange}
-              onTimeRangeChange={setTimeRange}
-              refreshable
-              onRefresh={handleRefresh}
-              exportable
-              showLegend
-              legend={[
-                { id: 'value', label: t('analytics.legends.inventoryValue'), color: '#3B82F6' },
-                { id: 'target', label: t('analytics.legends.targetLevel'), color: '#22C55E' }
-              ]}
-            >
-              <MockChart color="#3B82F6">
-                <Typography variant="h6" color="primary">
-                  Value Trend
-                </Typography>
-              </MockChart>
-            </ChartContainer>
-          </GridItem>
-
-          <GridItem>
-            <ChartContainer
-              title={t('analytics.charts.stockLevelDistribution')}
-              description={t('analytics.charts.stockLevelDistributionDesc')}
-              type="bar"
-              refreshable
-              onRefresh={handleRefresh}
-              exportable
-            >
-              <MockChart color="#10B981">
-                <Typography variant="h6" color="success">
-                  Stock Distribution
-                </Typography>
-              </MockChart>
-            </ChartContainer>
-          </GridItem>
-
-          <GridItem>
-            <ChartContainer
-              title={t('analytics.charts.turnoverRateAnalysis')}
-              description={t('analytics.charts.turnoverRateAnalysisDesc')}
-              type="bar"
-              refreshable
-              onRefresh={handleRefresh}
-              exportable
-            >
-              <MockChart color="#F59E0B">
-                <Typography variant="h6" color="warning">
-                  Turnover Rates
-                </Typography>
-              </MockChart>
-            </ChartContainer>
-          </GridItem>
-        </DashboardGrid>
-      </div>
-
-      {/* Performance Metrics */}
-      <div style={{ marginBottom: '48px' }}>
-        <SectionHeader>
-          <Typography variant="h5" weight="semibold">
-            {t('analytics.sections.performanceAnalysis')}
-          </Typography>
-        </SectionHeader>
-
-        <DashboardGrid columns={{ xs: 1, lg: 2 }} spacing="lg">
-          <GridItem>
-            <ChartContainer
-              title={t('analytics.charts.forecastAccuracyOverTime')}
-              description={t('analytics.charts.forecastAccuracyOverTimeDesc')}
-              type="line"
-              showTimeRange
-              timeRange={timeRange}
-              onTimeRangeChange={setTimeRange}
-              refreshable
-              onRefresh={handleRefresh}
-              exportable
-              badge={t('analytics.badges.performance')}
-              showLegend
-              legend={[
-                { id: 'accuracy', label: t('analytics.legends.forecastAccuracy'), color: '#8B5CF6' },
-                { id: 'target', label: t('analytics.legends.targetAccuracy'), color: '#22C55E' },
-                { id: 'industry', label: t('analytics.legends.industryAverage'), color: '#94A3B8' }
-              ]}
-            >
-              <MockChart color="#8B5CF6">
-                <Typography variant="h6" color="brand">
-                  Accuracy Trends
-                </Typography>
-              </MockChart>
-            </ChartContainer>
-          </GridItem>
-
-          <GridItem>
-            <ChartContainer
-              title={t('analytics.charts.riskAnalysis')}
-              description={t('analytics.charts.riskAnalysisDesc')}
-              type="scatter"
-              refreshable
-              onRefresh={handleRefresh}
-              exportable
-              showLegend
-              legend={[
-                { id: 'high', label: t('analytics.legends.highRisk'), color: '#EF4444' },
-                { id: 'medium', label: t('analytics.legends.mediumRisk'), color: '#F59E0B' },
-                { id: 'low', label: t('analytics.legends.lowRisk'), color: '#22C55E' }
-              ]}
-            >
-              <MockChart color="#EF4444">
-                <Typography variant="h6" color="error">
-                  Risk Assessment
-                </Typography>
-              </MockChart>
-            </ChartContainer>
-          </GridItem>
-
-          <GridItem span={2}>
-            <ChartContainer
-              title={t('analytics.charts.salesVsForecast')}
-              description={t('analytics.charts.salesVsForecastDesc')}
-              type="bar"
-              showTimeRange
-              timeRange={timeRange}
-              onTimeRangeChange={setTimeRange}
-              refreshable
-              onRefresh={handleRefresh}
-              exportable
-              fullScreenable
-              showLegend
-              legend={[
-                { id: 'actual', label: t('analytics.legends.actualSales'), color: '#3B82F6' },
-                { id: 'forecast', label: t('analytics.legends.forecastedSales'), color: '#8B5CF6' },
-                { id: 'variance', label: t('analytics.legends.variance'), color: '#F59E0B' }
-              ]}
-            >
-              <MockChart color="#3B82F6">
-                <Typography variant="h6" color="primary">
-                  Sales vs Forecast
-                </Typography>
-              </MockChart>
-            </ChartContainer>
-          </GridItem>
-        </DashboardGrid>
-      </div>
-
-      {/* Advanced Analytics */}
-      <div>
-        <SectionHeader>
-          <Typography variant="h5" weight="semibold">
-            {t('analytics.sections.advancedAnalytics')}
-          </Typography>
-        </SectionHeader>
-
-        <DashboardGrid columns={{ xs: 1, lg: 2 }} spacing="lg">
-          <GridItem>
-            <ChartContainer
-              title={t('analytics.charts.marketTrends')}
-              description={t('analytics.charts.marketTrendsDesc')}
-              type="area"
-              badge={t('analytics.badges.externalData')}
-              showTimeRange
-              timeRange={timeRange}
-              onTimeRangeChange={setTimeRange}
-              refreshable
-              onRefresh={handleRefresh}
-              exportable
-            >
-              <MockChart color="#06B6D4">
-                <Typography variant="h6" color="info">
-                  Market Trends
-                </Typography>
-              </MockChart>
-            </ChartContainer>
-          </GridItem>
-
-          <GridItem>
-            <ChartContainer
-              title={t('analytics.charts.supplierPerformance')}
-              description={t('analytics.charts.supplierPerformanceDesc')}
-              type="gauge"
-              refreshable
-              onRefresh={handleRefresh}
-              exportable
-            >
-              <MockChart color="#10B981">
-                <Typography variant="h6" color="success">
-                  Supplier Metrics
-                </Typography>
-              </MockChart>
-            </ChartContainer>
-          </GridItem>
-        </DashboardGrid>
-      </div>
+      {/* Revenue Analytics Modal */}
+      <Modal
+        isOpen={isModalOpen('revenueAnalytics')}
+        onClose={() => closeModal('revenueAnalytics')}
+        title=""
+        size="xl"
+        padding={false}
+      >
+        <RevenueAnalyticsDashboard
+          onAnalyticsUpdate={handleAnalyticsUpdate}
+          onClose={() => closeModal('revenueAnalytics')}
+        />
+      </Modal>
     </AnalyticsContainer>
   );
 };

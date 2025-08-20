@@ -134,11 +134,18 @@ class ErrorBoundary extends React.Component {
     e.preventDefault();
     
     if (this.state.feedback.trim() && this.state.eventId) {
-      Sentry.captureUserFeedback({
-        event_id: this.state.eventId,
-        name: this.props.userEmail || 'Anonymous',
-        email: this.props.userEmail || '',
-        comments: this.state.feedback
+      // captureUserFeedback is deprecated in newer Sentry versions
+      // Use addBreadcrumb instead for user feedback
+      Sentry.addBreadcrumb({
+        category: 'user-feedback',
+        message: this.state.feedback,
+        level: 'info',
+        data: {
+          name: this.props.userEmail || 'Anonymous',
+          email: this.props.userEmail || '',
+          comments: this.state.feedback,
+          event_id: this.state.eventId
+        }
       });
       
       this.setState({ 

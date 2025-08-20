@@ -322,11 +322,11 @@ const ABTesting = () => {
       render: (value, test) => (
         <div style={{ display: 'flex', flexDirection: 'column', gap: '4px' }}>
           <Typography variant="caption" color="secondary" style={{ display: 'flex', alignItems: 'center', gap: '4px' }}>
-            <Icon name="a-circle" size={12} />
+            <Icon name="user" size={12} />
             {test.modelA.name}
           </Typography>
           <Typography variant="caption" color="secondary" style={{ display: 'flex', alignItems: 'center', gap: '4px' }}>
-            <Icon name="b-circle" size={12} />
+            <Icon name="users" size={12} />
             {test.modelB.name}
           </Typography>
         </div>
@@ -421,13 +421,13 @@ const ABTesting = () => {
     },
     {
       id: 'calculate',
-      icon: 'calculator',
+      icon: 'gauge',
       label: 'Calculate Significance',
       show: (test) => test.status === 'running' || test.status === 'completed'
     },
     {
       id: 'configure',
-      icon: 'sliders',
+      icon: 'settings',
       label: 'Configure Parameters',
       disabled: (test) => test.status === 'completed'
     },
@@ -439,19 +439,19 @@ const ABTesting = () => {
     },
     {
       id: 'pause',
-      icon: 'pause',
+      icon: 'close',
       label: 'Pause Test',
       show: (test) => test.status === 'running'
     },
     {
       id: 'resume',
-      icon: 'play',
+      icon: 'trending',
       label: 'Resume Test',
       show: (test) => test.status === 'paused'
     },
     {
       id: 'stop',
-      icon: 'square',
+      icon: 'check',
       label: 'Stop Test',
       variant: 'error',
       show: (test) => test.status === 'running' || test.status === 'paused'
@@ -467,13 +467,13 @@ const ABTesting = () => {
   const bulkActions = [
     {
       id: 'pause',
-      icon: 'pause',
+      icon: 'close',
       label: 'Pause Selected',
       variant: 'warning'
     },
     {
       id: 'stop',
-      icon: 'square',
+      icon: 'check',
       label: 'Stop Selected',
       variant: 'error'
     },
@@ -883,7 +883,7 @@ const ABTesting = () => {
               A/B Testing
             </Typography>
             <Badge variant="info" size="sm">
-              <Icon name="flask" size={12} />
+              <Icon name="archive" size={12} />
               AI Models
             </Badge>
           </div>
@@ -917,7 +917,7 @@ const ABTesting = () => {
             size="sm"
             onClick={() => openModal('advancedReporting', { size: 'xl' })}
           >
-            <Icon name="bar-chart" size={16} />
+            <Icon name="analytics" size={16} />
             Advanced Analytics
           </Button>
           <Button
@@ -941,7 +941,7 @@ const ABTesting = () => {
             size="sm"
             onClick={() => openModal('recommendations', { size: 'xl' })}
           >
-            <Icon name="lightbulb" size={16} />
+            <Icon name="zap" size={16} />
             AI Recommendations
           </Button>
           <Button
@@ -949,7 +949,7 @@ const ABTesting = () => {
             size="sm"
             onClick={() => openModal('algorithms', { size: 'xl' })}
           >
-            <Icon name="cpu" size={16} />
+            <Icon name="gauge" size={16} />
             AI Algorithms
           </Button>
           <Button
@@ -973,7 +973,7 @@ const ABTesting = () => {
             size="sm"
             onClick={() => openModal('deployment', { size: 'xl' })}
           >
-            <Icon name="rocket" size={16} />
+            <Icon name="trending-up" size={16} />
             Deploy Tests
           </Button>
           <Button
@@ -981,7 +981,7 @@ const ABTesting = () => {
             size="sm"
             onClick={() => openModal('compareModels', { size: 'xl' })}
           >
-            <Icon name="cpu" size={16} />
+            <Icon name="gauge" size={16} />
             Compare Models
           </Button>
           <Button
@@ -989,7 +989,7 @@ const ABTesting = () => {
             size="sm"
             onClick={() => openModal('benchmarking', { size: 'xl' })}
           >
-            <Icon name="bar-chart" size={16} />
+            <Icon name="analytics" size={16} />
             Model Benchmarking
           </Button>
           <Button
@@ -997,7 +997,7 @@ const ABTesting = () => {
             size="sm"
             onClick={() => openModal('environments', { size: 'xl' })}
           >
-            <Icon name="server" size={16} />
+            <Icon name="package" size={16} />
             Environments
           </Button>
           <Button
@@ -1005,7 +1005,7 @@ const ABTesting = () => {
             size="sm"
             onClick={() => openModal('riskAssessment', { size: 'xl' })}
           >
-            <Icon name="shield" size={16} />
+            <Icon name="warning" size={16} />
             Risk Assessment
           </Button>
           <Button
@@ -1013,7 +1013,7 @@ const ABTesting = () => {
             size="sm"
             onClick={() => openModal('advancedStatistics', { size: 'xl' })}
           >
-            <Icon name="calculator" size={16} />
+            <Icon name="gauge" size={16} />
             Advanced Statistics
           </Button>
           <Button
@@ -1021,7 +1021,7 @@ const ABTesting = () => {
             size="sm"
             onClick={() => openModal('dataGovernance', { size: 'xl' })}
           >
-            <Icon name="shield" size={16} />
+            <Icon name="warning" size={16} />
             Data Governance
           </Button>
           <Button
@@ -1029,7 +1029,7 @@ const ABTesting = () => {
             size="sm"
             onClick={() => openModal('documentation', { size: 'xl' })}
           >
-            <Icon name="book-open" size={16} />
+            <Icon name="folder" size={16} />
             Documentation
           </Button>
           <Button
@@ -1037,7 +1037,7 @@ const ABTesting = () => {
             size="sm"
             onClick={() => openModal('multiVariant', { size: 'xl' })}
           >
-            <Icon name="git-branch" size={16} />
+            <Icon name="grid" size={16} />
             Multi-Variant Test
           </Button>
           <Button
@@ -1089,7 +1089,7 @@ const ABTesting = () => {
         pageSizeOptions={[5, 10, 25, 50]}
         emptyStateTitle="No A/B Tests Found"
         emptyStateDescription="Create your first A/B test to start comparing AI model performance"
-        emptyStateIcon="flask"
+        emptyStateIcon="archive"
         onAction={handleAction}
         onBulkAction={handleBulkAction}
         onSelect={setSelectedTests}

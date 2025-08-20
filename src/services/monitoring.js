@@ -186,11 +186,17 @@ export function reportError(error, errorInfo = {}) {
 // User feedback
 export function reportUserFeedback(feedback) {
   if (MONITORING_CONFIG.sentry.enabled) {
-    Sentry.captureUserFeedback({
-      event_id: Sentry.lastEventId(),
-      name: feedback.name || 'Anonymous',
-      email: feedback.email || '',
-      comments: feedback.message
+    // captureUserFeedback is deprecated in newer Sentry versions
+    // Use addBreadcrumb instead for user feedback
+    Sentry.addBreadcrumb({
+      category: 'user-feedback',
+      message: feedback.message || 'User feedback provided',
+      level: 'info',
+      data: {
+        name: feedback.name || 'Anonymous',
+        email: feedback.email || '',
+        comments: feedback.message
+      }
     });
   }
 }
