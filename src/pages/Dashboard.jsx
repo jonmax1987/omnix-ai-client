@@ -16,6 +16,7 @@ import SeasonalDemandForecasting from '../components/organisms/SeasonalDemandFor
 import CostAnalysisMarginOptimization from '../components/organisms/CostAnalysisMarginOptimization';
 import ProductCatalogManagement from '../components/organisms/ProductCatalogManagement';
 import CategoryTagManager from '../components/organisms/CategoryTagManager';
+import PriceHistoryOptimization from '../components/organisms/PriceHistoryOptimization';
 import StockDepletionTimeline from '../components/organisms/StockDepletionTimeline';
 import AutomatedOrderSuggestions from '../components/organisms/AutomatedOrderSuggestions';
 import SupplierIntegrationHub from '../components/organisms/SupplierIntegrationHub';
@@ -561,6 +562,40 @@ const Dashboard = () => {
     // 5. Show success notification and impact summary
   };
 
+  // Price history and optimization handlers
+  const handlePriceUpdate = (priceUpdate) => {
+    console.log('Updating product price:', priceUpdate);
+    // In a real implementation, this would:
+    // 1. Validate price change and business rules
+    // 2. Submit price update to inventory service
+    // 3. Record price change in history with reason
+    // 4. Analyze impact on margins and forecasts
+    // 5. Send notifications to stakeholders if needed
+    // 6. Update price optimization recommendations
+  };
+
+  const handleOptimizationApply = (optimization) => {
+    console.log('Applying price optimization:', optimization);
+    // In a real implementation, this would:
+    // 1. Validate optimization recommendation
+    // 2. Apply price changes with scheduling if needed
+    // 3. Set up monitoring for impact measurement
+    // 4. Update forecasting models with new prices
+    // 5. Track optimization effectiveness
+    // 6. Generate optimization report
+  };
+
+  const handleAnalysisRequest = (analysisParams) => {
+    console.log('Requesting price analysis:', analysisParams);
+    // In a real implementation, this would:
+    // 1. Submit analysis request with parameters
+    // 2. Trigger AI-powered price analysis
+    // 3. Generate competitive positioning report
+    // 4. Update optimization recommendations
+    // 5. Refresh price history and trends
+    // 6. Show analysis results in dashboard
+  };
+
   const allComponents = [
     <InventoryHealthOverview
       key="inventory-health"
@@ -1007,6 +1042,28 @@ const Dashboard = () => {
               onTagCreate={handleTagCreate}
               onTagEdit={handleTagEdit}
               onTagDelete={handleTagDelete}
+            />
+          </GridItem>
+        </DashboardGrid>
+      </div>
+
+      {/* Price History & Optimization Section */}
+      <div style={{ marginBottom: '2rem' }}>
+        <Typography variant="h5" weight="semibold" style={{ marginBottom: '1.5rem', display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+          <Icon name="trending-up" size={24} />
+          Price History & Optimization
+          <Badge variant="warning" size="sm">3 Alerts</Badge>
+          <Badge variant="info" size="sm">AI Insights</Badge>
+        </Typography>
+        <DashboardGrid
+          {...DASHBOARD_LAYOUTS.default}
+          spacing="lg"
+        >
+          <GridItem span={4}>
+            <PriceHistoryOptimization
+              onPriceUpdate={handlePriceUpdate}
+              onOptimizationApply={handleOptimizationApply}
+              onAnalysisRequest={handleAnalysisRequest}
             />
           </GridItem>
         </DashboardGrid>

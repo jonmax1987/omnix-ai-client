@@ -2713,6 +2713,456 @@ class InventoryService {
       { type: 'product_insight', description: 'Product insights available' }
     ];
   }
+
+  /**
+   * Get price history for a product
+   * @param {string} productId - Product ID
+   * @param {Object} params - Query parameters
+   * @returns {Promise<Object>} Price history data
+   */
+  async getPriceHistory(productId, params = {}) {
+    const {
+      timeframe = '3months',
+      includeCompetitorData = true,
+      includeAnalysis = true
+    } = params;
+
+    const cacheKey = `price_history_${productId}_${timeframe}`;
+    
+    if (this.getCachedData(cacheKey)) {
+      return this.getCachedData(cacheKey);
+    }
+
+    try {
+      const mockData = this.getMockPriceHistory(productId, params);
+      this.setCachedData(cacheKey, mockData);
+      return mockData;
+    } catch (error) {
+      throw this.handleInventoryError('Price history fetch failed', error);
+    }
+  }
+
+  /**
+   * Update product price with tracking
+   * @param {string} productId - Product ID
+   * @param {Object} priceUpdate - Price update data
+   * @returns {Promise<Object>} Update response
+   */
+  async updateProductPrice(productId, priceUpdate) {
+    const {
+      newPrice,
+      reason,
+      effectiveDate = new Date().toISOString(),
+      notifyCustomers = false,
+      temporary = false,
+      endDate = null
+    } = priceUpdate;
+
+    try {
+      this.validatePriceUpdate(priceUpdate);
+
+      const response = await httpService.put(`/inventory/products/${productId}/price`, {
+        newPrice,
+        reason,
+        effectiveDate,
+        notifyCustomers,
+        temporary,
+        endDate,
+        updatedAt: new Date().toISOString()
+      });
+
+      // Clear relevant caches
+      this.clearPriceHistoryCache(productId);
+
+      return {
+        ...response,
+        analysis: this.analyzePriceImpact(response),
+        recommendations: this.generatePriceRecommendations(response)
+      };
+    } catch (error) {
+      throw this.handleInventoryError('Price update failed', error);
+    }
+  }
+
+  /**
+   * Get pricing optimization recommendations
+   * @param {string} productId - Product ID (optional)
+   * @param {Object} params - Parameters
+   * @returns {Promise<Object>} Optimization recommendations
+   */
+  async getPricingOptimization(productId = null, params = {}) {
+    const {
+      analysisType = 'comprehensive',
+      includeCompetitorAnalysis = true,
+      includeSeasonalTrends = true,
+      optimizationGoals = ['profit', 'volume']
+    } = params;
+
+    const cacheKey = `pricing_optimization_${productId || 'all'}_${analysisType}`;
+    
+    if (this.getCachedData(cacheKey)) {
+      return this.getCachedData(cacheKey);
+    }
+
+    try {
+      const mockData = this.getMockPricingOptimization(productId, params);
+      this.setCachedData(cacheKey, mockData);
+      return mockData;
+    } catch (error) {
+      throw this.handleInventoryError('Pricing optimization fetch failed', error);
+    }
+  }
+
+  /**
+   * Get price analytics and trends
+   * @param {Object} params - Analytics parameters
+   * @returns {Promise<Object>} Price analytics
+   */
+  async getPriceAnalytics(params = {}) {
+    const {
+      timeframe = '6months',
+      categories = [],
+      includeForecasts = true,
+      includeInsights = true
+    } = params;
+
+    const cacheKey = `price_analytics_${timeframe}_${categories.join(',')}}`;
+    
+    if (this.getCachedData(cacheKey)) {
+      return this.getCachedData(cacheKey);
+    }
+
+    try {
+      const mockData = this.getMockPriceAnalytics(params);
+      this.setCachedData(cacheKey, mockData);
+      return mockData;
+    } catch (error) {
+      throw this.handleInventoryError('Price analytics fetch failed', error);
+    }
+  }
+
+  /**
+   * Generate mock price history data
+   * @param {string} productId - Product ID
+   * @param {Object} params - Parameters
+   * @returns {Object} Mock price history
+   */
+  getMockPriceHistory(productId, params = {}) {
+    const { timeframe = '3months' } = params;
+    
+    // Generate dates based on timeframe
+    const periods = {
+      '1month': 30,
+      '3months': 90,
+      '6months': 180,
+      '1year': 365
+    };
+    
+    const days = periods[timeframe] || 90;
+    const now = new Date();
+    const basePrice = 89.99;
+    
+    const history = [];
+    for (let i = days; i >= 0; i -= 3) {
+      const date = new Date(now.getTime() - (i * 24 * 60 * 60 * 1000));
+      const variation = (Math.random() - 0.5) * 0.2; // ±10% variation
+      const price = Math.max(basePrice * (1 + variation), basePrice * 0.7);
+      
+      history.push({
+        date: date.toISOString(),
+        price: Math.round(price * 100) / 100,
+        reason: i === 0 ? 'Current Price' : this.getRandomPriceReason(),
+        volume: Math.floor(Math.random() * 100) + 20,
+        margin: Math.round((price - 45.50) / price * 100 * 100) / 100
+      });
+    }
+
+    const currentPrice = history[history.length - 1].price;
+    const previousPrice = history[history.length - 7]?.price || currentPrice;
+    
+    return {
+      productId,
+      productName: 'Premium Coffee Beans - 1kg',
+      sku: 'COFFEE-PREM-1KG',
+      currentPrice,
+      currency: 'ILS',
+      history,
+      summary: {
+        averagePrice: history.reduce((sum, item) => sum + item.price, 0) / history.length,
+        highestPrice: Math.max(...history.map(item => item.price)),
+        lowestPrice: Math.min(...history.map(item => item.price)),
+        priceChanges: history.length - 1,
+        trend: currentPrice > previousPrice ? 'increasing' : currentPrice < previousPrice ? 'decreasing' : 'stable',
+        volatility: this.calculatePriceVolatility(history)
+      },
+      competitorData: this.getMockCompetitorPrices(),
+      analysis: this.getMockPriceAnalysis(history),
+      lastUpdated: new Date().toISOString()
+    };
+  }
+
+  /**
+   * Generate mock pricing optimization data
+   * @param {string} productId - Product ID
+   * @param {Object} params - Parameters
+   * @returns {Object} Mock pricing optimization
+   */
+  getMockPricingOptimization(productId, params = {}) {
+    const currentPrice = 89.99;
+    const cost = 45.50;
+    
+    return {
+      productId,
+      currentPrice,
+      cost,
+      currentMargin: Math.round((currentPrice - cost) / currentPrice * 100),
+      recommendations: [
+        {
+          id: 'opt-001',
+          type: 'price_increase',
+          title: 'Optimal Price Increase',
+          description: 'Increase price by 8.3% to maximize profit while maintaining sales volume',
+          recommendedPrice: 97.49,
+          expectedImpact: {
+            revenueChange: '+12.4%',
+            volumeChange: '-3.2%',
+            profitChange: '+18.7%'
+          },
+          confidence: 87,
+          reasoning: 'Price elasticity analysis shows low sensitivity in this category',
+          timeframe: 'Implement within 2 weeks',
+          priority: 'high'
+        },
+        {
+          id: 'opt-002',
+          type: 'seasonal_pricing',
+          title: 'Seasonal Adjustment',
+          description: 'Implement dynamic pricing for peak coffee season',
+          recommendedPrice: 94.99,
+          expectedImpact: {
+            revenueChange: '+8.1%',
+            volumeChange: '+2.4%',
+            profitChange: '+11.3%'
+          },
+          confidence: 76,
+          reasoning: 'Historical data shows 15% higher demand October-February',
+          timeframe: 'Start October 1st',
+          priority: 'medium'
+        },
+        {
+          id: 'opt-003',
+          type: 'competitive_adjustment',
+          title: 'Competitive Positioning',
+          description: 'Adjust pricing to maintain premium positioning vs competitors',
+          recommendedPrice: 92.99,
+          expectedImpact: {
+            revenueChange: '+5.2%',
+            volumeChange: '+4.1%',
+            profitChange: '+7.8%'
+          },
+          confidence: 91,
+          reasoning: 'Competitors averaging ₪85-88, maintain 8-10% premium',
+          timeframe: 'Review monthly',
+          priority: 'high'
+        }
+      ],
+      marketAnalysis: {
+        competitorRange: { min: 75.99, max: 95.99, average: 86.50 },
+        marketPosition: 'Premium',
+        priceElasticity: -1.2,
+        demandForecast: '+6.3% next quarter'
+      },
+      aiInsights: [
+        'Current pricing is slightly below optimal profit-maximizing level',
+        'Strong brand loyalty allows for moderate price increases',
+        'Seasonal patterns suggest implementing dynamic pricing',
+        'Monitor competitor pricing changes weekly'
+      ],
+      lastAnalyzed: new Date().toISOString()
+    };
+  }
+
+  /**
+   * Generate mock price analytics data
+   * @param {Object} params - Parameters
+   * @returns {Object} Mock price analytics
+   */
+  getMockPriceAnalytics(params = {}) {
+    const { timeframe = '6months' } = params;
+    
+    return {
+      timeframe,
+      overview: {
+        totalProducts: 1247,
+        avgPriceChange: '+3.2%',
+        priceOptimizationOpportunities: 89,
+        revenueImpact: '+₪127,450'
+      },
+      trends: {
+        overallTrend: 'increasing',
+        categoryTrends: [
+          { category: 'Coffee & Beverages', trend: '+5.1%', products: 234 },
+          { category: 'Fresh Produce', trend: '+2.8%', products: 456 },
+          { category: 'Dairy Products', trend: '+1.9%', products: 189 },
+          { category: 'Bakery', trend: '+4.3%', products: 145 }
+        ],
+        seasonalPatterns: this.getMockSeasonalPatterns()
+      },
+      optimization: {
+        potentialIncrease: '₪45,200 monthly',
+        confidenceScore: 84,
+        recommendedActions: 12,
+        implementationTimeframe: '2-4 weeks'
+      },
+      alerts: [
+        {
+          type: 'opportunity',
+          message: 'Coffee category shows strong price elasticity - consider 5-8% increase',
+          priority: 'high',
+          potentialImpact: '₪12,300/month'
+        },
+        {
+          type: 'warning',
+          message: 'Fresh produce pricing below competitor average',
+          priority: 'medium',
+          potentialImpact: '₪8,900/month'
+        }
+      ],
+      forecasts: this.getMockPriceForecasts(),
+      lastUpdated: new Date().toISOString()
+    };
+  }
+
+  /**
+   * Helper methods for price history functionality
+   */
+  getRandomPriceReason() {
+    const reasons = [
+      'Market adjustment',
+      'Cost increase',
+      'Seasonal pricing',
+      'Competitive response',
+      'Promotion end',
+      'Supply chain impact',
+      'Demand optimization'
+    ];
+    return reasons[Math.floor(Math.random() * reasons.length)];
+  }
+
+  calculatePriceVolatility(history) {
+    if (history.length < 2) return 0;
+    
+    const prices = history.map(item => item.price);
+    const average = prices.reduce((sum, price) => sum + price, 0) / prices.length;
+    const variance = prices.reduce((sum, price) => sum + Math.pow(price - average, 2), 0) / prices.length;
+    return Math.round(Math.sqrt(variance) / average * 100 * 100) / 100;
+  }
+
+  getMockCompetitorPrices() {
+    return [
+      { competitor: 'SuperSol', price: 84.99, lastUpdated: '2025-08-19' },
+      { competitor: 'Shufersal', price: 87.50, lastUpdated: '2025-08-18' },
+      { competitor: 'Mega', price: 85.99, lastUpdated: '2025-08-20' },
+      { competitor: 'Tiv Taam', price: 92.99, lastUpdated: '2025-08-19' }
+    ];
+  }
+
+  getMockPriceAnalysis(history) {
+    return {
+      trendAnalysis: 'Price showing moderate upward trend over selected period',
+      volatilityLevel: 'Low to moderate price volatility',
+      seasonalImpact: 'Strong seasonal correlation with coffee consumption patterns',
+      competitivePosition: 'Currently priced at premium vs market average',
+      recommendations: [
+        'Consider implementing dynamic pricing strategy',
+        'Monitor competitor pricing more frequently',
+        'Test price elasticity with controlled increases'
+      ]
+    };
+  }
+
+  getMockSeasonalPatterns() {
+    return [
+      { month: 'Jan', factor: 1.15, reason: 'Winter consumption peak' },
+      { month: 'Feb', factor: 1.12, reason: 'Cold weather continues' },
+      { month: 'Mar', factor: 1.02, reason: 'Spring transition' },
+      { month: 'Apr', factor: 0.98, reason: 'Weather warming' },
+      { month: 'May', factor: 0.95, reason: 'Lower demand' },
+      { month: 'Jun', factor: 0.92, reason: 'Summer low' },
+      { month: 'Jul', factor: 0.90, reason: 'Vacation season' },
+      { month: 'Aug', factor: 0.93, reason: 'Back to routine' },
+      { month: 'Sep', factor: 1.05, reason: 'Return to work/school' },
+      { month: 'Oct', factor: 1.08, reason: 'Cooler weather' },
+      { month: 'Nov', factor: 1.12, reason: 'Holiday season prep' },
+      { month: 'Dec', factor: 1.18, reason: 'Holiday peak' }
+    ];
+  }
+
+  getMockPriceForecasts() {
+    return {
+      nextMonth: {
+        predictedTrend: '+2.1%',
+        confidence: 78,
+        factors: ['Seasonal increase', 'Supply chain costs']
+      },
+      nextQuarter: {
+        predictedTrend: '+5.4%',
+        confidence: 71,
+        factors: ['Market expansion', 'Premium positioning']
+      },
+      nextYear: {
+        predictedTrend: '+8.2%',
+        confidence: 65,
+        factors: ['Inflation', 'Brand development', 'Market maturation']
+      }
+    };
+  }
+
+  /**
+   * Validation and utility methods
+   */
+  validatePriceUpdate(priceUpdate) {
+    const { newPrice } = priceUpdate;
+    
+    if (!newPrice || typeof newPrice !== 'number') {
+      throw new Error('Valid price is required');
+    }
+    
+    if (newPrice <= 0) {
+      throw new Error('Price must be greater than 0');
+    }
+    
+    if (newPrice > 999999) {
+      throw new Error('Price exceeds maximum allowed value');
+    }
+  }
+
+  clearPriceHistoryCache(productId) {
+    const cacheKeys = Object.keys(this.cache).filter(key => 
+      key.includes('price_history') && key.includes(productId)
+    );
+    
+    cacheKeys.forEach(key => {
+      delete this.cache[key];
+    });
+  }
+
+  analyzePriceImpact(priceUpdateResponse) {
+    return {
+      impactScore: Math.floor(Math.random() * 30) + 70, // 70-100
+      expectedVolumeChange: `${Math.floor(Math.random() * 10) - 5}%`,
+      expectedRevenueChange: `+${Math.floor(Math.random() * 15) + 5}%`,
+      competitiveImpact: 'Moderate'
+    };
+  }
+
+  generatePriceRecommendations(priceUpdateResponse) {
+    return [
+      'Monitor sales volume for next 2 weeks',
+      'Track competitor responses',
+      'Consider customer communication strategy'
+    ];
+  }
 }
 
 // Export singleton instance
