@@ -92,8 +92,13 @@ function AppContent() {
   const navigate = useNavigate();
   const location = useLocation();
   const store = useStore();
-  const { preferences, setTheme, isAuthenticated } = useUserStore();
+  const { preferences, setTheme, isAuthenticated, initializeAuth } = useUserStore();
   const { ui = {}, toggleSidebar, setSidebarMobileOpen, setCurrentPage, setIsMobile } = store || {};
+  
+  // Initialize authentication state on app start
+  useEffect(() => {
+    initializeAuth();
+  }, []); // Empty dependency array - only run once on mount
   
   // Initialize WebSocket connection
   useWebSocket();
@@ -226,9 +231,6 @@ function AppContent() {
     <AuthProvider 
       enableSessionManagement={true}
       showSessionIndicator={import.meta.env.DEV}
-      onAuthStateChange={(authState) => {
-        console.log('🔐 Auth state changed:', authState);
-      }}
     >
       <ModalProvider>
         <ThemeProvider theme={currentTheme}>

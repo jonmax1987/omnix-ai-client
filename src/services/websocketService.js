@@ -103,6 +103,7 @@ export class WebSocketService extends EventEmitter {
    * Connect to WebSocket server
    */
   async connect() {
+    
     const wsUrl = import.meta.env.VITE_WEBSOCKET_URL;
     
     if (!wsUrl) {

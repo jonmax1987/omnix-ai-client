@@ -53,7 +53,7 @@ const AuthProvider = ({
     if (onAuthStateChange) {
       onAuthStateChange(newAuthState);
     }
-  }, [isAuthenticated, user, token, loading.auth, onAuthStateChange]);
+  }, [isAuthenticated, user, token, loading.auth]); // Remove onAuthStateChange from deps
 
   // Auto token refresh
   useEffect(() => {
@@ -64,7 +64,13 @@ const AuthProvider = ({
         // Check if token needs refresh (5 minutes before expiry)
         const tokenExpiry = useUserStore.getState().tokenExpiry;
         if (tokenExpiry && Date.now() > tokenExpiry - 300000) {
-          await refreshSession();
+          const refreshed = await refreshSession();
+          // Only logout if refresh explicitly failed and we have a token
+          if (!refreshed && token) {
+            console.log('Token refresh failed, session expired');
+            // Optional: You can trigger logout here if needed
+            // logout();
+          }
         }
       } catch (error) {
         console.error('Token refresh failed:', error);
@@ -74,9 +80,9 @@ const AuthProvider = ({
     // Check every 5 minutes
     const interval = setInterval(checkTokenRefresh, 300000);
     
-    // Check immediately
-    checkTokenRefresh();
-
+    // Don't check immediately on mount to prevent logout loops
+    // The first check will happen after 5 minutes
+    
     return () => clearInterval(interval);
   }, [isAuthenticated, token, autoRefreshToken, refreshSession]);
 

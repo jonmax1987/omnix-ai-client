@@ -125,7 +125,7 @@ const SessionManager = ({
     if (isAuthenticated) {
       updateLastActivity();
     }
-  }, [isAuthenticated, updateLastActivity]);
+  }, [isAuthenticated]); // Remove updateLastActivity from deps
 
   // Set up activity listeners
   useEffect(() => {

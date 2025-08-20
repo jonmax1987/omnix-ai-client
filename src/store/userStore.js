@@ -165,7 +165,7 @@ const useUserStore = create()(
           
           // Loading states
           loading: {
-            auth: false,
+            auth: true, // Start with loading = true to prevent immediate redirects
             profile: false,
             preferences: false,
             permissions: false
@@ -271,8 +271,11 @@ const useUserStore = create()(
           refreshSession: async () => {
             const { refreshToken, tokenExpiry } = get();
             
-            if (!refreshToken || Date.now() >= tokenExpiry) {
-              await get().logout();
+            if (!refreshToken) {
+              return false;
+            }
+            
+            if (tokenExpiry && Date.now() >= tokenExpiry) {
               return false;
             }
             
@@ -295,8 +298,25 @@ const useUserStore = create()(
               throw new Error('Token refresh failed');
             } catch (error) {
               console.error('Session refresh failed:', error.message);
-              await get().logout();
               return false;
+            }
+          },
+          
+          // Initialize authentication state
+          initializeAuth: () => {
+            const state = get();
+            
+            // Check if we have a valid session
+            if (state.token && state.refreshToken && state.tokenExpiry && Date.now() < state.tokenExpiry) {
+              set((draft) => {
+                draft.isAuthenticated = true;
+                draft.loading.auth = false;
+              });
+            } else {
+              set((draft) => {
+                draft.isAuthenticated = false;
+                draft.loading.auth = false;
+              });
             }
           },
           
@@ -614,7 +634,9 @@ const useUserStore = create()(
           },
           
           isSessionExpired: () => {
-            const { session } = get();
+            const { session, isAuthenticated } = get();
+            // If user is authenticated but no lastActivity yet, session is not expired
+            if (isAuthenticated && !session.lastActivity) return false;
             if (!session.lastActivity) return true;
             
             const timeSinceActivity = Date.now() - session.lastActivity;

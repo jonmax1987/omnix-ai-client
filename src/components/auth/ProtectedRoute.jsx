@@ -3,10 +3,15 @@ import { Navigate, useLocation } from 'react-router-dom';
 import useUserStore from '../../store/userStore';
 
 function ProtectedRoute({ children, requiredPermission = null, requiredResource = null }) {
-  const { isAuthenticated, hasPermission, canAccess } = useUserStore();
+  const { isAuthenticated, hasPermission, canAccess, token, loading } = useUserStore();
   const location = useLocation();
 
-  // Check authentication
+  // Show loading while checking authentication
+  if (loading?.auth) {
+    return <div>Loading...</div>;
+  }
+
+  // Check authentication only after loading is complete
   if (!isAuthenticated) {
     // Redirect to login page with return path
     return <Navigate to="/login" state={{ from: location }} replace />;

@@ -360,7 +360,7 @@ class QueryClientService {
       totalQueries: queries.length,
       activeQueries: queries.filter(q => q.getObserversCount() > 0).length,
       staleQueries: queries.filter(q => q.isStale()).length,
-      invalidQueries: queries.filter(q => q.isInvalid()).length,
+      invalidQueries: queries.filter(q => q.state.isInvalidated || false).length, // Fixed: use state.isInvalidated
       errorQueries: queries.filter(q => q.state.status === 'error').length,
       loadingQueries: queries.filter(q => q.state.status === 'loading').length,
       successQueries: queries.filter(q => q.state.status === 'success').length,

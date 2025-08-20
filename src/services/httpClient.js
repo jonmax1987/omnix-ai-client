@@ -23,7 +23,10 @@ export class ApiError extends Error {
  * HTTP Client Configuration
  */
 const HTTP_CONFIG = {
-  baseURL: import.meta.env.VITE_API_BASE_URL || 'https://18sz01wxsi.execute-api.eu-central-1.amazonaws.com/dev/v1',
+  // Use proxy in development to avoid CORS issues
+  baseURL: import.meta.env.DEV 
+    ? '/api' // Use Vite proxy which forwards to the actual API
+    : (import.meta.env.VITE_API_BASE_URL || 'https://18sz01wxsi.execute-api.eu-central-1.amazonaws.com/dev/v1'),
   timeout: 30000,
   maxRetries: 3,
   retryDelay: 1000,
@@ -259,29 +262,32 @@ httpClient.interceptors.response.use(
     // End metrics tracking
     metrics.endRequest(requestId, false, error);
     
-    // Handle token expiration and refresh
-    if (error.response?.status === 401 && !error.config._retryAttempted) {
+    // Skip auth handling for logout endpoints to prevent loops
+    if (error.config?.url?.includes('/auth/logout')) {
+      const apiError = transformAxiosError(error);
+      return Promise.reject(apiError);
+    }
+    
+    // Handle 401 unauthorized responses (token refresh)
+    if (error.response?.status === 401 && 
+        !error.config._retryAttempted && 
+        !error.config?.url?.includes('/auth/')) {
+      
       error.config._retryAttempted = true;
       
       try {
         const userStore = useUserStore.getState();
-        const refreshed = await userStore.refreshSession();
+        const refreshSuccess = await userStore.refreshSession();
         
-        if (refreshed) {
-          // Update authorization header with new token
-          error.config.headers.Authorization = `Bearer ${userStore.token}`;
-          
-          // Retry the original request
-          return httpClient(error.config);
-        } else {
-          // Refresh failed, logout user
-          userStore.logout();
-          throw new ApiError('Session expired', 401, 'UNAUTHORIZED');
+        if (refreshSuccess) {
+          // Retry the original request with the new token
+          const newToken = useUserStore.getState().token;
+          error.config.headers.Authorization = `Bearer ${newToken}`;
+          return httpClient.request(error.config);
         }
       } catch (refreshError) {
-        // Logout user on refresh failure
-        useUserStore.getState().logout();
-        throw new ApiError('Authentication failed', 401, 'UNAUTHORIZED');
+        console.error('Token refresh failed in interceptor:', refreshError);
+        // Refresh failed, let the original error continue
       }
     }
     
