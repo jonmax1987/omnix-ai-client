@@ -13,6 +13,8 @@ import PredictiveInventoryPanel from '../components/organisms/PredictiveInventor
 import InventoryHealthOverview from '../components/organisms/InventoryHealthOverview';
 import StockDepletionTimeline from '../components/organisms/StockDepletionTimeline';
 import AutomatedOrderSuggestions from '../components/organisms/AutomatedOrderSuggestions';
+import SupplierIntegrationHub from '../components/organisms/SupplierIntegrationHub';
+import BulkOrderGenerationInterface from '../components/organisms/BulkOrderGenerationInterface';
 import PullToRefresh from '../components/molecules/PullToRefresh';
 import MobileCarousel from '../components/molecules/MobileCarousel';
 import { exportDashboardReport } from '../utils/exportUtils';
@@ -635,6 +637,41 @@ const Dashboard = () => {
               onIgnoreSuggestion={(suggestion) => console.log('Ignored suggestion:', suggestion)}
               refreshInterval={300000}
             />
+          </GridItem>
+        </DashboardGrid>
+      </div>
+
+      {/* Supplier Integration Section */}
+      <div style={{ marginBottom: '2rem' }}>
+        <Typography variant="h5" weight="semibold" style={{ marginBottom: '1.5rem' }}>
+          Supplier Integration & Lead Times
+        </Typography>
+        <DashboardGrid
+          {...DASHBOARD_LAYOUTS.default}
+          spacing="lg"
+        >
+          <GridItem span={4}>
+            <SupplierIntegrationHub
+              onSupplierSelect={(supplier) => console.log('Selected supplier:', supplier)}
+              onContactSupplier={(supplier) => console.log('Contacting supplier:', supplier)}
+              onCreateOrder={handleInventoryOrderGenerate}
+              refreshInterval={300000}
+            />
+          </GridItem>
+        </DashboardGrid>
+      </div>
+
+      {/* Bulk Order Generation Section */}
+      <div style={{ marginBottom: '2rem' }}>
+        <Typography variant="h5" weight="semibold" style={{ marginBottom: '1.5rem' }}>
+          Bulk Order Generation
+        </Typography>
+        <DashboardGrid
+          {...DASHBOARD_LAYOUTS.default}
+          spacing="lg"
+        >
+          <GridItem span={4}>
+            <BulkOrderGenerationInterface />
           </GridItem>
         </DashboardGrid>
       </div>
