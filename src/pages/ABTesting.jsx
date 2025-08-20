@@ -13,6 +13,7 @@ import ABTestResultsVisualization from '../components/organisms/ABTestResultsVis
 import ABTestStatisticalCalculator from '../components/organisms/ABTestStatisticalCalculator';
 import ABTestModelComparison from '../components/organisms/ABTestModelComparison';
 import ABTestRecommendationEngine from '../components/organisms/ABTestRecommendationEngine';
+import ABTestHistoricalArchive from '../components/organisms/ABTestHistoricalArchive';
 import { useI18n } from '../hooks/useI18n';
 import { useModal } from '../contexts/ModalContext';
 
@@ -655,6 +656,14 @@ const ABTesting = () => {
           <Button
             variant="secondary"
             size="sm"
+            onClick={() => openModal('testHistory', { size: 'xl' })}
+          >
+            <Icon name="archive" size={16} />
+            Test History
+          </Button>
+          <Button
+            variant="secondary"
+            size="sm"
             onClick={() => openModal('recommendations', { size: 'xl' })}
           >
             <Icon name="lightbulb" size={16} />
@@ -865,6 +874,26 @@ const ABTesting = () => {
             runningTests: stats.runningTests
           }}
           onModelSelect={handleModelSelect}
+        />
+      </Modal>
+
+      {/* Test History Modal */}
+      <Modal
+        isOpen={isModalOpen('testHistory')}
+        onClose={() => closeModal('testHistory')}
+        title=""
+        size="xl"
+        padding={false}
+      >
+        <ABTestHistoricalArchive
+          onTestSelect={(test) => {
+            console.log('Historical test selected:', test);
+            // Could open a detailed view or compare with current tests
+          }}
+          onExportData={(exportData) => {
+            console.log('Exporting historical test data:', exportData);
+            // Trigger download or send to external system
+          }}
         />
       </Modal>
 
