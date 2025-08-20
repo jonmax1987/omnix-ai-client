@@ -10,6 +10,7 @@ import DataTable from '../components/organisms/DataTable';
 import ABTestCreationWizard from '../components/organisms/ABTestCreationWizard';
 import ABTestConfiguration from '../components/organisms/ABTestConfiguration';
 import ABTestResultsVisualization from '../components/organisms/ABTestResultsVisualization';
+import ABTestStatisticalCalculator from '../components/organisms/ABTestStatisticalCalculator';
 import { useI18n } from '../hooks/useI18n';
 import { useModal } from '../contexts/ModalContext';
 
@@ -129,6 +130,7 @@ const ABTesting = () => {
   const [selectedTests, setSelectedTests] = useState([]);
   const [configuredTest, setConfiguredTest] = useState(null);
   const [viewedTest, setViewedTest] = useState(null);
+  const [calculatedTest, setCalculatedTest] = useState(null);
 
   // Mock A/B test data
   useEffect(() => {
@@ -400,6 +402,12 @@ const ABTesting = () => {
       show: (test) => test.status === 'running' || test.status === 'completed'
     },
     {
+      id: 'calculate',
+      icon: 'calculator',
+      label: 'Calculate Significance',
+      show: (test) => test.status === 'running' || test.status === 'completed'
+    },
+    {
       id: 'configure',
       icon: 'sliders',
       label: 'Configure Parameters',
@@ -467,6 +475,10 @@ const ABTesting = () => {
       case 'view':
         setViewedTest(test);
         openModal('viewResults', { size: 'xl' });
+        break;
+      case 'calculate':
+        setCalculatedTest(test);
+        openModal('calculateSignificance', { size: 'xl' });
         break;
       case 'configure':
         setConfiguredTest(test);
@@ -555,6 +567,24 @@ const ABTesting = () => {
       throw error;
     }
   }, [configuredTest, closeModal]);
+
+  // Handle calculation update
+  const handleCalculationUpdate = useCallback((calculations) => {
+    console.log('Statistical calculations updated:', calculations);
+    
+    // Update test with new statistical data if needed
+    if (calculatedTest && calculations.isSignificant !== undefined) {
+      setTests(prev => prev.map(t => 
+        t.id === calculatedTest.id 
+          ? { 
+              ...t, 
+              significance: calculations.isSignificant ? 95 : Math.max(60, calculations.pValue * 100),
+              statisticalAnalysis: calculations
+            }
+          : t
+      ));
+    }
+  }, [calculatedTest]);
 
   return (
     <ABTestingContainer
@@ -728,6 +758,40 @@ const ABTesting = () => {
               }
             }}
             realTimeUpdates={viewedTest.status === 'running'}
+          />
+        </Modal>
+      )}
+
+      {/* Calculate Significance Modal */}
+      {calculatedTest && (
+        <Modal
+          isOpen={isModalOpen('calculateSignificance')}
+          onClose={() => {
+            closeModal('calculateSignificance');
+            setCalculatedTest(null);
+          }}
+          title=""
+          size="xl"
+          padding={false}
+        >
+          <ABTestStatisticalCalculator
+            testData={{
+              participants: {
+                variantA: Math.floor(calculatedTest.participants / 2),
+                variantB: Math.ceil(calculatedTest.participants / 2)
+              },
+              conversions: {
+                variantA: {
+                  count: Math.floor(calculatedTest.participants * calculatedTest.conversionRateA / 200),
+                  rate: calculatedTest.conversionRateA
+                },
+                variantB: {
+                  count: Math.floor(calculatedTest.participants * calculatedTest.conversionRateB / 200), 
+                  rate: calculatedTest.conversionRateB
+                }
+              }
+            }}
+            onCalculationUpdate={handleCalculationUpdate}
           />
         </Modal>
       )}
