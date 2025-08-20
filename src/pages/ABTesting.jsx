@@ -19,6 +19,7 @@ import ABTestPerformanceMonitoring from '../components/organisms/ABTestPerforman
 import ABTestCostAnalysis from '../components/organisms/ABTestCostAnalysis';
 import MultiVariantTesting from '../components/organisms/MultiVariantTesting';
 import ExperimentSegmentation from '../components/organisms/ExperimentSegmentation';
+import ABTestAdvancedReporting from '../components/organisms/ABTestAdvancedReporting';
 import { useI18n } from '../hooks/useI18n';
 import { useModal } from '../contexts/ModalContext';
 
@@ -669,10 +670,10 @@ const ABTesting = () => {
           <Button
             variant="secondary"
             size="sm"
-            onClick={() => console.log('View analytics')}
+            onClick={() => openModal('advancedReporting', { size: 'xl' })}
           >
             <Icon name="bar-chart" size={16} />
-            Analytics
+            Advanced Analytics
           </Button>
           <Button
             variant="secondary"
@@ -1079,6 +1080,20 @@ const ABTesting = () => {
           }}
           onRecommendationSelect={handleRecommendationSelect}
           onExecutePlan={handleExecutePlan}
+        />
+      </Modal>
+
+      {/* Advanced Reporting Modal */}
+      <Modal
+        isOpen={isModalOpen('advancedReporting')}
+        onClose={() => closeModal('advancedReporting')}
+        title=""
+        size="xl"
+        padding={false}
+      >
+        <ABTestAdvancedReporting
+          testData={tests}
+          onClose={() => closeModal('advancedReporting')}
         />
       </Modal>
     </ABTestingContainer>
