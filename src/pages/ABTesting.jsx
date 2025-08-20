@@ -9,6 +9,7 @@ import Modal from '../components/atoms/Modal';
 import DataTable from '../components/organisms/DataTable';
 import ABTestCreationWizard from '../components/organisms/ABTestCreationWizard';
 import ABTestConfiguration from '../components/organisms/ABTestConfiguration';
+import ABTestResultsVisualization from '../components/organisms/ABTestResultsVisualization';
 import { useI18n } from '../hooks/useI18n';
 import { useModal } from '../contexts/ModalContext';
 
@@ -127,6 +128,7 @@ const ABTesting = () => {
   const [loading, setLoading] = useState(true);
   const [selectedTests, setSelectedTests] = useState([]);
   const [configuredTest, setConfiguredTest] = useState(null);
+  const [viewedTest, setViewedTest] = useState(null);
 
   // Mock A/B test data
   useEffect(() => {
@@ -394,7 +396,8 @@ const ABTesting = () => {
     {
       id: 'view',
       icon: 'eye',
-      label: 'View Details'
+      label: 'View Results',
+      show: (test) => test.status === 'running' || test.status === 'completed'
     },
     {
       id: 'configure',
@@ -462,7 +465,8 @@ const ABTesting = () => {
     
     switch (actionId) {
       case 'view':
-        // TODO: Open test details modal
+        setViewedTest(test);
+        openModal('viewResults', { size: 'xl' });
         break;
       case 'configure':
         setConfiguredTest(test);
@@ -676,6 +680,54 @@ const ABTesting = () => {
             initialConfig={configuredTest.configuration || {}}
             onConfigUpdate={handleConfigUpdate}
             onConfigSave={handleConfigSave}
+          />
+        </Modal>
+      )}
+
+      {/* View Results Modal */}
+      {viewedTest && (
+        <Modal
+          isOpen={isModalOpen('viewResults')}
+          onClose={() => {
+            closeModal('viewResults');
+            setViewedTest(null);
+          }}
+          title=""
+          size="xl"
+          padding={false}
+        >
+          <ABTestResultsVisualization
+            testId={viewedTest.id}
+            testData={{
+              testName: viewedTest.name,
+              status: viewedTest.status,
+              progress: viewedTest.progress,
+              duration: viewedTest.duration,
+              daysRemaining: viewedTest.daysRemaining,
+              participants: {
+                total: viewedTest.participants,
+                variantA: Math.floor(viewedTest.participants / 2),
+                variantB: Math.ceil(viewedTest.participants / 2)
+              },
+              conversions: {
+                variantA: { 
+                  count: Math.floor(viewedTest.participants * viewedTest.conversionRateA / 200),
+                  rate: viewedTest.conversionRateA 
+                },
+                variantB: { 
+                  count: Math.floor(viewedTest.participants * viewedTest.conversionRateB / 200),
+                  rate: viewedTest.conversionRateB 
+                }
+              },
+              significance: {
+                level: viewedTest.significance,
+                pValue: viewedTest.significance >= 95 ? 0.03 : 0.11,
+                confidenceInterval: viewedTest.confidenceInterval,
+                status: viewedTest.significance >= 95 ? 'significant' : 
+                        viewedTest.significance >= 80 ? 'approaching' : 'not_significant'
+              }
+            }}
+            realTimeUpdates={viewedTest.status === 'running'}
           />
         </Modal>
       )}
