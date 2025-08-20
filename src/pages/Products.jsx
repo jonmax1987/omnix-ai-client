@@ -12,6 +12,7 @@ import ConfirmDialog from '../components/molecules/ConfirmDialog';
 import DataTable from '../components/organisms/DataTable';
 import ProductForm from '../components/organisms/ProductForm';
 import CrossSellUpsellRecommendations from '../components/organisms/CrossSellUpsellRecommendations';
+import BatchProductManager from '../components/organisms/BatchProductManager';
 import { useI18n } from '../hooks/useI18n';
 import { useModal } from '../contexts/ModalContext';
 import useProductsStore from '../store/productsStore';
@@ -418,7 +419,11 @@ const Products = () => {
   };
 
   const handleImport = () => {
-    console.log('Import products');
+    // Scroll to batch manager section
+    const batchSection = document.querySelector('[data-batch-manager]');
+    if (batchSection) {
+      batchSection.scrollIntoView({ behavior: 'smooth' });
+    }
   };
 
   const handleAddProduct = () => {
@@ -430,7 +435,12 @@ const Products = () => {
   };
 
   const handleExport = () => {
-    console.log('Export all products');
+    // Scroll to batch manager section and trigger export
+    const batchSection = document.querySelector('[data-batch-manager]');
+    if (batchSection) {
+      batchSection.scrollIntoView({ behavior: 'smooth' });
+      // TODO: Could trigger export action programmatically
+    }
   };
 
   // ProductForm submit handler
@@ -520,6 +530,41 @@ const Products = () => {
     // For now, just log the recommendation
   };
 
+  // Batch operation handlers
+  const handleImportComplete = async (results) => {
+    try {
+      console.log('Import completed:', results);
+      // TODO: Show success/error notification based on results
+      
+      if (results.successful > 0) {
+        console.log(`Successfully imported ${results.successful} products`);
+        // TODO: Show success notification
+      }
+      
+      if (results.failed > 0) {
+        console.log(`Failed to import ${results.failed} products`);
+        // TODO: Show warning notification with details
+      }
+      
+      // Refresh products list to show newly imported items
+      await fetchProducts();
+    } catch (error) {
+      console.error('Error handling import completion:', error);
+      // TODO: Show error notification
+    }
+  };
+
+  const handleExportComplete = (exportInfo) => {
+    try {
+      console.log('Export completed:', exportInfo);
+      // TODO: Show success notification
+      console.log(`Successfully exported ${exportInfo.recordCount} products to ${exportInfo.filename}`);
+    } catch (error) {
+      console.error('Error handling export completion:', error);
+      // TODO: Show error notification
+    }
+  };
+
   return (
     <ProductsContainer
       initial={{ opacity: 0, y: 20 }}
@@ -600,6 +645,14 @@ const Products = () => {
         exportFilename="products-inventory"
         exportFormats={['csv', 'pdf']}
       />
+
+      {/* Batch Product Manager */}
+      <div style={{ marginTop: '48px' }} data-batch-manager>
+        <BatchProductManager
+          onImportComplete={handleImportComplete}
+          onExportComplete={handleExportComplete}
+        />
+      </div>
 
       {/* Cross-sell & Upsell Recommendations */}
       <div style={{ marginTop: '48px' }}>

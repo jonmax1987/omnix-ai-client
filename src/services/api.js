@@ -67,7 +67,17 @@ export const productsAPI = {
   createProduct: (data) => api.post('/products', data),
   updateProduct: (id, data) => api.patch(`/products/${id}`, data),
   deleteProduct: (id) => api.delete(`/products/${id}`),
+  
+  // Batch operations (INV-015)
+  bulkImportProducts: (data) => api.post('/products/bulk-import', data),
+  bulkExportProducts: (params = {}) => api.get('/products/bulk-export', params),
+  bulkUpdateProducts: (updates) => api.patch('/products/bulk-update', updates),
+  bulkDeleteProducts: (ids) => api.delete('/products/bulk-delete', { data: { ids } }),
   deleteProducts: (ids) => api.post('/products/batch-delete', { ids }),
+  validateProductsImport: (data) => api.post('/products/import/validate', data),
+  getImportTemplate: (format = 'csv') => api.get(`/products/import/template?format=${format}`),
+  getExportStatus: (jobId) => api.get(`/products/export/${jobId}/status`),
+  getImportStatus: (jobId) => api.get(`/products/import/${jobId}/status`),
   importProducts: (file) => {
     const formData = new FormData();
     formData.append('file', file);

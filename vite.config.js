@@ -132,7 +132,7 @@ export default defineConfig(({ command, mode }) => ({
         target: 'https://wdqm1vpl80.execute-api.eu-central-1.amazonaws.com/dev',
         changeOrigin: true,
         secure: true,
-        rewrite: (path) => path.replace(/^\/api/, '/v1'),
+        rewrite: (path) => path.replace(/^\/api/, ''),
         configure: (proxy, options) => {
           proxy.on('error', (err, req, res) => {
             console.log('Proxy error:', err);
