@@ -22,6 +22,7 @@ import ExperimentSegmentation from '../components/organisms/ExperimentSegmentati
 import ABTestAdvancedReporting from '../components/organisms/ABTestAdvancedReporting';
 import ABTestRecommendationAlgorithms from '../components/organisms/ABTestRecommendationAlgorithms';
 import ABTestResultsPrediction from '../components/organisms/ABTestResultsPrediction';
+import ABTestAutomatedOptimization from '../components/organisms/ABTestAutomatedOptimization';
 import { useI18n } from '../hooks/useI18n';
 import { useModal } from '../contexts/ModalContext';
 
@@ -666,6 +667,28 @@ const ABTesting = () => {
     // TODO: Show success notification with prediction summary
   }, []);
 
+  // Handle optimization updates
+  const handleOptimizationUpdate = useCallback((optimizationData) => {
+    console.log('Optimization data updated:', optimizationData);
+    
+    // Update global optimization settings
+    // This could affect how tests are run and monitored
+    
+    // Update test data with optimization information
+    setTests(prev => prev.map(t => 
+      t.status === 'running' 
+        ? { 
+            ...t, 
+            optimizationEnabled: optimizationData.enabled,
+            optimizationStrategy: optimizationData.strategy,
+            lastOptimized: optimizationData.lastRun || new Date()
+          }
+        : t
+    ));
+    
+    // TODO: Show success notification with optimization summary
+  }, []);
+
   return (
     <ABTestingContainer
       initial={{ opacity: 0, y: 20 }}
@@ -755,6 +778,14 @@ const ABTesting = () => {
           >
             <Icon name="brain" size={16} />
             Results Prediction
+          </Button>
+          <Button
+            variant="secondary"
+            size="sm"
+            onClick={() => openModal('optimization', { size: 'xl' })}
+          >
+            <Icon name="zap" size={16} />
+            Auto Optimization
           </Button>
           <Button
             variant="secondary"
@@ -1181,6 +1212,21 @@ const ABTesting = () => {
           testData={tests}
           onPredictionUpdate={handlePredictionUpdate}
           onClose={() => closeModal('prediction')}
+        />
+      </Modal>
+
+      {/* Automated Optimization Modal */}
+      <Modal
+        isOpen={isModalOpen('optimization')}
+        onClose={() => closeModal('optimization')}
+        title=""
+        size="xl"
+        padding={false}
+      >
+        <ABTestAutomatedOptimization
+          testData={tests}
+          onOptimizationUpdate={handleOptimizationUpdate}
+          onClose={() => closeModal('optimization')}
         />
       </Modal>
     </ABTestingContainer>
