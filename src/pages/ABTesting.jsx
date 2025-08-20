@@ -18,6 +18,7 @@ import ABTestDeployment from '../components/organisms/ABTestDeployment';
 import ABTestPerformanceMonitoring from '../components/organisms/ABTestPerformanceMonitoring';
 import ABTestCostAnalysis from '../components/organisms/ABTestCostAnalysis';
 import MultiVariantTesting from '../components/organisms/MultiVariantTesting';
+import ExperimentSegmentation from '../components/organisms/ExperimentSegmentation';
 import { useI18n } from '../hooks/useI18n';
 import { useModal } from '../contexts/ModalContext';
 
@@ -676,6 +677,14 @@ const ABTesting = () => {
           <Button
             variant="secondary"
             size="sm"
+            onClick={() => openModal('segmentation', { size: 'xl' })}
+          >
+            <Icon name="users" size={16} />
+            Segmentation
+          </Button>
+          <Button
+            variant="secondary"
+            size="sm"
             onClick={() => openModal('testHistory', { size: 'xl' })}
           >
             <Icon name="archive" size={16} />
@@ -910,6 +919,31 @@ const ABTesting = () => {
             runningTests: stats.runningTests
           }}
           onModelSelect={handleModelSelect}
+        />
+      </Modal>
+
+      {/* Experiment Segmentation Modal */}
+      <Modal
+        isOpen={isModalOpen('segmentation')}
+        onClose={() => closeModal('segmentation')}
+        title=""
+        size="xl"
+        padding={false}
+      >
+        <ExperimentSegmentation
+          testData={tests}
+          onSegmentCreate={(segment) => {
+            console.log('New segment created:', segment);
+            // Handle new segment creation
+          }}
+          onSegmentUpdate={(segmentId, updates) => {
+            console.log('Segment updated:', segmentId, updates);
+            // Handle segment configuration updates
+          }}
+          onSegmentApply={(segmentId, testId) => {
+            console.log('Applying segment to test:', segmentId, testId);
+            // Handle segment application to test
+          }}
         />
       </Modal>
 
