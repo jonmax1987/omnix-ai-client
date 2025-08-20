@@ -8,6 +8,7 @@ import Badge from '../components/atoms/Badge';
 import Modal from '../components/atoms/Modal';
 import DataTable from '../components/organisms/DataTable';
 import ABTestCreationWizard from '../components/organisms/ABTestCreationWizard';
+import ABTestConfiguration from '../components/organisms/ABTestConfiguration';
 import { useI18n } from '../hooks/useI18n';
 import { useModal } from '../contexts/ModalContext';
 
@@ -125,6 +126,7 @@ const ABTesting = () => {
   const [tests, setTests] = useState([]);
   const [loading, setLoading] = useState(true);
   const [selectedTests, setSelectedTests] = useState([]);
+  const [configuredTest, setConfiguredTest] = useState(null);
 
   // Mock A/B test data
   useEffect(() => {
@@ -395,6 +397,12 @@ const ABTesting = () => {
       label: 'View Details'
     },
     {
+      id: 'configure',
+      icon: 'sliders',
+      label: 'Configure Parameters',
+      disabled: (test) => test.status === 'completed'
+    },
+    {
       id: 'edit',
       icon: 'edit',
       label: 'Edit Test',
@@ -456,6 +464,10 @@ const ABTesting = () => {
       case 'view':
         // TODO: Open test details modal
         break;
+      case 'configure':
+        setConfiguredTest(test);
+        openModal('configureTest', { size: 'xl' });
+        break;
       case 'edit':
         // TODO: Open edit modal
         break;
@@ -507,6 +519,38 @@ const ABTesting = () => {
     
     setSelectedTests([]);
   }, []);
+
+  // Handle configuration update
+  const handleConfigUpdate = useCallback((config) => {
+    console.log('Configuration updated:', config);
+    // Configuration is automatically updated in real-time via the callback
+  }, []);
+
+  // Handle configuration save
+  const handleConfigSave = useCallback(async (config) => {
+    try {
+      console.log('Saving configuration for test:', configuredTest.id, config);
+      
+      // Update test configuration
+      setTests(prev => prev.map(t => 
+        t.id === configuredTest.id 
+          ? { ...t, configuration: config }
+          : t
+      ));
+      
+      // Close modal
+      closeModal('configureTest');
+      setConfiguredTest(null);
+      
+      // TODO: Show success notification
+      console.log('Configuration saved successfully');
+      
+      return { success: true };
+    } catch (error) {
+      console.error('Failed to save configuration:', error);
+      throw error;
+    }
+  }, [configuredTest, closeModal]);
 
   return (
     <ABTestingContainer
@@ -614,6 +658,27 @@ const ABTesting = () => {
           onClose={() => closeModal('createTest')}
         />
       </Modal>
+
+      {/* Configure Test Modal */}
+      {configuredTest && (
+        <Modal
+          isOpen={isModalOpen('configureTest')}
+          onClose={() => {
+            closeModal('configureTest');
+            setConfiguredTest(null);
+          }}
+          title=""
+          size="xl"
+          padding={false}
+        >
+          <ABTestConfiguration
+            testId={configuredTest.id}
+            initialConfig={configuredTest.configuration || {}}
+            onConfigUpdate={handleConfigUpdate}
+            onConfigSave={handleConfigSave}
+          />
+        </Modal>
+      )}
     </ABTestingContainer>
   );
 };
