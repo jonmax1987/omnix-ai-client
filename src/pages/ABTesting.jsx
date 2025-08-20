@@ -12,6 +12,7 @@ import ABTestConfiguration from '../components/organisms/ABTestConfiguration';
 import ABTestResultsVisualization from '../components/organisms/ABTestResultsVisualization';
 import ABTestStatisticalCalculator from '../components/organisms/ABTestStatisticalCalculator';
 import ABTestModelComparison from '../components/organisms/ABTestModelComparison';
+import ABTestRecommendationEngine from '../components/organisms/ABTestRecommendationEngine';
 import { useI18n } from '../hooks/useI18n';
 import { useModal } from '../contexts/ModalContext';
 
@@ -598,6 +599,25 @@ const ABTesting = () => {
     // TODO: Show success notification
   }, [closeModal]);
 
+  // Handle recommendation selection
+  const handleRecommendationSelect = useCallback((recommendation) => {
+    console.log('Recommendation selected:', recommendation);
+    
+    // This could auto-fill the test creation wizard with the recommendation details
+    closeModal('recommendations');
+    setTimeout(() => {
+      openModal('createTest', { size: 'xl' });
+    }, 300);
+  }, [closeModal, openModal]);
+
+  // Handle execution plan
+  const handleExecutePlan = useCallback(() => {
+    console.log('Executing recommendation plan');
+    
+    // This would implement the full execution plan
+    // TODO: Show success notification and maybe redirect to execution dashboard
+  }, []);
+
   return (
     <ABTestingContainer
       initial={{ opacity: 0, y: 20 }}
@@ -631,6 +651,14 @@ const ABTesting = () => {
           >
             <Icon name="bar-chart" size={16} />
             Analytics
+          </Button>
+          <Button
+            variant="secondary"
+            size="sm"
+            onClick={() => openModal('recommendations', { size: 'xl' })}
+          >
+            <Icon name="lightbulb" size={16} />
+            AI Recommendations
           </Button>
           <Button
             variant="secondary"
@@ -837,6 +865,27 @@ const ABTesting = () => {
             runningTests: stats.runningTests
           }}
           onModelSelect={handleModelSelect}
+        />
+      </Modal>
+
+      {/* AI Recommendations Modal */}
+      <Modal
+        isOpen={isModalOpen('recommendations')}
+        onClose={() => closeModal('recommendations')}
+        title=""
+        size="xl"
+        padding={false}
+      >
+        <ABTestRecommendationEngine
+          currentTests={tests}
+          businessMetrics={{
+            avgSignificance: stats.avgSignificance,
+            totalTests: stats.totalTests,
+            runningTests: stats.runningTests,
+            completedTests: stats.completedTests
+          }}
+          onRecommendationSelect={handleRecommendationSelect}
+          onExecutePlan={handleExecutePlan}
         />
       </Modal>
     </ABTestingContainer>
