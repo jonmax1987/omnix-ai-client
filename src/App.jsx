@@ -33,6 +33,7 @@ import OrderDetail from './pages/OrderDetail';
 import Alerts from './pages/Alerts';
 import Recommendations from './pages/Recommendations';
 import Analytics from './pages/Analytics';
+import ABTesting from './pages/ABTesting';
 import Settings from './pages/Settings';
 import Login from './pages/Login';
 import Register from './pages/Register';
@@ -316,6 +317,11 @@ function AppContent() {
                         <Route path="/analytics" element={
                           <ProtectedRoute requiredResource="analytics">
                             <Analytics />
+                          </ProtectedRoute>
+                        } />
+                        <Route path="/ab-testing" element={
+                          <ProtectedRoute requiredResource="analytics">
+                            <ABTesting />
                           </ProtectedRoute>
                         } />
                         <Route path="/settings" element={

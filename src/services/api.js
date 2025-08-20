@@ -276,6 +276,44 @@ export const settingsAPI = {
   testWebhook: (id) => api.post(`/settings/webhooks/${id}/test`)
 };
 
+// A/B Testing API (AB-001 to AB-008)
+export const abTestingAPI = {
+  // Test management
+  getABTests: (params = {}) => api.get('/ab-tests', params),
+  getABTest: (id) => api.get(`/ab-tests/${id}`),
+  createABTest: (data) => api.post('/ab-tests', data),
+  updateABTest: (id, data) => api.patch(`/ab-tests/${id}`, data),
+  deleteABTest: (id) => api.delete(`/ab-tests/${id}`),
+  
+  // Test operations
+  startABTest: (id) => api.post(`/ab-tests/${id}/start`),
+  pauseABTest: (id) => api.post(`/ab-tests/${id}/pause`),
+  resumeABTest: (id) => api.post(`/ab-tests/${id}/resume`),
+  stopABTest: (id) => api.post(`/ab-tests/${id}/stop`),
+  duplicateABTest: (id) => api.post(`/ab-tests/${id}/duplicate`),
+  
+  // Test results and analytics
+  getABTestResults: (id) => api.get(`/ab-tests/${id}/results`),
+  getABTestMetrics: (id) => api.get(`/ab-tests/${id}/metrics`),
+  getABTestStatistics: (id) => api.get(`/ab-tests/${id}/statistics`),
+  calculateSignificance: (id) => api.post(`/ab-tests/${id}/significance`),
+  
+  // Test configuration
+  validateTestConfig: (config) => api.post('/ab-tests/validate', config),
+  getModelComparisons: () => api.get('/ab-tests/models'),
+  getTestTemplates: () => api.get('/ab-tests/templates'),
+  
+  // Historical data and reporting
+  getTestHistory: (params = {}) => api.get('/ab-tests/history', params),
+  exportTestResults: (id, format = 'csv') => api.get(`/ab-tests/${id}/export?format=${format}`),
+  getTestInsights: (id) => api.get(`/ab-tests/${id}/insights`),
+  
+  // Advanced analytics
+  getTestSegmentation: (id) => api.get(`/ab-tests/${id}/segments`),
+  getTestFunnel: (id) => api.get(`/ab-tests/${id}/funnel`),
+  getTestCohorts: (id) => api.get(`/ab-tests/${id}/cohorts`)
+};
+
 // System API
 export const systemAPI = {
   getHealth: () => api.get('/system/health'),

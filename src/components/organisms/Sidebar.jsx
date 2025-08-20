@@ -249,6 +249,7 @@ const Sidebar = ({
       section: 'Management',
       items: [
         { id: 'recommendations', label: t('navigation.recommendations'), icon: 'trending' },
+        { id: 'ab-testing', label: 'A/B Testing', icon: 'flask' },
         { id: 'reports', label: 'Reports', icon: 'analytics' },
         { id: 'settings', label: t('navigation.settings'), icon: 'settings' }
       ]
