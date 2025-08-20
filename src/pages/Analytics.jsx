@@ -7,6 +7,7 @@ import Badge from '../components/atoms/Badge';
 import Modal from '../components/atoms/Modal';
 import RevenueAnalyticsDashboard from '../components/organisms/RevenueAnalyticsDashboard';
 import CustomerAnalyticsDashboard from '../components/organisms/CustomerAnalyticsDashboard';
+import ProductPerformanceAnalytics from '../components/organisms/ProductPerformanceAnalytics';
 import { useI18n } from '../hooks/useI18n';
 import { useModal } from '../contexts/ModalContext';
 
@@ -168,7 +169,7 @@ const Analytics = () => {
         'Cross-sell opportunities',
         'Product lifecycle tracking'
       ],
-      status: 'coming-soon'
+      status: 'available'
     },
     {
       id: 'marketing',
@@ -219,6 +220,8 @@ const Analytics = () => {
       openModal('revenueAnalytics', { size: 'xl' });
     } else if (moduleId === 'customer') {
       openModal('customerAnalytics', { size: 'xl' });
+    } else if (moduleId === 'product') {
+      openModal('productAnalytics', { size: 'xl' });
     }
     // Other modules will be implemented in future tasks
   };
@@ -252,8 +255,16 @@ const Analytics = () => {
         
         <HeaderRight>
           <Typography variant="caption" color="tertiary">
-            2 of 6 modules available
+            3 of 6 modules available
           </Typography>
+          <Button
+            variant="secondary"
+            size="sm"
+            onClick={() => openModal('productAnalytics', { size: 'xl' })}
+          >
+            <Icon name="package" size={16} />
+            Product Analytics
+          </Button>
           <Button
             variant="secondary"
             size="sm"
@@ -342,6 +353,21 @@ const Analytics = () => {
         <CustomerAnalyticsDashboard
           onAnalyticsUpdate={handleAnalyticsUpdate}
           onClose={() => closeModal('customerAnalytics')}
+        />
+      </Modal>
+
+      {/* Product Analytics Modal */}
+      <Modal
+        isOpen={isModalOpen('productAnalytics')}
+        onClose={() => closeModal('productAnalytics')}
+        title=""
+        size="xl"
+        padding={false}
+      >
+        <ProductPerformanceAnalytics
+          onExportReport={handleAnalyticsUpdate}
+          onOptimizationRequest={handleAnalyticsUpdate}
+          onProductSelect={(product) => console.log('Selected product:', product)}
         />
       </Modal>
     </AnalyticsContainer>

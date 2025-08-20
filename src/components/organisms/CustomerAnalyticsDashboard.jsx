@@ -42,7 +42,7 @@ import {
 import Typography from '../atoms/Typography';
 import Button from '../atoms/Button';
 import Badge from '../atoms/Badge';
-import LoadingSpinner from '../atoms/LoadingSpinner';
+import Spinner from '../atoms/Spinner';
 import Icon from '../atoms/Icon';
 
 const CustomerAnalyticsContainer = styled(motion.div)`
@@ -720,7 +720,7 @@ const CustomerAnalyticsDashboard = ({ onAnalyticsUpdate, onClose }) => {
             disabled={loading}
           >
             {loading ? (
-              <LoadingSpinner size={16} />
+              <Spinner size={16} />
             ) : (
               <RefreshCcw size={16} />
             )}
