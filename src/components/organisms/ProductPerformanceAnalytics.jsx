@@ -57,8 +57,8 @@ const Tab = styled.button`
   padding: ${props => props.theme.spacing[3]} ${props => props.theme.spacing[6]};
   background: none;
   border: none;
-  font-size: ${props => props.theme.typography.body1.fontSize};
-  font-weight: ${props => props.theme.typography.body1.fontWeight};
+  font-size: ${props => props.theme.typography?.body1?.fontSize || '1rem'};
+  font-weight: ${props => props.theme.typography?.body1?.fontWeight || 400};
   color: ${props => props.theme.colors.text.secondary};
   cursor: pointer;
   transition: all 0.2s ease;
