@@ -1,10 +1,14 @@
 import React, { useState } from 'react';
 import styled from 'styled-components';
-import { FileText, TrendingUp, Users, Package, Download, Calendar, Filter } from 'lucide-react';
+import { FileText, TrendingUp, Users, Package, Download, Calendar, Filter, DollarSign, Sun, BarChart3, Send } from 'lucide-react';
 import ExecutiveSummaryReport from '../components/organisms/ExecutiveSummaryReport';
 import RevenueTrendAnalysis from '../components/organisms/RevenueTrendAnalysis';
 import CustomerBehaviorInsights from '../components/organisms/CustomerBehaviorInsights';
 import InventoryTurnoverAnalysis from '../components/organisms/InventoryTurnoverAnalysis';
+import ProfitabilityAnalysis from '../components/organisms/ProfitabilityAnalysis';
+import SeasonalTrendAnalysis from '../components/organisms/SeasonalTrendAnalysis';
+import ComparativePeriodAnalysis from '../components/organisms/ComparativePeriodAnalysis';
+import ReportExportScheduler from '../components/organisms/ReportExportScheduler';
 
 const PageContainer = styled.div`
   padding: ${({ theme }) => theme.spacing.xl};
@@ -138,6 +142,30 @@ const BIReports = () => {
       name: 'Inventory Turnover',
       icon: Package,
       component: InventoryTurnoverAnalysis
+    },
+    {
+      id: 'profitability',
+      name: 'Profitability Analysis',
+      icon: DollarSign,
+      component: ProfitabilityAnalysis
+    },
+    {
+      id: 'seasonal',
+      name: 'Seasonal Trends',
+      icon: Sun,
+      component: SeasonalTrendAnalysis
+    },
+    {
+      id: 'comparative',
+      name: 'Comparative Analysis',
+      icon: BarChart3,
+      component: ComparativePeriodAnalysis
+    },
+    {
+      id: 'export',
+      name: 'Export & Schedule',
+      icon: Send,
+      component: ReportExportScheduler
     }
   ];
 
