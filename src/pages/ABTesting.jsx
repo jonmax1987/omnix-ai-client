@@ -16,6 +16,7 @@ import ABTestRecommendationEngine from '../components/organisms/ABTestRecommenda
 import ABTestHistoricalArchive from '../components/organisms/ABTestHistoricalArchive';
 import ABTestDeployment from '../components/organisms/ABTestDeployment';
 import ABTestPerformanceMonitoring from '../components/organisms/ABTestPerformanceMonitoring';
+import ABTestCostAnalysis from '../components/organisms/ABTestCostAnalysis';
 import { useI18n } from '../hooks/useI18n';
 import { useModal } from '../contexts/ModalContext';
 
@@ -658,6 +659,14 @@ const ABTesting = () => {
           <Button
             variant="secondary"
             size="sm"
+            onClick={() => openModal('costAnalysis', { size: 'xl' })}
+          >
+            <Icon name="dollar-sign" size={16} />
+            Cost Analysis
+          </Button>
+          <Button
+            variant="secondary"
+            size="sm"
             onClick={() => console.log('View analytics')}
           >
             <Icon name="bar-chart" size={16} />
@@ -892,6 +901,27 @@ const ABTesting = () => {
             runningTests: stats.runningTests
           }}
           onModelSelect={handleModelSelect}
+        />
+      </Modal>
+
+      {/* Cost Analysis Modal */}
+      <Modal
+        isOpen={isModalOpen('costAnalysis')}
+        onClose={() => closeModal('costAnalysis')}
+        title=""
+        size="xl"
+        padding={false}
+      >
+        <ABTestCostAnalysis
+          testData={tests}
+          onCostConfigUpdate={(configUpdate) => {
+            console.log('Cost configuration updated:', configUpdate);
+            // Handle cost configuration updates
+          }}
+          onOptimizationApply={(optimization) => {
+            console.log('Applying optimization:', optimization);
+            // Handle optimization implementation
+          }}
         />
       </Modal>
 
