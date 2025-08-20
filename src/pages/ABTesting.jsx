@@ -24,6 +24,7 @@ import ABTestRecommendationAlgorithms from '../components/organisms/ABTestRecomm
 import ABTestResultsPrediction from '../components/organisms/ABTestResultsPrediction';
 import ABTestAutomatedOptimization from '../components/organisms/ABTestAutomatedOptimization';
 import ABTestModelBenchmarking from '../components/organisms/ABTestModelBenchmarking';
+import ABTestEnvironmentManagement from '../components/organisms/ABTestEnvironmentManagement';
 import { useI18n } from '../hooks/useI18n';
 import { useModal } from '../contexts/ModalContext';
 
@@ -703,6 +704,29 @@ const ABTesting = () => {
     // TODO: Show success notification
   }, [closeModal]);
 
+  // Handle environment updates
+  const handleEnvironmentUpdate = useCallback((environmentData) => {
+    console.log('Environment data updated:', environmentData);
+    
+    // Update environment states and configurations
+    // This could affect which tests can run in which environments
+    
+    // Update test data with environment information if needed
+    if (environmentData.environmentId) {
+      setTests(prev => prev.map(t => 
+        t.environment === environmentData.environmentId
+          ? { 
+              ...t, 
+              environmentStatus: environmentData.action,
+              lastEnvironmentUpdate: environmentData.timestamp
+            }
+          : t
+      ));
+    }
+    
+    // TODO: Show success notification with environment update summary
+  }, []);
+
   return (
     <ABTestingContainer
       initial={{ opacity: 0, y: 20 }}
@@ -824,6 +848,14 @@ const ABTesting = () => {
           >
             <Icon name="bar-chart" size={16} />
             Model Benchmarking
+          </Button>
+          <Button
+            variant="secondary"
+            size="sm"
+            onClick={() => openModal('environments', { size: 'xl' })}
+          >
+            <Icon name="server" size={16} />
+            Environments
           </Button>
           <Button
             variant="secondary"
@@ -1270,6 +1302,20 @@ const ABTesting = () => {
           testData={tests}
           onModelSelect={handleBenchmarkModelSelect}
           onClose={() => closeModal('benchmarking')}
+        />
+      </Modal>
+
+      {/* Environment Management Modal */}
+      <Modal
+        isOpen={isModalOpen('environments')}
+        onClose={() => closeModal('environments')}
+        title=""
+        size="xl"
+        padding={false}
+      >
+        <ABTestEnvironmentManagement
+          onEnvironmentUpdate={handleEnvironmentUpdate}
+          onClose={() => closeModal('environments')}
         />
       </Modal>
     </ABTestingContainer>

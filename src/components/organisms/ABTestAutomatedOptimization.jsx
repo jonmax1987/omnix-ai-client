@@ -2,7 +2,7 @@ import React, { useState, useCallback, useMemo, useEffect } from 'react';
 import styled from 'styled-components';
 import { motion, AnimatePresence } from 'framer-motion';
 import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer, AreaChart, Area, BarChart, Bar, RadarChart, PolarGrid, PolarAngleAxis, PolarRadiusAxis, Radar } from 'recharts';
-import { Zap, Settings, TrendingUp, TrendingDown, Brain, Target, Clock, AlertCircle, CheckCircle, PlayCircle, PauseCircle, StopCircle, RotateCcw, Activity, Gauge, Layers, ArrowRight, Play, Pause, RefreshCw, Download, Filter, Calendar, Cpu, Users, DollarSign, BarChart3, Eye, Toggle } from 'lucide-react';
+import { Zap, Settings, TrendingUp, TrendingDown, Brain, Target, Clock, AlertCircle, CheckCircle, PlayCircle, PauseCircle, StopCircle, RotateCcw, Activity, Gauge, Layers, ArrowRight, Play, Pause, RefreshCw, Download, Filter, Calendar, Cpu, Users, DollarSign, BarChart3, Eye, ToggleLeft } from 'lucide-react';
 
 const OptimizationContainer = styled(motion.div)`
   padding: 24px;
@@ -689,7 +689,7 @@ const ABTestAutomatedOptimization = ({ testData, onOptimizationUpdate, onClose }
                   <StatValue style={{ fontSize: '12px' }}>{rule.lastTriggered}</StatValue>
                   <StatLabel>Last Used</StatLabel>
                 </RuleStat>
-                <Toggle 
+                <ToggleLeft 
                   size={20} 
                   color={rule.active ? '#10B981' : '#6B7280'} 
                 />
