@@ -386,7 +386,7 @@ const getStageIcon = (stage) => {
     awareness: 'eye',
     interest: 'heart',
     consideration: 'search',
-    purchase: 'shoppingCart',
+    purchase: 'shopping-cart',
     loyalty: 'award'
   };
   return icons[stage] || 'circle';
@@ -453,7 +453,7 @@ const CustomerJourneyVisualization = ({
     {
       id: 'purchase',
       name: 'Purchase',
-      icon: 'shoppingCart',
+      icon: 'shopping-cart',
       customers: 1025,
       percentage: 34,
       conversionRate: 78,
@@ -479,7 +479,7 @@ const CustomerJourneyVisualization = ({
   const currentJourney = journeyData.length > 0 ? journeyData : defaultJourney;
 
   const viewOptions = [
-    { id: 'conversion', label: 'Conversion', icon: 'trendingUp' },
+    { id: 'conversion', label: 'Conversion', icon: 'trending-up' },
     { id: 'time', label: 'Time', icon: 'clock' },
     { id: 'touchpoints', label: 'Touchpoints', icon: 'target' }
   ];
@@ -641,7 +641,7 @@ const CustomerJourneyVisualization = ({
                 
                 {selectedView === 'conversion' && index < currentJourney.length - 1 && (
                   <ConversionRate rate={stage.conversionRate}>
-                    <Icon name="trendingUp" size={10} />
+                    <Icon name="trending-up" size={10} />
                     {stage.conversionRate}% convert
                   </ConversionRate>
                 )}

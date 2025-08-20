@@ -88,7 +88,7 @@ const NotificationDemo = () => {
         {
           id: 'create-order',
           label: 'Create Order',
-          icon: 'ShoppingCart',
+          icon: 'shopping-cart',
           variant: 'filled',
           color: 'danger',
           onClick: (id) => console.log('Create order:', id)

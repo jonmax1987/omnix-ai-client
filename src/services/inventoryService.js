@@ -38,37 +38,48 @@ class InventoryService {
       return this.getCachedData(cacheKey);
     }
 
+    // TODO: Replace with real API calls once backend endpoints are implemented
+    // For now, return mock data to prevent 404 errors
     try {
-      const [overview, metrics, alerts] = await Promise.allSettled([
-        httpService.get('/inventory', {
-          summary: true,
-          timeRange,
-          includeCategories: true,
-          includeLocations: true
-        }),
-        includeMetrics ? httpService.get('/analytics/inventory', {
-          timeRange,
-          includeMetrics: true,
-          includeTrends: true
-        }) : Promise.resolve(null),
-        includeAlerts ? httpService.get('/inventory/alerts', {
-          severity: ['critical', 'warning', 'info'],
-          includeHistorical: false
-        }) : Promise.resolve(null)
-      ]);
-
-      const result = {
-        overview: overview.status === 'fulfilled' ? overview.value : null,
-        metrics: metrics.status === 'fulfilled' ? metrics.value : null,
-        alerts: alerts.status === 'fulfilled' ? alerts.value : null,
-        insights: this.generateInventoryInsights(overview.value, metrics.value, alerts.value),
-        lastUpdated: Date.now()
-      };
-
-      this.setCachedData(cacheKey, result);
-      return result;
+      const mockData = this.getMockInventoryOverview(params);
+      this.setCachedData(cacheKey, mockData);
+      return mockData;
     } catch (error) {
-      throw this.handleInventoryError('Inventory overview fetch failed', error);
+      console.warn('Mock data failed, falling back to real API calls:', error);
+      
+      try {
+        // Fallback to real API calls if mock fails
+        const [overview, metrics, alerts] = await Promise.allSettled([
+          httpService.get('/inventory', {
+            summary: true,
+            timeRange,
+            includeCategories: true,
+            includeLocations: true
+          }),
+          includeMetrics ? httpService.get('/analytics/inventory', {
+            timeRange,
+            includeMetrics: true,
+            includeTrends: true
+          }) : Promise.resolve(null),
+          includeAlerts ? httpService.get('/inventory/alerts', {
+            severity: ['critical', 'warning', 'info'],
+            includeHistorical: false
+          }) : Promise.resolve(null)
+        ]);
+
+        const result = {
+          overview: overview.status === 'fulfilled' ? overview.value : null,
+          metrics: metrics.status === 'fulfilled' ? metrics.value : null,
+          alerts: alerts.status === 'fulfilled' ? alerts.value : null,
+          insights: this.generateInventoryInsights(overview.value, metrics.value, alerts.value),
+          lastUpdated: Date.now()
+        };
+
+        this.setCachedData(cacheKey, result);
+        return result;
+      } catch (apiError) {
+        throw this.handleInventoryError('Inventory overview fetch failed', apiError);
+      }
     }
   }
 
@@ -308,47 +319,58 @@ class InventoryService {
       return this.getForecastCache(cacheKey);
     }
 
+    // TODO: Replace with real API calls once backend endpoints are implemented
+    // For now, return mock data to prevent 404 errors
     try {
-      const [forecasting, reorderPoints, seasonality, optimization] = await Promise.allSettled([
-        httpService.get('/analytics/inventory/forecasting', {
-          timeHorizon,
-          productIds,
-          categories,
-          includeConfidence: true,
-          includeScenarios: true
-        }),
-        includeReorderPoints ? httpService.get('/analytics/inventory/reorder-points', {
-          productIds,
-          categories,
-          includeRecommendations: true
-        }) : Promise.resolve(null),
-        includeSeasonality ? httpService.get('/analytics/inventory/seasonality', {
-          timeRange: '1y',
-          productIds,
-          categories
-        }) : Promise.resolve(null),
-        includeOptimization ? httpService.get('/analytics/inventory/optimization', {
-          includeRecommendations: true,
-          includeCostAnalysis: true,
-          productIds,
-          categories
-        }) : Promise.resolve(null)
-      ]);
-
-      const result = {
-        forecasting: forecasting.status === 'fulfilled' ? forecasting.value : null,
-        reorderPoints: reorderPoints.status === 'fulfilled' ? reorderPoints.value : null,
-        seasonality: seasonality.status === 'fulfilled' ? seasonality.value : null,
-        optimization: optimization.status === 'fulfilled' ? optimization.value : null,
-        insights: this.generateForecastingInsights(forecasting.value, reorderPoints.value),
-        recommendations: this.generateForecastingRecommendations(forecasting.value),
-        generatedAt: Date.now()
-      };
-
-      this.setForecastCache(cacheKey, result);
-      return result;
+      const mockData = this.getMockInventoryForecasting(params);
+      this.setForecastCache(cacheKey, mockData);
+      return mockData;
     } catch (error) {
-      throw this.handleInventoryError('Inventory forecasting failed', error);
+      console.warn('Mock forecasting data failed, falling back to real API calls:', error);
+      
+      try {
+        // Fallback to real API calls if mock fails
+        const [forecasting, reorderPoints, seasonality, optimization] = await Promise.allSettled([
+          httpService.get('/analytics/inventory/forecasting', {
+            timeHorizon,
+            productIds,
+            categories,
+            includeConfidence: true,
+            includeScenarios: true
+          }),
+          includeReorderPoints ? httpService.get('/analytics/inventory/reorder-points', {
+            productIds,
+            categories,
+            includeRecommendations: true
+          }) : Promise.resolve(null),
+          includeSeasonality ? httpService.get('/analytics/inventory/seasonality', {
+            timeRange: '1y',
+            productIds,
+            categories
+          }) : Promise.resolve(null),
+          includeOptimization ? httpService.get('/analytics/inventory/optimization', {
+            includeRecommendations: true,
+            includeCostAnalysis: true,
+            productIds,
+            categories
+          }) : Promise.resolve(null)
+        ]);
+
+        const result = {
+          forecasting: forecasting.status === 'fulfilled' ? forecasting.value : null,
+          reorderPoints: reorderPoints.status === 'fulfilled' ? reorderPoints.value : null,
+          seasonality: seasonality.status === 'fulfilled' ? seasonality.value : null,
+          optimization: optimization.status === 'fulfilled' ? optimization.value : null,
+          insights: this.generateForecastingInsights(forecasting.value, reorderPoints.value),
+          recommendations: this.generateForecastingRecommendations(forecasting.value),
+          generatedAt: Date.now()
+        };
+
+        this.setForecastCache(cacheKey, result);
+        return result;
+      } catch (apiError) {
+        throw this.handleInventoryError('Inventory forecasting failed', apiError);
+      }
     }
   }
 
@@ -994,6 +1016,147 @@ class InventoryService {
     return lowStockCount > 0 ? [
       { type: 'warning', description: `${lowStockCount} items need immediate attention` }
     ] : [];
+  }
+
+  /**
+   * Generate mock inventory overview data
+   * TODO: Remove when backend endpoints are implemented
+   */
+  getMockInventoryOverview(params = {}) {
+    return {
+      overview: {
+        overallHealth: 75,
+        totalValue: 450000,
+        totalItems: 1245,
+        categories: [
+          {
+            id: 'electronics',
+            name: 'Electronics',
+            icon: 'laptop',
+            health: 85,
+            stockLevel: 92,
+            turnoverRate: 78,
+            expiredItems: 0,
+            lowStockItems: 3,
+            issues: [
+              { type: 'low-stock', text: '3 items below reorder point', severity: 'medium' }
+            ]
+          },
+          {
+            id: 'clothing',
+            name: 'Clothing',
+            icon: 'shirt',
+            health: 68,
+            stockLevel: 76,
+            turnoverRate: 65,
+            expiredItems: 5,
+            lowStockItems: 12,
+            issues: [
+              { type: 'low-stock', text: '12 items below reorder point', severity: 'warning' },
+              { type: 'expired', text: '5 expired items need attention', severity: 'high' }
+            ]
+          },
+          {
+            id: 'groceries',
+            name: 'Groceries',
+            icon: 'shopping-cart',
+            health: 72,
+            stockLevel: 68,
+            turnoverRate: 85,
+            expiredItems: 15,
+            lowStockItems: 23,
+            issues: [
+              { type: 'expired', text: '15 expired items need removal', severity: 'critical' },
+              { type: 'low-stock', text: '23 items critically low', severity: 'high' }
+            ]
+          }
+        ]
+      },
+      alerts: {
+        alerts: [
+          {
+            id: 'alert-1',
+            title: 'Critical Stock Level',
+            message: 'Multiple items are below critical threshold',
+            severity: 'critical',
+            type: 'stock',
+            timestamp: new Date(Date.now() - 30 * 60 * 1000).toISOString(),
+            items: ['Milk 1L', 'Bread Loaf', 'Eggs 12pk']
+          },
+          {
+            id: 'alert-2',
+            title: 'Expiring Soon',
+            message: 'Items expiring within 3 days',
+            severity: 'warning',
+            type: 'expiration',
+            timestamp: new Date(Date.now() - 2 * 60 * 60 * 1000).toISOString(),
+            items: ['Yogurt', 'Cheese', 'Fresh Meat']
+          }
+        ]
+      },
+      insights: [
+        {
+          type: 'optimization',
+          title: 'Stock Optimization Opportunity',
+          description: 'Consider rebalancing inventory across categories',
+          impact: 'medium',
+          actionable: true
+        },
+        {
+          type: 'trend',
+          title: 'Seasonal Demand Increase',
+          description: 'Electronics showing 15% higher demand',
+          impact: 'high',
+          actionable: false
+        }
+      ]
+    };
+  }
+
+  /**
+   * Generate mock inventory forecasting data
+   * TODO: Remove when backend endpoints are implemented
+   */
+  getMockInventoryForecasting(params = {}) {
+    return {
+      forecasting: {
+        products: [
+          {
+            id: 'product-1',
+            name: 'Premium Coffee Beans',
+            currentStock: 45,
+            predictedOutDate: '2025-01-25',
+            daysRemaining: 8,
+            suggestedOrder: '150 units',
+            confidence: 94,
+            urgency: 'critical',
+            supplier: 'Coffee Masters Inc.'
+          },
+          {
+            id: 'product-2',
+            name: 'Organic Milk 1L',
+            currentStock: 28,
+            predictedOutDate: '2025-01-28',
+            daysRemaining: 11,
+            suggestedOrder: '200 units',
+            confidence: 89,
+            urgency: 'warning',
+            supplier: 'Fresh Dairy Co.'
+          },
+          {
+            id: 'product-3',
+            name: 'Wireless Headphones',
+            currentStock: 156,
+            predictedOutDate: '2025-02-15',
+            daysRemaining: 29,
+            suggestedOrder: '75 units',
+            confidence: 78,
+            urgency: 'normal',
+            supplier: 'Tech Supplies Ltd.'
+          }
+        ]
+      }
+    };
   }
 }
 

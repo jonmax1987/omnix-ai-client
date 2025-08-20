@@ -673,7 +673,7 @@ const ProductCard = ({
               size="small"
               disabled={stockStatus === ProductStatus.OUT_OF_STOCK}
             >
-              <Icon name="ShoppingCart" size={14} />
+              <Icon name="shopping-cart" size={14} />
               {variant === ProductCardVariants.COMPACT ? '' : t('product.addToCart')}
             </Button>
             

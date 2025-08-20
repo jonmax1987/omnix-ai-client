@@ -506,7 +506,7 @@ const TopPerformingProducts = ({
       <WidgetHeader>
         <HeaderLeft>
           <HeaderTitle>
-            <Icon name="trendingUp" size={24} />
+            <Icon name="trending-up" size={24} />
             <Typography variant="h5" weight="semibold">
               Top Performing Products
             </Typography>
@@ -589,7 +589,7 @@ const TopPerformingProducts = ({
           </EmptyState>
         ) : currentProducts.length === 0 ? (
           <EmptyState>
-            <Icon name="trendingUp" size={48} />
+            <Icon name="trending-up" size={48} />
             <div>
               <Typography variant="h6" weight="medium">
                 No products found
@@ -639,7 +639,7 @@ const TopPerformingProducts = ({
                 </MetricValue>
                 <TrendIndicator trend={product.trend}>
                   <Icon 
-                    name={product.trend > 0 ? 'trendingUp' : product.trend < 0 ? 'trendingDown' : 'minus'} 
+                    name={product.trend > 0 ? 'trending-up' : product.trend < 0 ? 'trending-down' : 'minus'} 
                     size={12} 
                   />
                   {Math.abs(product.trend).toFixed(1)}%

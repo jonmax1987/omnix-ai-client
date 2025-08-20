@@ -487,7 +487,7 @@ const DashboardTimeController = ({
               whileHover={{ scale: 1.02 }}
               whileTap={{ scale: 0.98 }}
             >
-              <Icon name="trendingUp" size={12} />
+              <Icon name="trending-up" size={12} />
               Show Forecast
             </OptionToggle>
 

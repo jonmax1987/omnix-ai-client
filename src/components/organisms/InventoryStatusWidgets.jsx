@@ -371,7 +371,7 @@ const InventoryStatusWidgets = ({
             animate={{ y: 0 }}
             transition={{ type: 'spring', stiffness: 300, damping: 30 }}
           >
-            <Icon name="alertTriangle" size={16} />
+            <Icon name="alert-triangle" size={16} />
             Critical Stock Alert: {criticalAlerts.length} items need immediate attention
           </AlertBanner>
         )}
@@ -494,7 +494,7 @@ const InventoryStatusWidgets = ({
         <WidgetHeader>
           <WidgetTitle>
             <WidgetIcon variant="warning">
-              <Icon name="alertTriangle" size={20} />
+              <Icon name="alert-triangle" size={20} />
             </WidgetIcon>
             <div>
               <Typography variant="h6" weight="semibold">
@@ -554,7 +554,7 @@ const InventoryStatusWidgets = ({
                       onClick={() => handleQuickReorder(item)}
                       title="Quick reorder"
                     >
-                      <Icon name="shoppingCart" size={14} />
+                      <Icon name="shopping-cart" size={14} />
                     </QuickActionButton>
                   </ItemActions>
                 </ItemRow>

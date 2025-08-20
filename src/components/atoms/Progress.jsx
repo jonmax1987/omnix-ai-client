@@ -35,7 +35,9 @@ const ProgressInfo = styled.div`
   align-items: center;
 `;
 
-const ProgressTrack = styled.div`
+const ProgressTrack = styled.div.withConfig({
+  shouldForwardProp: (prop) => !['size', 'variant'].includes(prop)
+})`
   width: 100%;
   height: ${props => getProgressHeight(props.size)};
   background: ${props => props.theme.colors.background.secondary};
@@ -54,7 +56,9 @@ const ProgressTrack = styled.div`
   `}
 `;
 
-const ProgressFill = styled(motion.div)`
+const ProgressFill = styled(motion.div).withConfig({
+  shouldForwardProp: (prop) => !['variant', 'status', 'animated', 'value'].includes(prop)
+})`
   height: 100%;
   border-radius: ${props => props.theme.spacing[1]};
   position: relative;

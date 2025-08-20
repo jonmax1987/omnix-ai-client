@@ -31,7 +31,9 @@ const SidePanel = styled.div`
   gap: ${props => props.theme.spacing[4]};
 `;
 
-const HealthCard = styled(motion.div)`
+const HealthCard = styled(motion.div).withConfig({
+  shouldForwardProp: (prop) => prop !== 'health'
+})`
   background: ${props => props.theme.colors.background.elevated};
   border: 1px solid ${props => props.theme.colors.border.default};
   border-radius: ${props => props.theme.spacing[3]};
@@ -73,7 +75,9 @@ const HealthScore = styled.div`
   gap: ${props => props.theme.spacing[2]};
 `;
 
-const ScoreValue = styled.div`
+const ScoreValue = styled.div.withConfig({
+  shouldForwardProp: (prop) => prop !== 'score'
+})`
   font-size: ${props => props.theme.typography.fontSize['3xl']};
   font-weight: ${props => props.theme.typography.fontWeight.bold};
   color: ${props => getHealthColor(props.score, props.theme)};
@@ -124,7 +128,9 @@ const MetricItem = styled.div`
   text-align: center;
 `;
 
-const MetricValue = styled.div`
+const MetricValue = styled.div.withConfig({
+  shouldForwardProp: (prop) => prop !== 'type'
+})`
   font-size: ${props => props.theme.typography.fontSize.xl};
   font-weight: ${props => props.theme.typography.fontWeight.semibold};
   color: ${props => getMetricColor(props.type, props.theme)};
@@ -147,7 +153,9 @@ const IssuesList = styled.div`
   gap: ${props => props.theme.spacing[2]};
 `;
 
-const IssueItem = styled(motion.div)`
+const IssueItem = styled(motion.div).withConfig({
+  shouldForwardProp: (prop) => prop !== 'severity'
+})`
   display: flex;
   align-items: center;
   gap: ${props => props.theme.spacing[2]};
@@ -181,7 +189,9 @@ const AlertsList = styled.div`
   overflow-y: auto;
 `;
 
-const AlertItem = styled(motion.div)`
+const AlertItem = styled(motion.div).withConfig({
+  shouldForwardProp: (prop) => prop !== 'severity'
+})`
   display: flex;
   align-items: flex-start;
   gap: ${props => props.theme.spacing[3]};
@@ -250,58 +260,94 @@ const AIIcon = styled.div`
   flex-shrink: 0;
 `;
 
-const getHealthGradient = (health, theme) => {
-  if (health >= 80) return `linear-gradient(90deg, ${theme.colors.green[500]}, ${theme.colors.green[400]})`;
-  if (health >= 60) return `linear-gradient(90deg, ${theme.colors.yellow[500]}, ${theme.colors.yellow[400]})`;
-  if (health >= 40) return `linear-gradient(90deg, ${theme.colors.orange[500]}, ${theme.colors.orange[400]})`;
-  return `linear-gradient(90deg, ${theme.colors.red[500]}, ${theme.colors.red[400]})`;
+const getHealthGradient = (health, theme = {}) => {
+  if (health >= 80) return `linear-gradient(90deg, ${theme.colors?.green?.[500] || '#22C55E'}, ${theme.colors?.green?.[400] || '#4ADE80'})`;
+  if (health >= 60) return `linear-gradient(90deg, ${theme.colors?.yellow?.[500] || '#EAB308'}, ${theme.colors?.yellow?.[400] || '#FACC15'})`;
+  if (health >= 40) return `linear-gradient(90deg, ${theme.colors?.orange?.[500] || '#F97316'}, ${theme.colors?.orange?.[400] || '#FB923C'})`;
+  return `linear-gradient(90deg, ${theme.colors?.red?.[500] || '#EF4444'}, ${theme.colors?.red?.[400] || '#F87171'})`;
 };
 
-const getHealthColor = (score, theme) => {
-  if (score >= 80) return theme.colors.green[600];
-  if (score >= 60) return theme.colors.yellow[600];
-  if (score >= 40) return theme.colors.orange[600];
-  return theme.colors.red[600];
+const getHealthColor = (score, theme = {}) => {
+  if (score >= 80) return theme.colors?.green?.[600] || '#16A34A';
+  if (score >= 60) return theme.colors?.yellow?.[600] || '#CA8A04';
+  if (score >= 40) return theme.colors?.orange?.[600] || '#EA580C';
+  return theme.colors?.red?.[600] || '#DC2626';
 };
 
-const getMetricColor = (type, theme) => {
+const getMetricColor = (type, theme = {}) => {
   const colors = {
-    stock: theme.colors.blue[600],
-    turnover: theme.colors.green[600],
-    expired: theme.colors.red[600],
-    lowStock: theme.colors.yellow[600]
+    stock: theme.colors?.blue?.[600] || '#2563EB',
+    turnover: theme.colors?.green?.[600] || '#16A34A',
+    expired: theme.colors?.red?.[600] || '#DC2626',
+    lowStock: theme.colors?.yellow?.[600] || '#CA8A04'
   };
-  return colors[type] || theme.colors.text.primary;
+  return colors[type] || theme.colors?.text?.primary || '#374151';
 };
 
-const getSeverityColor = (severity, theme) => {
+const getSeverityColor = (severity, theme = {}) => {
+  // Provide fallback colors if theme is not available
+  const fallbackColors = {
+    critical: '#EF4444',
+    high: '#F97316',
+    medium: '#EAB308',
+    low: '#3B82F6'
+  };
+  
+  if (!theme.colors) {
+    return fallbackColors[severity] || '#6B7280';
+  }
+  
   const colors = {
-    critical: theme.colors.red[500],
-    high: theme.colors.orange[500],
-    medium: theme.colors.yellow[500],
-    low: theme.colors.blue[500]
+    critical: theme.colors.red?.[500] || fallbackColors.critical,
+    high: theme.colors.orange?.[500] || fallbackColors.high,
+    medium: theme.colors.yellow?.[500] || fallbackColors.medium,
+    low: theme.colors.blue?.[500] || fallbackColors.low
   };
-  return colors[severity] || theme.colors.gray[400];
+  return colors[severity] || theme.colors.gray?.[400] || '#6B7280';
 };
 
-const getSeverityBackground = (severity, theme) => {
+const getSeverityBackground = (severity, theme = {}) => {
+  // Provide fallback background colors if theme is not available
+  const fallbackBackgrounds = {
+    critical: '#FEF2F2',
+    high: '#FFF7ED',
+    medium: '#FEFCE8',
+    low: '#EFF6FF'
+  };
+  
+  if (!theme.colors) {
+    return fallbackBackgrounds[severity] || '#F9FAFB';
+  }
+  
   const backgrounds = {
-    critical: theme.colors.red[50],
-    high: theme.colors.orange[50],
-    medium: theme.colors.yellow[50],
-    low: theme.colors.blue[50]
+    critical: theme.colors.red?.[50] || fallbackBackgrounds.critical,
+    high: theme.colors.orange?.[50] || fallbackBackgrounds.high,
+    medium: theme.colors.yellow?.[50] || fallbackBackgrounds.medium,
+    low: theme.colors.blue?.[50] || fallbackBackgrounds.low
   };
-  return backgrounds[severity] || theme.colors.gray[50];
+  return backgrounds[severity] || theme.colors.gray?.[50] || '#F9FAFB';
 };
 
-const getSeverityBorder = (severity, theme) => {
-  const borders = {
-    critical: theme.colors.red[200],
-    high: theme.colors.orange[200],
-    medium: theme.colors.yellow[200],
-    low: theme.colors.blue[200]
+const getSeverityBorder = (severity, theme = {}) => {
+  // Provide fallback border colors if theme is not available
+  const fallbackBorders = {
+    critical: '#FECACA',
+    high: '#FED7AA',
+    medium: '#FEF08A',
+    low: '#BFDBFE'
   };
-  return borders[severity] || theme.colors.gray[200];
+  
+  if (!theme.colors) {
+    return fallbackBorders[severity] || '#E5E7EB';
+  }
+  
+  const borders = {
+    critical: theme.colors.red?.[200] || fallbackBorders.critical,
+    high: theme.colors.orange?.[200] || fallbackBorders.high,
+    medium: theme.colors.yellow?.[200] || fallbackBorders.medium,
+    low: theme.colors.blue?.[200] || fallbackBorders.low
+  };
+  return borders[severity] || theme.colors.gray?.[200] || '#E5E7EB';
 };
 
 const InventoryHealthOverview = ({
@@ -342,7 +388,7 @@ const InventoryHealthOverview = ({
       {
         id: 'groceries',
         name: 'Groceries',
-        icon: 'shoppingCart',
+        icon: 'shopping-cart',
         health: 72,
         stockLevel: 68,
         turnoverRate: 85,
@@ -498,7 +544,7 @@ const InventoryHealthOverview = ({
           <Progress 
             value={currentData.overallHealth} 
             variant="ai-glow"
-            showAnimation
+            animated
             style={{ marginBottom: '1rem' }}
           />
         </HealthCard>
@@ -551,14 +597,14 @@ const InventoryHealthOverview = ({
                 <IssuesList>
                   {category.issues.slice(0, 2).map((issue, issueIndex) => (
                     <IssueItem
-                      key={issueIndex}
+                      key={`${category.id}-${issue.type}-${issueIndex}`}
                       severity={issue.severity}
                       initial={{ opacity: 0, scale: 0.9 }}
                       animate={{ opacity: 1, scale: 1 }}
                       transition={{ duration: 0.2, delay: issueIndex * 0.1 }}
                     >
                       <Icon 
-                        name={issue.severity === 'critical' ? 'alertTriangle' : 
+                        name={issue.severity === 'critical' ? 'alert-triangle' : 
                               issue.severity === 'high' ? 'warning' : 
                               issue.severity === 'medium' ? 'info' : 'bell'} 
                         size={14} 
@@ -607,7 +653,7 @@ const InventoryHealthOverview = ({
                 onClick={() => onAlertClick?.(alert)}
               >
                 <Icon 
-                  name={alert.severity === 'critical' ? 'alertTriangle' : 
+                  name={alert.severity === 'critical' ? 'alert-triangle' : 
                         alert.severity === 'high' ? 'warning' : 'info'} 
                   size={16}
                   color={getSeverityColor(alert.severity, {})}

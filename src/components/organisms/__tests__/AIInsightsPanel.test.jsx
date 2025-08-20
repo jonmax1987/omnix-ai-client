@@ -42,7 +42,7 @@ const mockInsights = [
       {
         id: 'reorder',
         label: 'Quick Reorder',
-        icon: 'ShoppingCart',
+        icon: 'shopping-cart',
         variant: 'filled',
         onClick: jest.fn()
       }

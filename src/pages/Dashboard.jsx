@@ -9,6 +9,10 @@ import DashboardGrid, { GridItem, DASHBOARD_LAYOUTS } from '../components/organi
 import MetricCard from '../components/molecules/MetricCard';
 import AlertCard from '../components/molecules/AlertCard';
 import ChartContainer from '../components/organisms/ChartContainer';
+import PredictiveInventoryPanel from '../components/organisms/PredictiveInventoryPanel';
+import InventoryHealthOverview from '../components/organisms/InventoryHealthOverview';
+import StockDepletionTimeline from '../components/organisms/StockDepletionTimeline';
+import AutomatedOrderSuggestions from '../components/organisms/AutomatedOrderSuggestions';
 import PullToRefresh from '../components/molecules/PullToRefresh';
 import MobileCarousel from '../components/molecules/MobileCarousel';
 import { exportDashboardReport } from '../utils/exportUtils';
@@ -16,6 +20,7 @@ import { isTouchDevice } from '../utils/mobileGestures';
 import { useI18n } from '../hooks/useI18n';
 import useDashboardStore from '../store/dashboardStore';
 import { useRealtimeDashboard } from '../hooks/useWebSocket';
+import inventoryService from '../services/inventoryService';
 
 const DashboardContainer = styled(motion.div)`
   padding: ${props => props.theme.spacing[6]};
@@ -151,6 +156,11 @@ const Dashboard = () => {
   } = useDashboardStore();
   
   const [lastUpdated, setLastUpdated] = useState(new Date().toLocaleTimeString());
+  
+  // Inventory-specific state
+  const [inventoryData, setInventoryData] = useState(null);
+  const [inventoryForecasting, setInventoryForecasting] = useState([]);
+  const [inventoryLoading, setInventoryLoading] = useState(true);
 
   // Enable real-time dashboard updates
   useRealtimeDashboard();
@@ -158,7 +168,34 @@ const Dashboard = () => {
   // Fetch dashboard data on component mount
   useEffect(() => {
     fetchMetrics();
+    fetchInventoryData();
   }, [fetchMetrics]);
+
+  // Fetch inventory data and forecasting
+  const fetchInventoryData = async () => {
+    try {
+      setInventoryLoading(true);
+      const [overview, forecasting] = await Promise.all([
+        inventoryService.getInventoryOverview({ 
+          timeRange: '30d',
+          includeMetrics: true,
+          includeAlerts: true 
+        }),
+        inventoryService.getInventoryForecasting({
+          timeHorizon: '60d',
+          includeReorderPoints: true,
+          includeSeasonality: true
+        })
+      ]);
+      
+      setInventoryData(overview);
+      setInventoryForecasting(forecasting?.forecasting?.products || []);
+    } catch (error) {
+      console.error('Failed to fetch inventory data:', error);
+    } finally {
+      setInventoryLoading(false);
+    }
+  };
 
   // Transform real dashboard data for display
   const displayMetrics = useMemo(() => {
@@ -238,11 +275,12 @@ const Dashboard = () => {
 
   const handleRefresh = async () => {
     setLoading(true);
-    // Simulate API call
-    setTimeout(() => {
-      setLoading(false);
-      setLastUpdated(new Date().toLocaleTimeString());
-    }, 1000);
+    await Promise.all([
+      refreshDashboard(),
+      fetchInventoryData()
+    ]);
+    setLoading(false);
+    setLastUpdated(new Date().toLocaleTimeString());
   };
 
   const handleTimeRangeChange = (range) => {
@@ -269,7 +307,58 @@ const Dashboard = () => {
     console.log('Alert clicked:', alert);
   };
 
-  const chartComponents = [
+  // Inventory panel handlers
+  const handleInventoryOrderGenerate = async (product) => {
+    try {
+      console.log('Generating order for:', product);
+      // Integration with order management system would go here
+      // For now, just show success feedback
+    } catch (error) {
+      console.error('Failed to generate order:', error);
+    }
+  };
+
+  const handleInventoryBulkAction = async (action, products) => {
+    try {
+      console.log('Bulk action:', action, products);
+      // Integration with inventory service for bulk actions
+      if (action === 'generate_orders') {
+        // Bulk order generation logic
+      }
+    } catch (error) {
+      console.error('Failed to perform bulk action:', error);
+    }
+  };
+
+  const handleInventoryCategoryClick = (category) => {
+    console.log('Inventory category clicked:', category);
+    // Navigate to category details or show category-specific view
+  };
+
+  const handleInventoryInsightClick = (insight) => {
+    console.log('Inventory insight clicked:', insight);
+    // Show detailed insight or navigate to relevant section
+  };
+
+  const allComponents = [
+    <InventoryHealthOverview
+      key="inventory-health"
+      inventoryData={inventoryData?.overview}
+      alerts={inventoryData?.alerts?.alerts || []}
+      insights={inventoryData?.insights || []}
+      onCategoryClick={handleInventoryCategoryClick}
+      onAlertClick={handleAlertClick}
+      onInsightClick={handleInventoryInsightClick}
+      onRefresh={fetchInventoryData}
+      loading={inventoryLoading}
+    />,
+    <PredictiveInventoryPanel
+      key="predictive-inventory"
+      data={inventoryForecasting}
+      onOrderGenerate={handleInventoryOrderGenerate}
+      onBulkAction={handleInventoryBulkAction}
+      loading={inventoryLoading}
+    />,
     <ChartContainer
       key="inventory-trend"
       title={t('dashboard.charts.inventoryValueTrend')}
@@ -476,6 +565,80 @@ const Dashboard = () => {
         )}
       </AlertsSection>
 
+      {/* Inventory Management Section */}
+      <div style={{ marginBottom: '2rem' }}>
+        <Typography variant="h5" weight="semibold" style={{ marginBottom: '1.5rem' }}>
+          {t('dashboard.sections.inventoryManagement')}
+        </Typography>
+        <DashboardGrid
+          {...DASHBOARD_LAYOUTS.default}
+          spacing="lg"
+        >
+          <GridItem span={2}>
+            <InventoryHealthOverview
+              inventoryData={inventoryData?.overview}
+              alerts={inventoryData?.alerts?.alerts || []}
+              insights={inventoryData?.insights || []}
+              onCategoryClick={handleInventoryCategoryClick}
+              onAlertClick={handleAlertClick}
+              onInsightClick={handleInventoryInsightClick}
+              onRefresh={fetchInventoryData}
+              loading={inventoryLoading}
+            />
+          </GridItem>
+          <GridItem span={2}>
+            <PredictiveInventoryPanel
+              data={inventoryForecasting}
+              onOrderGenerate={handleInventoryOrderGenerate}
+              onBulkAction={handleInventoryBulkAction}
+              loading={inventoryLoading}
+            />
+          </GridItem>
+        </DashboardGrid>
+      </div>
+
+      {/* Stock Depletion Timeline Section */}
+      <div style={{ marginBottom: '2rem' }}>
+        <Typography variant="h5" weight="semibold" style={{ marginBottom: '1.5rem' }}>
+          Stock Depletion Timeline
+        </Typography>
+        <DashboardGrid
+          {...DASHBOARD_LAYOUTS.default}
+          spacing="lg"
+        >
+          <GridItem span={4}>
+            <StockDepletionTimeline
+              data={inventoryForecasting?.products || []}
+              timeRange={30}
+              onProductSelect={handleInventoryOrderGenerate}
+              showFilters={true}
+              showConfidence={true}
+            />
+          </GridItem>
+        </DashboardGrid>
+      </div>
+
+      {/* Automated Order Suggestions Section */}
+      <div style={{ marginBottom: '2rem' }}>
+        <Typography variant="h5" weight="semibold" style={{ marginBottom: '1.5rem' }}>
+          AI-Powered Order Suggestions
+        </Typography>
+        <DashboardGrid
+          {...DASHBOARD_LAYOUTS.default}
+          spacing="lg"
+        >
+          <GridItem span={4}>
+            <AutomatedOrderSuggestions
+              data={inventoryForecasting?.products || []}
+              onOrderCreate={handleInventoryOrderGenerate}
+              onBulkOrder={handleInventoryBulkAction}
+              onIgnoreSuggestion={(suggestion) => console.log('Ignored suggestion:', suggestion)}
+              refreshInterval={300000}
+            />
+          </GridItem>
+        </DashboardGrid>
+      </div>
+
       {/* Charts Section */}
       <DashboardGrid
         {...DASHBOARD_LAYOUTS.default}
@@ -603,9 +766,9 @@ const Dashboard = () => {
             showNavigation
             showCounter
             showSwipeHint
-            onSlideChange={(index) => console.log('Chart slide changed:', index)}
+            onSlideChange={(index) => console.log('Component slide changed:', index)}
           >
-            {chartComponents}
+            {allComponents}
           </MobileCarousel>
         </div>
       </PullToRefresh>

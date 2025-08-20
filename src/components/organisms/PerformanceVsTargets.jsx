@@ -447,7 +447,7 @@ const PerformanceVsTargets = ({
       id: 'sales-volume',
       title: 'Sales Volume',
       category: 'sales',
-      icon: 'shoppingCart',
+      icon: 'shopping-cart',
       actual: 1347,
       target: 1200,
       unit: 'number',

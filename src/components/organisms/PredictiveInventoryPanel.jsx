@@ -1,18 +1,12 @@
 import React, { useState, useEffect } from 'react';
 import styled from 'styled-components';
 import { motion, AnimatePresence } from 'framer-motion';
-import { 
-  Package, 
-  AlertTriangle, 
-  Clock, 
-  TrendingDown, 
-  ShoppingCart,
-  Zap,
-  CheckCircle,
-  XCircle,
-  Calendar
-} from 'lucide-react';
-import { formatNumber, formatCurrency } from '../../utils/formatters';
+import Icon from '../atoms/Icon';
+import Typography from '../atoms/Typography';
+
+// Simple formatting utilities
+const formatNumber = (num) => num?.toLocaleString() || '0';
+const formatCurrency = (amount) => `$${amount?.toLocaleString() || '0'}`;
 
 const Container = styled.div`
   background: ${({ theme }) => theme.colors.background.secondary};
@@ -22,6 +16,11 @@ const Container = styled.div`
   height: 600px;
   display: flex;
   flex-direction: column;
+
+  @keyframes spin {
+    0% { transform: rotate(0deg); }
+    100% { transform: rotate(360deg); }
+  }
 `;
 
 const Header = styled.div`
@@ -34,8 +33,8 @@ const Header = styled.div`
 `;
 
 const Title = styled.h3`
-  font-size: ${({ theme }) => theme.typography.sizes.lg};
-  font-weight: ${({ theme }) => theme.typography.weights.bold};
+  font-size: ${({ theme }) => theme.typography.fontSize.lg};
+  font-weight: ${({ theme }) => theme.typography.fontWeight.bold};
   color: ${({ theme }) => theme.colors.text.primary};
   margin: 0;
   display: flex;
@@ -50,8 +49,8 @@ const AIBadge = styled.div`
   padding: 4px 12px;
   background: linear-gradient(135deg, #00D9FF 0%, #7928CA 100%);
   border-radius: 20px;
-  font-size: ${({ theme }) => theme.typography.sizes.xs};
-  font-weight: ${({ theme }) => theme.typography.weights.semibold};
+  font-size: ${({ theme }) => theme.typography.fontSize.xs};
+  font-weight: ${({ theme }) => theme.typography.fontWeight.semibold};
   color: white;
 
   svg {
@@ -65,8 +64,8 @@ const ConfidenceBadge = styled.div`
   background: rgba(34, 197, 94, 0.1);
   color: #22C55E;
   border-radius: 6px;
-  font-size: ${({ theme }) => theme.typography.sizes.xs};
-  font-weight: ${({ theme }) => theme.typography.weights.medium};
+  font-size: ${({ theme }) => theme.typography.fontSize.xs};
+  font-weight: ${({ theme }) => theme.typography.fontWeight.medium};
 `;
 
 const FilterRow = styled.div`
@@ -76,7 +75,9 @@ const FilterRow = styled.div`
   flex-wrap: wrap;
 `;
 
-const FilterButton = styled.button`
+const FilterButton = styled.button.withConfig({
+  shouldForwardProp: (prop) => prop !== 'active'
+})`
   padding: 6px 12px;
   background: ${({ active, theme }) => 
     active ? theme.colors.primary : 'transparent'};
@@ -84,7 +85,7 @@ const FilterButton = styled.button`
     active ? 'white' : theme.colors.text.secondary};
   border: 1px solid ${({ theme }) => theme.colors.border.primary};
   border-radius: 8px;
-  font-size: ${({ theme }) => theme.typography.sizes.sm};
+  font-size: ${({ theme }) => theme.typography.fontSize.sm};
   cursor: pointer;
   transition: all 0.2s ease;
 
@@ -114,7 +115,9 @@ const ProductList = styled.div`
   }
 `;
 
-const ProductCard = styled(motion.div)`
+const ProductCard = styled(motion.div).withConfig({
+  shouldForwardProp: (prop) => prop !== 'urgency'
+})`
   background: ${({ urgency, theme }) => {
     switch (urgency) {
       case 'critical': return 'linear-gradient(135deg, rgba(239, 68, 68, 0.1) 0%, rgba(220, 38, 38, 0.1) 100%)';
@@ -155,25 +158,27 @@ const ProductInfo = styled.div`
 `;
 
 const ProductName = styled.div`
-  font-size: ${({ theme }) => theme.typography.sizes.base};
-  font-weight: ${({ theme }) => theme.typography.weights.semibold};
+  font-size: ${({ theme }) => theme.typography.fontSize.base};
+  font-weight: ${({ theme }) => theme.typography.fontWeight.semibold};
   color: ${({ theme }) => theme.colors.text.primary};
   margin-bottom: 4px;
 `;
 
 const ProductMeta = styled.div`
-  font-size: ${({ theme }) => theme.typography.sizes.sm};
+  font-size: ${({ theme }) => theme.typography.fontSize.sm};
   color: ${({ theme }) => theme.colors.text.secondary};
 `;
 
-const UrgencyIndicator = styled.div`
+const UrgencyIndicator = styled.div.withConfig({
+  shouldForwardProp: (prop) => prop !== 'urgency'
+})`
   display: flex;
   align-items: center;
   gap: 4px;
   padding: 4px 8px;
   border-radius: 6px;
-  font-size: ${({ theme }) => theme.typography.sizes.xs};
-  font-weight: ${({ theme }) => theme.typography.weights.medium};
+  font-size: ${({ theme }) => theme.typography.fontSize.xs};
+  font-weight: ${({ theme }) => theme.typography.fontWeight.medium};
   background: ${({ urgency }) => {
     switch (urgency) {
       case 'critical': return 'rgba(239, 68, 68, 0.2)';
@@ -205,8 +210,8 @@ const StockInfo = styled.div`
 `;
 
 const CurrentStock = styled.div`
-  font-size: ${({ theme }) => theme.typography.sizes.sm};
-  font-weight: ${({ theme }) => theme.typography.weights.medium};
+  font-size: ${({ theme }) => theme.typography.fontSize.sm};
+  font-weight: ${({ theme }) => theme.typography.fontWeight.medium};
   color: ${({ theme }) => theme.colors.text.primary};
 `;
 
@@ -219,7 +224,9 @@ const ProgressBarContainer = styled.div`
   position: relative;
 `;
 
-const ProgressBar = styled.div`
+const ProgressBar = styled.div.withConfig({
+  shouldForwardProp: (prop) => !['urgency', 'value'].includes(prop)
+})`
   height: 100%;
   background: ${({ urgency }) => {
     switch (urgency) {
@@ -264,15 +271,17 @@ const PredictionInfo = styled.div`
 `;
 
 const PredictionDate = styled.div`
-  font-size: ${({ theme }) => theme.typography.sizes.sm};
+  font-size: ${({ theme }) => theme.typography.fontSize.sm};
   color: ${({ theme }) => theme.colors.text.secondary};
   display: flex;
   align-items: center;
   gap: 4px;
 `;
 
-const DaysRemaining = styled.div`
-  font-weight: ${({ theme }) => theme.typography.weights.semibold};
+const DaysRemaining = styled.div.withConfig({
+  shouldForwardProp: (prop) => prop !== 'urgency'
+})`
+  font-weight: ${({ theme }) => theme.typography.fontWeight.semibold};
   color: ${({ urgency }) => {
     switch (urgency) {
       case 'critical': return '#EF4444';
@@ -287,7 +296,9 @@ const ActionButtons = styled.div`
   gap: 8px;
 `;
 
-const ActionButton = styled.button`
+const ActionButton = styled.button.withConfig({
+  shouldForwardProp: (prop) => prop !== 'variant'
+})`
   padding: 6px 12px;
   background: ${({ variant, theme }) => 
     variant === 'primary' 
@@ -297,8 +308,8 @@ const ActionButton = styled.button`
     variant === 'primary' ? 'white' : theme.colors.primary};
   border: 1px solid ${({ theme }) => theme.colors.primary};
   border-radius: 6px;
-  font-size: ${({ theme }) => theme.typography.sizes.xs};
-  font-weight: ${({ theme }) => theme.typography.weights.medium};
+  font-size: ${({ theme }) => theme.typography.fontSize.xs};
+  font-weight: ${({ theme }) => theme.typography.fontWeight.medium};
   cursor: pointer;
   transition: all 0.2s ease;
   display: flex;
@@ -333,8 +344,8 @@ const BulkButton = styled.button`
   color: white;
   border: none;
   border-radius: 8px;
-  font-size: ${({ theme }) => theme.typography.sizes.sm};
-  font-weight: ${({ theme }) => theme.typography.weights.semibold};
+  font-size: ${({ theme }) => theme.typography.fontSize.sm};
+  font-weight: ${({ theme }) => theme.typography.fontWeight.semibold};
   cursor: pointer;
   transition: all 0.2s ease;
   display: flex;
@@ -414,7 +425,8 @@ const inventoryData = [
 const PredictiveInventoryPanel = ({ 
   data = inventoryData, 
   onOrderGenerate,
-  onBulkAction 
+  onBulkAction,
+  loading = false 
 }) => {
   const [filter, setFilter] = useState('all');
   const [selectedProducts, setSelectedProducts] = useState([]);
@@ -436,11 +448,11 @@ const PredictiveInventoryPanel = ({
   const getUrgencyIcon = (urgency) => {
     switch (urgency) {
       case 'critical':
-        return <AlertTriangle size={14} />;
+        return <Icon name="alert-triangle" size={14} />;
       case 'warning':
-        return <Clock size={14} />;
+        return <Icon name="clock" size={14} />;
       default:
-        return <CheckCircle size={14} />;
+        return <Icon name="check-circle" size={14} />;
     }
   };
 
@@ -493,11 +505,11 @@ const PredictiveInventoryPanel = ({
     <Container>
       <Header>
         <Title>
-          <Package size={24} />
+          <Icon name="package" size={24} />
           Stock Depletion Forecast
         </Title>
         <AIBadge>
-          <Zap />
+          <Icon name="zap" size={16} />
           Claude Sonnet
         </AIBadge>
         <ConfidenceBadge>94% Confidence</ConfidenceBadge>
@@ -531,8 +543,30 @@ const PredictiveInventoryPanel = ({
       </FilterRow>
 
       <ProductList>
-        <AnimatePresence>
-          {filteredData.map((product, index) => (
+        {loading ? (
+          <div style={{ 
+            display: 'flex', 
+            alignItems: 'center', 
+            justifyContent: 'center',
+            height: '200px',
+            flexDirection: 'column',
+            gap: '12px'
+          }}>
+            <div style={{
+              width: '40px',
+              height: '40px',
+              border: '4px solid #f3f4f6',
+              borderTop: '4px solid #3B82F6',
+              borderRadius: '50%',
+              animation: 'spin 1s linear infinite'
+            }} />
+            <Typography variant="body2" color="secondary">
+              Loading inventory forecasting...
+            </Typography>
+          </div>
+        ) : (
+          <AnimatePresence>
+            {filteredData.map((product, index) => (
             <ProductCard
               key={product.id}
               urgency={product.urgency}
@@ -557,7 +591,7 @@ const PredictiveInventoryPanel = ({
 
               <InventoryBar>
                 <StockInfo>
-                  <Package size={16} />
+                  <Icon name="package" size={16} />
                   <CurrentStock>{product.currentStock} units</CurrentStock>
                 </StockInfo>
                 <ProgressBarContainer>
@@ -571,7 +605,7 @@ const PredictiveInventoryPanel = ({
               <PredictionContainer>
                 <PredictionInfo>
                   <PredictionDate>
-                    <Calendar size={14} />
+                    <Icon name="calendar" size={14} />
                     Out by: {product.predictedOutDate}
                   </PredictionDate>
                   <DaysRemaining urgency={product.urgency}>
@@ -587,7 +621,7 @@ const PredictiveInventoryPanel = ({
                       // View details
                     }}
                   >
-                    <TrendingDown />
+                    <Icon name="trending" size={12} />
                     Details
                   </ActionButton>
                   <ActionButton
@@ -599,14 +633,15 @@ const PredictiveInventoryPanel = ({
                       }
                     }}
                   >
-                    <ShoppingCart />
+                    <Icon name="shopping-cart" size={12} />
                     Order {product.suggestedOrder}
                   </ActionButton>
                 </ActionButtons>
               </PredictionContainer>
             </ProductCard>
           ))}
-        </AnimatePresence>
+          </AnimatePresence>
+        )}
       </ProductList>
 
       {selectedProducts.length > 0 && (
@@ -615,7 +650,7 @@ const PredictiveInventoryPanel = ({
             onClick={handleBulkOrder}
             disabled={isLoading}
           >
-            <ShoppingCart />
+            <Icon name="shopping-cart" size={16} />
             {isLoading ? 'Processing...' : `Generate Orders (${selectedProducts.length})`}
           </BulkButton>
           <BulkButton
@@ -626,7 +661,7 @@ const PredictiveInventoryPanel = ({
               border: '1px solid #D1D5DB'
             }}
           >
-            <XCircle />
+            <Icon name="x" size={16} />
             Clear Selection
           </BulkButton>
         </BulkActions>

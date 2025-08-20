@@ -568,7 +568,7 @@ const CriticalAlertsCenter = ({
             animate={{ rotate: [0, 5, -5, 0] }}
             transition={{ duration: 2, repeat: Infinity, repeatDelay: 1 }}
           >
-            <Icon name="alertTriangle" size={18} />
+            <Icon name="alert-triangle" size={18} />
           </CriticalIcon>
           <div>
             <Typography variant="h5" weight="semibold" color="red">
@@ -633,7 +633,7 @@ const CriticalAlertsCenter = ({
       <AlertsList>
         {loading ? (
           <EmptyState>
-            <Icon name="alertTriangle" size={48} />
+            <Icon name="alert-triangle" size={48} />
             <Typography variant="body1" color="secondary">
               Loading critical alerts...
             </Typography>
@@ -701,7 +701,7 @@ const CriticalAlertsCenter = ({
                   
                   {alert.impact && (
                     <ImpactIndicator impact={alert.impact}>
-                      <Icon name="trendingUp" size={12} />
+                      <Icon name="trending-up" size={12} />
                       {alert.impact} impact
                     </ImpactIndicator>
                   )}

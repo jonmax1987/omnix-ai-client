@@ -61,7 +61,7 @@ const AIInsightsDemo = () => {
         {
           id: 'reorder',
           label: 'Quick Reorder',
-          icon: 'ShoppingCart',
+          icon: 'shopping-cart',
           variant: 'filled',
           color: 'primary',
           onClick: () => console.log('Quick reorder triggered')

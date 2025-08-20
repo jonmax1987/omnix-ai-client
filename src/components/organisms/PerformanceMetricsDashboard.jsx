@@ -436,7 +436,7 @@ const PerformanceMetricsDashboard = ({
           <MetricUnit>/100</MetricUnit>
           <TrendIndicator trend={currentData.overall?.trend} positive={true}>
             <Icon 
-              name={currentData.overall?.trend === 'up' ? 'trendingUp' : 'trendingDown'} 
+              name={currentData.overall?.trend === 'up' ? 'trending-up' : 'trending-down'} 
               size={16} 
             />
             {formatPercentage(currentData.overall?.change || 0)}
@@ -476,7 +476,7 @@ const PerformanceMetricsDashboard = ({
         <CardHeader>
           <CardTitle>
             <CardIcon variant="good">
-              <Icon name="dollarSign" size={24} />
+              <Icon name="dollar-sign" size={24} />
             </CardIcon>
             <div>
               <Typography variant="h6" weight="semibold">
@@ -505,7 +505,7 @@ const PerformanceMetricsDashboard = ({
                 Total Revenue
               </Typography>
               <TrendIndicator trend={currentData.revenue?.trend} positive={true}>
-                <Icon name="trendingUp" size={14} />
+                <Icon name="trending-up" size={14} />
                 {formatPercentage(currentData.revenue?.change || 0)}
               </TrendIndicator>
             </MetricHeader>
@@ -539,7 +539,7 @@ const PerformanceMetricsDashboard = ({
                 Total Orders
               </Typography>
               <TrendIndicator trend={currentData.orders?.trend} positive={true}>
-                <Icon name="trendingUp" size={14} />
+                <Icon name="trending-up" size={14} />
                 {formatPercentage(currentData.orders?.change || 0)}
               </TrendIndicator>
             </MetricHeader>
@@ -591,7 +591,7 @@ const PerformanceMetricsDashboard = ({
                 Avg. Order Value
               </Typography>
               <TrendIndicator trend={currentData.averageOrderValue?.trend} positive={true}>
-                <Icon name="trendingUp" size={14} />
+                <Icon name="trending-up" size={14} />
                 {formatPercentage(currentData.averageOrderValue?.change || 0)}
               </TrendIndicator>
             </MetricHeader>
@@ -643,7 +643,7 @@ const PerformanceMetricsDashboard = ({
                 Customer Satisfaction
               </Typography>
               <TrendIndicator trend={currentData.customerSatisfaction?.trend} positive={true}>
-                <Icon name="trendingUp" size={14} />
+                <Icon name="trending-up" size={14} />
                 {formatPercentage(currentData.customerSatisfaction?.change || 0)}
               </TrendIndicator>
             </MetricHeader>
@@ -688,7 +688,7 @@ const PerformanceMetricsDashboard = ({
                 Stock Accuracy
               </Typography>
               <TrendIndicator trend={currentData.stockAccuracy?.trend} positive={true}>
-                <Icon name="trendingUp" size={14} />
+                <Icon name="trending-up" size={14} />
                 {formatPercentage(currentData.stockAccuracy?.change || 0)}
               </TrendIndicator>
             </MetricHeader>
@@ -707,7 +707,7 @@ const PerformanceMetricsDashboard = ({
                 Cost Reduction
               </Typography>
               <TrendIndicator trend={currentData.costReduction?.trend} positive={true}>
-                <Icon name="trendingUp" size={14} />
+                <Icon name="trending-up" size={14} />
                 {formatPercentage(currentData.costReduction?.change || 0)}
               </TrendIndicator>
             </MetricHeader>

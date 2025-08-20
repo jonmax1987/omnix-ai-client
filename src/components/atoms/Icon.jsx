@@ -237,6 +237,18 @@ const icons = {
   ),
   'image-off': (
     <path d="M21 21L3 3M21 15l-5-5L5 21" />
+  ),
+  'shopping-cart': (
+    <path d="M1 1h4l2.68 13.39a2 2 0 002 1.61h9.72a2 2 0 002-1.61L23 6H6M6 14a4 4 0 100 8 4 4 0 000-8zM20 14a4 4 0 100 8 4 4 0 000-8z" />
+  ),
+  laptop: (
+    <path d="M20 16V7a2 2 0 00-2-2H6a2 2 0 00-2 2v9m16 0H4m16 0l1.28 2.55a.5.5 0 01-.28.7H3a.5.5 0 01-.28-.7L4 16" />
+  ),
+  shirt: (
+    <path d="M16 3l4 4v12a2 2 0 01-2 2H6a2 2 0 01-2-2V7l4-4M8 3a4 4 0 018 0" />
+  ),
+  brain: (
+    <path d="M9.5 2A2.5 2.5 0 0112 4.5V7a.5.5 0 01-.5.5h-1A2.5 2.5 0 0112 10a2.5 2.5 0 012.5 2.5h1a.5.5 0 01.5.5v2.5a2.5 2.5 0 01-2.5 2.5H11a.5.5 0 01-.5-.5v-1A2.5 2.5 0 018 14a2.5 2.5 0 01-2.5-2.5v-1A.5.5 0 015 10h1A2.5 2.5 0 018.5 7.5H9a.5.5 0 01.5-.5V4.5A2.5 2.5 0 019.5 2z" />
   )
 };
 
@@ -252,7 +264,20 @@ const Icon = ({
   const iconPath = icons[name];
   
   if (!iconPath) {
-    console.warn(`Icon "${name}" not found`);
+    // Try to suggest the correct icon name for common naming mismatches
+    const iconNames = Object.keys(icons);
+    const camelToKebab = name.replace(/([A-Z])/g, '-$1').toLowerCase();
+    const kebabToCamel = name.replace(/-([a-z])/g, (g) => g[1].toUpperCase());
+    
+    const suggestion = iconNames.find(iconName => 
+      iconName === camelToKebab || iconName === kebabToCamel
+    );
+    
+    if (suggestion) {
+      console.warn(`Icon "${name}" not found. Did you mean "${suggestion}"?`);
+    } else {
+      console.warn(`Icon "${name}" not found. Available icons:`, iconNames.slice(0, 10).join(', '), '...');
+    }
     return null;
   }
 
