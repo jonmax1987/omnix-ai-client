@@ -23,6 +23,7 @@ import ABTestAdvancedReporting from '../components/organisms/ABTestAdvancedRepor
 import ABTestRecommendationAlgorithms from '../components/organisms/ABTestRecommendationAlgorithms';
 import ABTestResultsPrediction from '../components/organisms/ABTestResultsPrediction';
 import ABTestAutomatedOptimization from '../components/organisms/ABTestAutomatedOptimization';
+import ABTestModelBenchmarking from '../components/organisms/ABTestModelBenchmarking';
 import { useI18n } from '../hooks/useI18n';
 import { useModal } from '../contexts/ModalContext';
 
@@ -689,6 +690,19 @@ const ABTesting = () => {
     // TODO: Show success notification with optimization summary
   }, []);
 
+  // Handle benchmark model selection
+  const handleBenchmarkModelSelect = useCallback((modelData) => {
+    console.log('Model selected from benchmarking:', modelData);
+    
+    // Close benchmarking modal and optionally update model preferences
+    closeModal('benchmarking');
+    
+    // Could update global model preferences or start a new test with the selected model
+    // TODO: Implement model preference updates
+    
+    // TODO: Show success notification
+  }, [closeModal]);
+
   return (
     <ABTestingContainer
       initial={{ opacity: 0, y: 20 }}
@@ -802,6 +816,14 @@ const ABTesting = () => {
           >
             <Icon name="cpu" size={16} />
             Compare Models
+          </Button>
+          <Button
+            variant="secondary"
+            size="sm"
+            onClick={() => openModal('benchmarking', { size: 'xl' })}
+          >
+            <Icon name="bar-chart" size={16} />
+            Model Benchmarking
           </Button>
           <Button
             variant="secondary"
@@ -1227,6 +1249,27 @@ const ABTesting = () => {
           testData={tests}
           onOptimizationUpdate={handleOptimizationUpdate}
           onClose={() => closeModal('optimization')}
+        />
+      </Modal>
+
+      {/* Model Benchmarking Modal */}
+      <Modal
+        isOpen={isModalOpen('benchmarking')}
+        onClose={() => closeModal('benchmarking')}
+        title=""
+        size="xl"
+        padding={false}
+      >
+        <ABTestModelBenchmarking
+          models={[
+            { id: 'claude-sonnet', name: 'Claude 3.5 Sonnet', type: 'claude-sonnet' },
+            { id: 'claude-haiku', name: 'Claude 3 Haiku', type: 'claude-haiku' },
+            { id: 'gpt-4-turbo', name: 'GPT-4 Turbo', type: 'gpt-4' },
+            { id: 'gpt-3.5-turbo', name: 'GPT-3.5 Turbo', type: 'gpt-3.5' }
+          ]}
+          testData={tests}
+          onModelSelect={handleBenchmarkModelSelect}
+          onClose={() => closeModal('benchmarking')}
         />
       </Modal>
     </ABTestingContainer>
