@@ -27,6 +27,7 @@ import ABTestModelBenchmarking from '../components/organisms/ABTestModelBenchmar
 import ABTestEnvironmentManagement from '../components/organisms/ABTestEnvironmentManagement';
 import ABTestRiskAssessment from '../components/organisms/ABTestRiskAssessment';
 import ABTestAdvancedStatistics from '../components/organisms/ABTestAdvancedStatistics';
+import ABTestDataGovernance from '../components/organisms/ABTestDataGovernance';
 import { useI18n } from '../hooks/useI18n';
 import { useModal } from '../contexts/ModalContext';
 
@@ -799,6 +800,53 @@ const ABTesting = () => {
     // TODO: Show success notification with statistical analysis summary
   }, []);
 
+  // Handle data governance updates
+  const handleGovernanceUpdate = useCallback((governanceData) => {
+    console.log('Data governance updated:', governanceData);
+    
+    // Update tests with governance compliance data
+    if (governanceData.type === 'export') {
+      // Handle compliance report export
+      setTests(prev => prev.map(t => 
+        t.status === 'running' || t.status === 'completed'
+          ? { 
+              ...t, 
+              complianceStatus: governanceData.report?.summary,
+              lastComplianceCheck: governanceData.timestamp,
+              governanceExports: [...(t.governanceExports || []), {
+                timestamp: governanceData.timestamp,
+                type: 'full_compliance_report'
+              }]
+            }
+          : t
+      ));
+    } else if (governanceData.type === 'data_deletion') {
+      // Handle data deletion events
+      setTests(prev => prev.map(t => ({
+        ...t, 
+        dataRetentionActions: [...(t.dataRetentionActions || []), {
+          action: 'data_deletion',
+          deletionId: governanceData.deletionId,
+          timestamp: governanceData.timestamp
+        }],
+        lastDataGovernanceUpdate: governanceData.timestamp
+      })));
+    } else if (governanceData.type === 'access_review') {
+      // Handle access review triggers
+      setTests(prev => prev.map(t => ({
+        ...t, 
+        accessReviews: [...(t.accessReviews || []), {
+          roleId: governanceData.roleId,
+          reviewedAt: governanceData.timestamp,
+          status: 'pending'
+        }],
+        lastAccessReview: governanceData.timestamp
+      })));
+    }
+    
+    // TODO: Show success notification with governance update summary
+  }, []);
+
   return (
     <ABTestingContainer
       initial={{ opacity: 0, y: 20 }}
@@ -944,6 +992,14 @@ const ABTesting = () => {
           >
             <Icon name="calculator" size={16} />
             Advanced Statistics
+          </Button>
+          <Button
+            variant="secondary"
+            size="sm"
+            onClick={() => openModal('dataGovernance', { size: 'xl' })}
+          >
+            <Icon name="shield" size={16} />
+            Data Governance
           </Button>
           <Button
             variant="secondary"
@@ -1434,6 +1490,21 @@ const ABTesting = () => {
           testData={tests}
           onAnalysisUpdate={handleAdvancedAnalysisUpdate}
           onClose={() => closeModal('advancedStatistics')}
+        />
+      </Modal>
+
+      {/* Data Governance Modal */}
+      <Modal
+        isOpen={isModalOpen('dataGovernance')}
+        onClose={() => closeModal('dataGovernance')}
+        title=""
+        size="xl"
+        padding={false}
+      >
+        <ABTestDataGovernance
+          testData={tests}
+          onGovernanceUpdate={handleGovernanceUpdate}
+          onClose={() => closeModal('dataGovernance')}
         />
       </Modal>
     </ABTestingContainer>
