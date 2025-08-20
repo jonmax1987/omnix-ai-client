@@ -6,6 +6,8 @@ import Typography from '../atoms/Typography';
 import Icon from '../atoms/Icon';
 import Badge from '../atoms/Badge';
 import FormField from '../molecules/FormField';
+import TagSelector from '../molecules/TagSelector';
+import inventoryService from '../../services/inventoryService';
 
 const FormContainer = styled(motion.form)`
   display: flex;
@@ -568,6 +570,12 @@ const ProductForm = ({
   const [isDragActive, setIsDragActive] = useState(false);
   const [primaryImageIndex, setPrimaryImageIndex] = useState(0);
   const fileInputRef = useRef(null);
+  
+  // Categories and tags state
+  const [availableCategories, setAvailableCategories] = useState([]);
+  const [availableTags, setAvailableTags] = useState([]);
+  const [selectedTags, setSelectedTags] = useState([]);
+  const [categoriesLoading, setCategoriesLoading] = useState(false);
 
   // Define field configurations
   const fieldConfigs = {
@@ -594,15 +602,14 @@ const ProductForm = ({
       label: 'Category',
       type: 'select',
       required: true,
-      options: [
-        { value: 'electronics', label: 'Electronics' },
-        { value: 'clothing', label: 'Clothing' },
-        { value: 'food', label: 'Food & Beverages' },
-        { value: 'home', label: 'Home & Garden' },
-        { value: 'books', label: 'Books' },
-        { value: 'toys', label: 'Toys & Games' }
-      ],
-      rules: [validationRules.required]
+      options: availableCategories.map(cat => ({
+        value: cat.id,
+        label: cat.name,
+        icon: cat.icon,
+        color: cat.color
+      })),
+      rules: [validationRules.required],
+      loading: categoriesLoading
     },
     supplier: {
       label: 'Supplier',
@@ -739,6 +746,45 @@ const ProductForm = ({
       rules: []
     }
   };
+
+  // Fetch categories and tags data
+  useEffect(() => {
+    const fetchCategoriesAndTags = async () => {
+      setCategoriesLoading(true);
+      try {
+        const [categoriesData, tagsData] = await Promise.all([
+          inventoryService.getCategories(),
+          inventoryService.getTags()
+        ]);
+        setAvailableCategories(categoriesData);
+        setAvailableTags(tagsData);
+      } catch (error) {
+        console.error('Failed to fetch categories and tags:', error);
+      } finally {
+        setCategoriesLoading(false);
+      }
+    };
+
+    fetchCategoriesAndTags();
+  }, []);
+
+  // Initialize selected tags from initial data
+  useEffect(() => {
+    if (initialData.tags) {
+      // Handle different tag formats (array of IDs, objects, or strings)
+      const tags = Array.isArray(initialData.tags) 
+        ? initialData.tags.map(tag => {
+            if (typeof tag === 'string') {
+              // Find tag by name or create a temporary one
+              const foundTag = availableTags.find(t => t.name === tag || t.id === tag);
+              return foundTag || { id: tag, name: tag, color: '#10b981', icon: 'tag' };
+            }
+            return tag;
+          })
+        : [];
+      setSelectedTags(tags);
+    }
+  }, [initialData.tags, availableTags]);
 
   // Validate a single field
   const validateField = useCallback((name, value) => {
@@ -882,6 +928,17 @@ const ProductForm = ({
     
     if (formData.expirationDate) {
       processedData.expirationDate = formData.expirationDate;
+    }
+    
+    // Add selected tags
+    if (selectedTags.length > 0) {
+      processedData.tags = selectedTags.map(tag => ({
+        id: tag.id,
+        name: tag.name,
+        color: tag.color,
+        icon: tag.icon,
+        isNew: tag.isNew || false
+      }));
     }
     
     // Remove null values to avoid backend validation issues
@@ -1319,14 +1376,22 @@ const ProductForm = ({
             onBlur={() => handleBlur('dimensions')}
             error={errors.dimensions}
           />
-          <FormField
-            {...fieldConfigs.tags}
-            name="tags"
-            value={formData.tags}
-            onChange={(e) => handleChange('tags', e.target.value)}
-            onBlur={() => handleBlur('tags')}
-            error={errors.tags}
-          />
+          <div style={{ display: 'flex', flexDirection: 'column', gap: '0.5rem' }}>
+            <Typography variant="subtitle2" weight="medium">
+              Product Tags
+            </Typography>
+            <TagSelector
+              availableTags={availableTags}
+              selectedTags={selectedTags}
+              onChange={setSelectedTags}
+              placeholder="Search and add tags..."
+              maxTags={10}
+              allowCreate={true}
+            />
+            <Typography variant="caption" color="secondary">
+              Add relevant tags to help categorize and find this product
+            </Typography>
+          </div>
         </FieldGrid>
       </FormSection>
 

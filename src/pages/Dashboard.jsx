@@ -15,6 +15,7 @@ import InventoryOptimizationRecommendations from '../components/organisms/Invent
 import SeasonalDemandForecasting from '../components/organisms/SeasonalDemandForecasting';
 import CostAnalysisMarginOptimization from '../components/organisms/CostAnalysisMarginOptimization';
 import ProductCatalogManagement from '../components/organisms/ProductCatalogManagement';
+import CategoryTagManager from '../components/organisms/CategoryTagManager';
 import StockDepletionTimeline from '../components/organisms/StockDepletionTimeline';
 import AutomatedOrderSuggestions from '../components/organisms/AutomatedOrderSuggestions';
 import SupplierIntegrationHub from '../components/organisms/SupplierIntegrationHub';
@@ -498,6 +499,68 @@ const Dashboard = () => {
     // 5. Generate bulk operation report
   };
 
+  // Category management handlers
+  const handleCategoryCreate = (category) => {
+    console.log('Creating new category:', category);
+    // In a real implementation, this would:
+    // 1. Validate category data and hierarchy
+    // 2. Submit to inventory service
+    // 3. Update category tree structure
+    // 4. Refresh product categorization
+    // 5. Show success notification
+  };
+
+  const handleCategoryEdit = (category) => {
+    console.log('Editing category:', category);
+    // In a real implementation, this would:
+    // 1. Update category details and metadata
+    // 2. Maintain parent-child relationships
+    // 3. Update all associated products
+    // 4. Refresh category tree
+    // 5. Show success notification
+  };
+
+  const handleCategoryDelete = (category) => {
+    console.log('Deleting category:', category);
+    // In a real implementation, this would:
+    // 1. Check for associated products and subcategories
+    // 2. Handle category migration or orphaned items
+    // 3. Remove from category hierarchy
+    // 4. Update product associations
+    // 5. Show success notification and impact summary
+  };
+
+  // Tag management handlers
+  const handleTagCreate = (tag) => {
+    console.log('Creating new tag:', tag);
+    // In a real implementation, this would:
+    // 1. Validate tag uniqueness and format
+    // 2. Submit to inventory service
+    // 3. Add to tag suggestions for products
+    // 4. Update tag analytics
+    // 5. Show success notification
+  };
+
+  const handleTagEdit = (tag) => {
+    console.log('Editing tag:', tag);
+    // In a real implementation, this would:
+    // 1. Update tag metadata and appearance
+    // 2. Maintain tag associations with products
+    // 3. Update tag analytics and usage stats
+    // 4. Refresh tag suggestions
+    // 5. Show success notification
+  };
+
+  const handleTagDelete = (tag) => {
+    console.log('Deleting tag:', tag);
+    // In a real implementation, this would:
+    // 1. Remove tag from all associated products
+    // 2. Update product search indices
+    // 3. Clean up tag analytics data
+    // 4. Remove from tag suggestions
+    // 5. Show success notification and impact summary
+  };
+
   const allComponents = [
     <InventoryHealthOverview
       key="inventory-health"
@@ -919,6 +982,31 @@ const Dashboard = () => {
               onProductDelete={handleProductDelete}
               onProductView={handleProductView}
               onBulkAction={handleProductBulkAction}
+            />
+          </GridItem>
+        </DashboardGrid>
+      </div>
+
+      {/* Category & Tag Management Section */}
+      <div style={{ marginBottom: '2rem' }}>
+        <Typography variant="h5" weight="semibold" style={{ marginBottom: '1.5rem', display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+          <Icon name="folder-tree" size={24} />
+          Category & Tag Management
+          <Badge variant="primary" size="sm">8 Categories</Badge>
+          <Badge variant="success" size="sm">8 Tags</Badge>
+        </Typography>
+        <DashboardGrid
+          {...DASHBOARD_LAYOUTS.default}
+          spacing="lg"
+        >
+          <GridItem span={4}>
+            <CategoryTagManager
+              onCategoryCreate={handleCategoryCreate}
+              onCategoryEdit={handleCategoryEdit}
+              onCategoryDelete={handleCategoryDelete}
+              onTagCreate={handleTagCreate}
+              onTagEdit={handleTagEdit}
+              onTagDelete={handleTagDelete}
             />
           </GridItem>
         </DashboardGrid>

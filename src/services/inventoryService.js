@@ -2064,6 +2064,381 @@ class InventoryService {
   }
 
   /**
+   * Get all categories
+   * @returns {Promise<Array>}
+   */
+  async getCategories() {
+    try {
+      // TODO: Replace with real API call
+      // const categories = await httpService.get('/categories');
+      
+      // Return mock data for now
+      const mockCategories = this.getMockCategories();
+      
+      return mockCategories;
+    } catch (error) {
+      throw this.handleInventoryError('Failed to fetch categories', error);
+    }
+  }
+
+  /**
+   * Create a new category
+   * @param {Object} categoryData - Category data
+   * @returns {Promise<Object>}
+   */
+  async createCategory(categoryData) {
+    try {
+      // TODO: Replace with real API call
+      // const category = await httpService.post('/categories', categoryData);
+      
+      // Simulate API call
+      await this.simulateApiDelay();
+      
+      const newCategory = {
+        id: `cat_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`,
+        ...categoryData,
+        productCount: 0,
+        createdAt: new Date().toISOString(),
+        updatedAt: new Date().toISOString()
+      };
+      
+      return newCategory;
+    } catch (error) {
+      throw this.handleInventoryError('Category creation failed', error);
+    }
+  }
+
+  /**
+   * Update a category
+   * @param {string} categoryId - Category ID
+   * @param {Object} categoryData - Updated category data
+   * @returns {Promise<Object>}
+   */
+  async updateCategory(categoryId, categoryData) {
+    try {
+      // TODO: Replace with real API call
+      // const category = await httpService.put(`/categories/${categoryId}`, categoryData);
+      
+      // Simulate API call
+      await this.simulateApiDelay();
+      
+      const updatedCategory = {
+        id: categoryId,
+        ...categoryData,
+        updatedAt: new Date().toISOString()
+      };
+      
+      return updatedCategory;
+    } catch (error) {
+      throw this.handleInventoryError('Category update failed', error);
+    }
+  }
+
+  /**
+   * Delete a category
+   * @param {string} categoryId - Category ID
+   * @returns {Promise<void>}
+   */
+  async deleteCategory(categoryId) {
+    try {
+      // TODO: Replace with real API call
+      await httpService.delete(`/categories/${categoryId}`);
+      
+      // Clear related caches
+      this.clearProductCaches();
+    } catch (error) {
+      throw this.handleInventoryError('Category deletion failed', error);
+    }
+  }
+
+  /**
+   * Get all tags
+   * @returns {Promise<Array>}
+   */
+  async getTags() {
+    try {
+      // TODO: Replace with real API call
+      // const tags = await httpService.get('/tags');
+      
+      // Return mock data for now
+      const mockTags = this.getMockTags();
+      
+      return mockTags;
+    } catch (error) {
+      throw this.handleInventoryError('Failed to fetch tags', error);
+    }
+  }
+
+  /**
+   * Create a new tag
+   * @param {Object} tagData - Tag data
+   * @returns {Promise<Object>}
+   */
+  async createTag(tagData) {
+    try {
+      // TODO: Replace with real API call
+      // const tag = await httpService.post('/tags', tagData);
+      
+      // Simulate API call
+      await this.simulateApiDelay();
+      
+      const newTag = {
+        id: `tag_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`,
+        ...tagData,
+        productCount: 0,
+        usageCount: 0,
+        createdAt: new Date().toISOString(),
+        updatedAt: new Date().toISOString()
+      };
+      
+      return newTag;
+    } catch (error) {
+      throw this.handleInventoryError('Tag creation failed', error);
+    }
+  }
+
+  /**
+   * Update a tag
+   * @param {string} tagId - Tag ID
+   * @param {Object} tagData - Updated tag data
+   * @returns {Promise<Object>}
+   */
+  async updateTag(tagId, tagData) {
+    try {
+      // TODO: Replace with real API call
+      // const tag = await httpService.put(`/tags/${tagId}`, tagData);
+      
+      // Simulate API call
+      await this.simulateApiDelay();
+      
+      const updatedTag = {
+        id: tagId,
+        ...tagData,
+        updatedAt: new Date().toISOString()
+      };
+      
+      return updatedTag;
+    } catch (error) {
+      throw this.handleInventoryError('Tag update failed', error);
+    }
+  }
+
+  /**
+   * Delete a tag
+   * @param {string} tagId - Tag ID
+   * @returns {Promise<void>}
+   */
+  async deleteTag(tagId) {
+    try {
+      // TODO: Replace with real API call
+      await httpService.delete(`/tags/${tagId}`);
+      
+      // Clear related caches
+      this.clearProductCaches();
+    } catch (error) {
+      throw this.handleInventoryError('Tag deletion failed', error);
+    }
+  }
+
+  /**
+   * Generate mock categories data
+   * TODO: Remove when backend endpoints are implemented
+   */
+  getMockCategories() {
+    const categories = [
+      {
+        id: 'cat-001',
+        name: 'Electronics',
+        description: 'Electronic devices and gadgets',
+        color: '#0ea5e9',
+        icon: 'smartphone',
+        parentId: null,
+        productCount: 45,
+        createdAt: '2024-01-15T10:30:00Z',
+        updatedAt: '2024-01-15T10:30:00Z'
+      },
+      {
+        id: 'cat-002', 
+        name: 'Clothing & Apparel',
+        description: 'Fashion items, clothing, and accessories',
+        color: '#f59e0b',
+        icon: 'shirt',
+        parentId: null,
+        productCount: 128,
+        createdAt: '2024-01-16T14:20:00Z',
+        updatedAt: '2024-01-16T14:20:00Z'
+      },
+      {
+        id: 'cat-003',
+        name: 'Food & Beverages',
+        description: 'Consumable food items and drinks',
+        color: '#10b981',
+        icon: 'coffee',
+        parentId: null,
+        productCount: 89,
+        createdAt: '2024-01-17T09:15:00Z',
+        updatedAt: '2024-01-17T09:15:00Z'
+      },
+      {
+        id: 'cat-004',
+        name: 'Home & Garden',
+        description: 'Home improvement and gardening supplies',
+        color: '#8b5cf6',
+        icon: 'home',
+        parentId: null,
+        productCount: 76,
+        createdAt: '2024-01-18T16:45:00Z',
+        updatedAt: '2024-01-18T16:45:00Z'
+      },
+      {
+        id: 'cat-005',
+        name: 'Books & Media',
+        description: 'Books, magazines, and digital media',
+        color: '#ef4444',
+        icon: 'book',
+        parentId: null,
+        productCount: 34,
+        createdAt: '2024-01-19T11:30:00Z',
+        updatedAt: '2024-01-19T11:30:00Z'
+      },
+      {
+        id: 'cat-006',
+        name: 'Smartphones',
+        description: 'Mobile phones and accessories',
+        color: '#0ea5e9',
+        icon: 'smartphone',
+        parentId: 'cat-001',
+        productCount: 23,
+        createdAt: '2024-01-20T13:20:00Z',
+        updatedAt: '2024-01-20T13:20:00Z'
+      },
+      {
+        id: 'cat-007',
+        name: 'Laptops & Computers',
+        description: 'Computing devices and peripherals',
+        color: '#0ea5e9',
+        icon: 'laptop',
+        parentId: 'cat-001',
+        productCount: 18,
+        createdAt: '2024-01-21T15:10:00Z',
+        updatedAt: '2024-01-21T15:10:00Z'
+      },
+      {
+        id: 'cat-008',
+        name: 'Men\'s Clothing',
+        description: 'Clothing items for men',
+        color: '#f59e0b',
+        icon: 'shirt',
+        parentId: 'cat-002',
+        productCount: 67,
+        createdAt: '2024-01-22T12:00:00Z',
+        updatedAt: '2024-01-22T12:00:00Z'
+      }
+    ];
+
+    return categories;
+  }
+
+  /**
+   * Generate mock tags data
+   * TODO: Remove when backend endpoints are implemented
+   */
+  getMockTags() {
+    const tags = [
+      {
+        id: 'tag-001',
+        name: 'bestseller',
+        description: 'Top-selling products',
+        color: '#f59e0b',
+        icon: 'star',
+        productCount: 23,
+        usageCount: 156,
+        createdAt: '2024-01-15T10:30:00Z',
+        updatedAt: '2024-02-01T14:20:00Z'
+      },
+      {
+        id: 'tag-002',
+        name: 'new-arrival',
+        description: 'Recently added products',
+        color: '#10b981',
+        icon: 'zap',
+        productCount: 45,
+        usageCount: 89,
+        createdAt: '2024-01-16T14:20:00Z',
+        updatedAt: '2024-02-05T09:15:00Z'
+      },
+      {
+        id: 'tag-003',
+        name: 'sale',
+        description: 'Items currently on sale',
+        color: '#ef4444',
+        icon: 'tag',
+        productCount: 67,
+        usageCount: 234,
+        createdAt: '2024-01-17T09:15:00Z',
+        updatedAt: '2024-02-10T16:45:00Z'
+      },
+      {
+        id: 'tag-004',
+        name: 'premium',
+        description: 'High-end premium products',
+        color: '#8b5cf6',
+        icon: 'crown',
+        productCount: 12,
+        usageCount: 67,
+        createdAt: '2024-01-18T16:45:00Z',
+        updatedAt: '2024-01-25T11:30:00Z'
+      },
+      {
+        id: 'tag-005',
+        name: 'eco-friendly',
+        description: 'Environmentally conscious products',
+        color: '#059669',
+        icon: 'leaf',
+        productCount: 34,
+        usageCount: 145,
+        createdAt: '2024-01-19T11:30:00Z',
+        updatedAt: '2024-02-01T13:20:00Z'
+      },
+      {
+        id: 'tag-006',
+        name: 'limited-edition',
+        description: 'Limited availability products',
+        color: '#dc2626',
+        icon: 'zap',
+        productCount: 8,
+        usageCount: 32,
+        createdAt: '2024-01-20T13:20:00Z',
+        updatedAt: '2024-01-28T15:10:00Z'
+      },
+      {
+        id: 'tag-007',
+        name: 'bundle-deal',
+        description: 'Products sold as bundles',
+        color: '#0369a1',
+        icon: 'package',
+        productCount: 15,
+        usageCount: 78,
+        createdAt: '2024-01-21T15:10:00Z',
+        updatedAt: '2024-02-03T12:00:00Z'
+      },
+      {
+        id: 'tag-008',
+        name: 'trending',
+        description: 'Currently trending products',
+        color: '#ea580c',
+        icon: 'trending-up',
+        productCount: 29,
+        usageCount: 187,
+        createdAt: '2024-01-22T12:00:00Z',
+        updatedAt: '2024-02-08T10:45:00Z'
+      }
+    ];
+
+    return tags;
+  }
+
+  /**
    * Generate mock products catalog data
    * TODO: Remove when backend endpoints are implemented
    */
