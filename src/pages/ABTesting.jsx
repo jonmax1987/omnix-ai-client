@@ -20,6 +20,7 @@ import ABTestCostAnalysis from '../components/organisms/ABTestCostAnalysis';
 import MultiVariantTesting from '../components/organisms/MultiVariantTesting';
 import ExperimentSegmentation from '../components/organisms/ExperimentSegmentation';
 import ABTestAdvancedReporting from '../components/organisms/ABTestAdvancedReporting';
+import ABTestRecommendationAlgorithms from '../components/organisms/ABTestRecommendationAlgorithms';
 import { useI18n } from '../hooks/useI18n';
 import { useModal } from '../contexts/ModalContext';
 
@@ -625,6 +626,24 @@ const ABTesting = () => {
     // TODO: Show success notification and maybe redirect to execution dashboard
   }, []);
 
+  // Handle algorithm selection
+  const handleAlgorithmSelect = useCallback((algorithm) => {
+    console.log('Algorithm selected:', algorithm);
+    
+    // Close algorithms modal and optionally open test creation with pre-selected algorithm
+    closeModal('algorithms');
+    
+    // Could auto-configure the test wizard with the selected algorithm
+    setTimeout(() => {
+      openModal('createTest', { 
+        size: 'xl',
+        data: { preSelectedAlgorithm: algorithm }
+      });
+    }, 300);
+    
+    // TODO: Show success notification
+  }, [closeModal, openModal]);
+
   return (
     <ABTestingContainer
       initial={{ opacity: 0, y: 20 }}
@@ -698,6 +717,14 @@ const ABTesting = () => {
           >
             <Icon name="lightbulb" size={16} />
             AI Recommendations
+          </Button>
+          <Button
+            variant="secondary"
+            size="sm"
+            onClick={() => openModal('algorithms', { size: 'xl' })}
+          >
+            <Icon name="cpu" size={16} />
+            AI Algorithms
           </Button>
           <Button
             variant="secondary"
@@ -1094,6 +1121,21 @@ const ABTesting = () => {
         <ABTestAdvancedReporting
           testData={tests}
           onClose={() => closeModal('advancedReporting')}
+        />
+      </Modal>
+
+      {/* AI Algorithms Modal */}
+      <Modal
+        isOpen={isModalOpen('algorithms')}
+        onClose={() => closeModal('algorithms')}
+        title=""
+        size="xl"
+        padding={false}
+      >
+        <ABTestRecommendationAlgorithms
+          testData={tests}
+          onAlgorithmSelect={handleAlgorithmSelect}
+          onClose={() => closeModal('algorithms')}
         />
       </Modal>
     </ABTestingContainer>
