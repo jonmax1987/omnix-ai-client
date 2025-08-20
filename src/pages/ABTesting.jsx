@@ -14,6 +14,7 @@ import ABTestStatisticalCalculator from '../components/organisms/ABTestStatistic
 import ABTestModelComparison from '../components/organisms/ABTestModelComparison';
 import ABTestRecommendationEngine from '../components/organisms/ABTestRecommendationEngine';
 import ABTestHistoricalArchive from '../components/organisms/ABTestHistoricalArchive';
+import ABTestDeployment from '../components/organisms/ABTestDeployment';
 import { useI18n } from '../hooks/useI18n';
 import { useModal } from '../contexts/ModalContext';
 
@@ -672,6 +673,14 @@ const ABTesting = () => {
           <Button
             variant="secondary"
             size="sm"
+            onClick={() => openModal('deployment', { size: 'xl' })}
+          >
+            <Icon name="rocket" size={16} />
+            Deploy Tests
+          </Button>
+          <Button
+            variant="secondary"
+            size="sm"
             onClick={() => openModal('compareModels', { size: 'xl' })}
           >
             <Icon name="cpu" size={16} />
@@ -874,6 +883,32 @@ const ABTesting = () => {
             runningTests: stats.runningTests
           }}
           onModelSelect={handleModelSelect}
+        />
+      </Modal>
+
+      {/* Deployment Modal */}
+      <Modal
+        isOpen={isModalOpen('deployment')}
+        onClose={() => closeModal('deployment')}
+        title=""
+        size="xl"
+        padding={false}
+      >
+        <ABTestDeployment
+          testId={selectedTests[0]}
+          testData={selectedTests.length > 0 ? tests.find(t => t.id === selectedTests[0]) : null}
+          onDeploymentStart={(config) => {
+            console.log('Starting deployment with config:', config);
+            // Handle deployment start
+          }}
+          onDeploymentStop={() => {
+            console.log('Stopping deployment');
+            // Handle deployment stop
+          }}
+          onConfigUpdate={(configUpdate) => {
+            console.log('Deployment config updated:', configUpdate);
+            // Handle configuration updates
+          }}
         />
       </Modal>
 
