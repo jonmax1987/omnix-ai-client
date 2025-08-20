@@ -15,6 +15,7 @@ import ABTestModelComparison from '../components/organisms/ABTestModelComparison
 import ABTestRecommendationEngine from '../components/organisms/ABTestRecommendationEngine';
 import ABTestHistoricalArchive from '../components/organisms/ABTestHistoricalArchive';
 import ABTestDeployment from '../components/organisms/ABTestDeployment';
+import ABTestPerformanceMonitoring from '../components/organisms/ABTestPerformanceMonitoring';
 import { useI18n } from '../hooks/useI18n';
 import { useModal } from '../contexts/ModalContext';
 
@@ -649,6 +650,14 @@ const ABTesting = () => {
           <Button
             variant="secondary"
             size="sm"
+            onClick={() => openModal('monitoring', { size: 'xl' })}
+          >
+            <Icon name="activity" size={16} />
+            Monitoring
+          </Button>
+          <Button
+            variant="secondary"
+            size="sm"
             onClick={() => console.log('View analytics')}
           >
             <Icon name="bar-chart" size={16} />
@@ -883,6 +892,28 @@ const ABTesting = () => {
             runningTests: stats.runningTests
           }}
           onModelSelect={handleModelSelect}
+        />
+      </Modal>
+
+      {/* Performance Monitoring Modal */}
+      <Modal
+        isOpen={isModalOpen('monitoring')}
+        onClose={() => closeModal('monitoring')}
+        title=""
+        size="xl"
+        padding={false}
+      >
+        <ABTestPerformanceMonitoring
+          testId={selectedTests[0]}
+          testData={selectedTests.length > 0 ? tests.find(t => t.id === selectedTests[0]) : null}
+          onAlertAction={(alertId, action) => {
+            console.log(`Alert ${alertId} action: ${action}`);
+            // Handle alert acknowledgment or dismissal
+          }}
+          onThresholdUpdate={(thresholdUpdate) => {
+            console.log('Monitoring thresholds updated:', thresholdUpdate);
+            // Handle threshold configuration updates
+          }}
         />
       </Modal>
 
