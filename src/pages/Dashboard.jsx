@@ -13,6 +13,7 @@ import PredictiveInventoryPanel from '../components/organisms/PredictiveInventor
 import InventoryHealthOverview from '../components/organisms/InventoryHealthOverview';
 import InventoryOptimizationRecommendations from '../components/organisms/InventoryOptimizationRecommendations';
 import SeasonalDemandForecasting from '../components/organisms/SeasonalDemandForecasting';
+import CostAnalysisMarginOptimization from '../components/organisms/CostAnalysisMarginOptimization';
 import StockDepletionTimeline from '../components/organisms/StockDepletionTimeline';
 import AutomatedOrderSuggestions from '../components/organisms/AutomatedOrderSuggestions';
 import SupplierIntegrationHub from '../components/organisms/SupplierIntegrationHub';
@@ -410,6 +411,41 @@ const Dashboard = () => {
     // 4. Schedule automated forecast reports
   };
 
+  // Cost analysis handlers
+  const handleCostOptimizationApply = async (optimization) => {
+    try {
+      console.log('Applying cost optimization:', optimization);
+      // In a real implementation, this would:
+      // 1. Create implementation plan for cost optimization
+      // 2. Schedule optimization activities
+      // 3. Track ROI and savings progress
+      // 4. Update cost models and projections
+      // 5. Create audit trail of optimization decisions
+    } catch (error) {
+      console.error('Failed to apply cost optimization:', error);
+    }
+  };
+
+  const handleCostAnalyze = (category) => {
+    console.log('Analyzing cost category:', category);
+    // In a real implementation, this would:
+    // 1. Navigate to detailed cost breakdown view
+    // 2. Show historical cost trends
+    // 3. Display cost drivers and factors
+    // 4. Present optimization opportunities
+    // 5. Generate category-specific recommendations
+  };
+
+  const handleCostReportExport = (costData) => {
+    console.log('Exporting cost analysis report:', costData);
+    // In a real implementation, this would:
+    // 1. Generate comprehensive cost analysis report
+    // 2. Include margin analysis and optimization recommendations
+    // 3. Export to Excel/PDF with charts and tables
+    // 4. Schedule automated cost reports
+    // 5. Send to stakeholders and finance team
+  };
+
   const allComponents = [
     <InventoryHealthOverview
       key="inventory-health"
@@ -785,6 +821,29 @@ const Dashboard = () => {
               onExportForecast={handleExportForecast}
               autoRefresh={true}
               refreshInterval={600000}
+            />
+          </GridItem>
+        </DashboardGrid>
+      </div>
+
+      {/* Cost Analysis & Margin Optimization Section */}
+      <div style={{ marginBottom: '2rem' }}>
+        <Typography variant="h5" weight="semibold" style={{ marginBottom: '1.5rem', display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+          <Icon name="dollar-sign" size={24} />
+          Cost Analysis & Margin Optimization
+          <Badge variant="warning" size="sm">$107.9K Savings</Badge>
+        </Typography>
+        <DashboardGrid
+          {...DASHBOARD_LAYOUTS.default}
+          spacing="lg"
+        >
+          <GridItem span={4}>
+            <CostAnalysisMarginOptimization
+              onOptimizationApply={handleCostOptimizationApply}
+              onCostAnalyze={handleCostAnalyze}
+              onExportReport={handleCostReportExport}
+              autoRefresh={true}
+              refreshInterval={900000}
             />
           </GridItem>
         </DashboardGrid>

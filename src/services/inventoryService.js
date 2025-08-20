@@ -1722,6 +1722,221 @@ class InventoryService {
       { type: 'seasonal_recommendation', description: 'Review seasonal recommendations' }
     ];
   }
+
+  /**
+   * Get cost analysis and margin optimization data
+   * @param {Object} params - Analysis parameters
+   * @returns {Promise<Object>} Cost analysis data
+   */
+  async getCostAnalysis(params = {}) {
+    const {
+      analysisType = 'overview',
+      timeRange = '12m',
+      categories = null,
+      includeOptimizations = true,
+      includeProfitability = true
+    } = params;
+
+    const cacheKey = `cost_analysis_${analysisType}_${timeRange}`;
+    
+    if (this.getCachedData(cacheKey)) {
+      return this.getCachedData(cacheKey);
+    }
+
+    // TODO: Replace with real API calls once backend endpoints are implemented
+    // For now, return mock data to prevent 404 errors
+    try {
+      const mockData = this.getMockCostAnalysis(params);
+      this.setCachedData(cacheKey, mockData);
+      return mockData;
+    } catch (error) {
+      console.warn('Mock cost analysis data failed, falling back to real API calls:', error);
+      
+      try {
+        // Fallback to real API calls if mock fails
+        const [costAnalysis, optimizations, profitability] = await Promise.allSettled([
+          httpService.get('/analytics/cost-analysis', {
+            analysisType,
+            timeRange,
+            categories,
+            includeBreakdown: true
+          }),
+          includeOptimizations ? httpService.get('/analytics/cost-optimizations', {
+            analysisType,
+            includeRecommendations: true
+          }) : Promise.resolve(null),
+          includeProfitability ? httpService.get('/analytics/profitability', {
+            timeRange,
+            includeMargins: true
+          }) : Promise.resolve(null)
+        ]);
+
+        const result = {
+          costAnalysis: costAnalysis.status === 'fulfilled' ? costAnalysis.value : null,
+          optimizations: optimizations.status === 'fulfilled' ? optimizations.value : null,
+          profitability: profitability.status === 'fulfilled' ? profitability.value : null,
+          insights: this.generateCostInsights(costAnalysis.value),
+          recommendations: this.generateCostRecommendations(costAnalysis.value),
+          generatedAt: Date.now()
+        };
+
+        this.setCachedData(cacheKey, result);
+        return result;
+      } catch (apiError) {
+        throw this.handleInventoryError('Cost analysis fetch failed', apiError);
+      }
+    }
+  }
+
+  /**
+   * Generate mock cost analysis data
+   * TODO: Remove when backend endpoints are implemented
+   */
+  getMockCostAnalysis(params = {}) {
+    const { analysisType = 'overview', categories = null } = params;
+    
+    const costBreakdown = [
+      {
+        id: 'procurement',
+        category: 'procurement',
+        name: 'Procurement Costs',
+        amount: 285600,
+        percentage: 42.5,
+        trend: -2.3,
+        margin: 28.5,
+        efficiency: 82,
+        optimizationPotential: 34500
+      },
+      {
+        id: 'operations',
+        category: 'operations', 
+        name: 'Operations',
+        amount: 156800,
+        percentage: 23.3,
+        trend: 1.8,
+        margin: 35.2,
+        efficiency: 76,
+        optimizationPotential: 11800
+      },
+      {
+        id: 'overhead',
+        category: 'overhead',
+        name: 'Overhead',
+        amount: 98400,
+        percentage: 14.6,
+        trend: -0.5,
+        margin: 18.7,
+        efficiency: 71,
+        optimizationPotential: 8200
+      },
+      {
+        id: 'shipping',
+        category: 'shipping',
+        name: 'Shipping & Logistics',
+        amount: 78200,
+        percentage: 11.6,
+        trend: 3.2,
+        margin: 22.1,
+        efficiency: 84,
+        optimizationPotential: 15600
+      },
+      {
+        id: 'storage',
+        category: 'storage',
+        name: 'Storage & Handling',
+        amount: 54000,
+        percentage: 8.0,
+        trend: -1.2,
+        margin: 31.8,
+        efficiency: 79,
+        optimizationPotential: 27300
+      }
+    ];
+
+    const optimizations = [
+      {
+        id: 'bulk-discount',
+        title: 'Negotiate Better Bulk Discounts',
+        description: 'Consolidate orders with top 3 suppliers to achieve tier-3 pricing discounts of 8-12%',
+        impact: 'high',
+        priority: 'high',
+        estimatedSavings: 34500,
+        implementation: 'Medium complexity',
+        timeframe: '2-3 months',
+        confidence: 92,
+        category: 'procurement',
+        roi: 285
+      },
+      {
+        id: 'shipping-optimization',
+        title: 'Optimize Shipping Routes',
+        description: 'Implement zone skipping and route optimization to reduce shipping costs by 15-20%',
+        impact: 'high',
+        priority: 'medium',
+        estimatedSavings: 15600,
+        implementation: 'Low complexity',
+        timeframe: '1 month',
+        confidence: 88,
+        category: 'shipping',
+        roi: 195
+      },
+      {
+        id: 'inventory-reduction',
+        title: 'Reduce Dead Stock Carrying Costs',
+        description: 'Identify and liquidate slow-moving inventory to reduce storage costs and free up capital',
+        impact: 'medium',
+        priority: 'high',
+        estimatedSavings: 27300,
+        implementation: 'Low complexity',
+        timeframe: '2 weeks',
+        confidence: 95,
+        category: 'storage',
+        roi: 456
+      }
+    ];
+
+    return {
+      costBreakdown: costBreakdown,
+      optimizations: optimizations,
+      profitability: {
+        grossMargin: 32.8,
+        netMargin: 18.5,
+        contributionMargin: 45.2,
+        breakEvenPoint: 156780,
+        roi: 24.3
+      },
+      summary: {
+        totalCosts: 673000,
+        potentialSavings: 107900,
+        optimizationOpportunities: 5,
+        averageMargin: 27.3,
+        costEfficiencyScore: 78
+      },
+      generatedAt: Date.now()
+    };
+  }
+
+  /**
+   * Generate cost insights
+   * @param {Object} costAnalysis - Cost analysis data
+   * @returns {Array} Insights
+   */
+  generateCostInsights(costAnalysis) {
+    return [
+      { type: 'cost_insight', description: 'Cost analysis insights available' }
+    ];
+  }
+
+  /**
+   * Generate cost recommendations
+   * @param {Object} costAnalysis - Cost analysis data
+   * @returns {Array} Recommendations
+   */
+  generateCostRecommendations(costAnalysis) {
+    return [
+      { type: 'cost_recommendation', description: 'Review cost optimization recommendations' }
+    ];
+  }
 }
 
 // Export singleton instance
