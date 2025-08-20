@@ -78,8 +78,8 @@ const HealthScore = styled.div`
 const ScoreValue = styled.div.withConfig({
   shouldForwardProp: (prop) => prop !== 'score'
 })`
-  font-size: ${props => props.theme.typography.fontSize['3xl']};
-  font-weight: ${props => props.theme.typography.fontWeight.bold};
+  font-size: ${props => props.theme.typography?.h1?.fontSize || '2.25rem'};
+  font-weight: ${props => props.theme.typography?.fontWeight?.bold || 700};
   color: ${props => getHealthColor(props.score, props.theme)};
   line-height: 1;
 `;
@@ -131,14 +131,14 @@ const MetricItem = styled.div`
 const MetricValue = styled.div.withConfig({
   shouldForwardProp: (prop) => prop !== 'type'
 })`
-  font-size: ${props => props.theme.typography.fontSize.xl};
-  font-weight: ${props => props.theme.typography.fontWeight.semibold};
+  font-size: ${props => props.theme.typography?.h4?.fontSize || '1.25rem'};
+  font-weight: ${props => props.theme.typography?.fontWeight?.semibold || 600};
   color: ${props => getMetricColor(props.type, props.theme)};
   line-height: 1.2;
 `;
 
 const MetricLabel = styled.div`
-  font-size: ${props => props.theme.typography.fontSize.sm};
+  font-size: ${props => props.theme.typography?.body2?.fontSize || '0.875rem'};
   color: ${props => props.theme.colors.text.secondary};
   margin-top: ${props => props.theme.spacing[1]};
 `;
@@ -163,7 +163,7 @@ const IssueItem = styled(motion.div).withConfig({
   background: ${props => getSeverityBackground(props.severity, props.theme)};
   border: 1px solid ${props => getSeverityBorder(props.severity, props.theme)};
   border-radius: ${props => props.theme.spacing[2]};
-  font-size: ${props => props.theme.typography.fontSize.sm};
+  font-size: ${props => props.theme.typography?.body2?.fontSize || '0.875rem'};
 `;
 
 const AlertsPanel = styled(motion.div)`
@@ -213,13 +213,13 @@ const AlertTitle = styled.div`
 `;
 
 const AlertDescription = styled.div`
-  font-size: ${props => props.theme.typography.fontSize.sm};
+  font-size: ${props => props.theme.typography?.body2?.fontSize || '0.875rem'};
   color: ${props => props.theme.colors.text.secondary};
   line-height: 1.4;
 `;
 
 const AlertTime = styled.div`
-  font-size: ${props => props.theme.typography.fontSize.xs};
+  font-size: ${props => props.theme.typography?.caption?.fontSize || '0.75rem'};
   color: ${props => props.theme.colors.text.tertiary};
   margin-top: ${props => props.theme.spacing[1]};
 `;
