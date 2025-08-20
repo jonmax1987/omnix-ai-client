@@ -166,7 +166,9 @@ const ProductCard = styled(motion.div).withConfig({
   }
 `;
 
-const ProductImage = styled.div`
+const ProductImage = styled.div.withConfig({
+  shouldForwardProp: (prop) => prop !== 'viewMode'
+})`
   width: 100px;
   height: 100px;
   border-radius: ${props => props.theme.spacing[2]};
@@ -227,7 +229,9 @@ const ProductDescription = styled.div`
   overflow: hidden;
 `;
 
-const ProductMetrics = styled.div`
+const ProductMetrics = styled.div.withConfig({
+  shouldForwardProp: (prop) => prop !== 'viewMode'
+})`
   display: grid;
   grid-template-columns: repeat(2, 1fr);
   gap: ${props => props.theme.spacing[3]};
@@ -258,7 +262,9 @@ const MetricLabel = styled.div`
   letter-spacing: 0.5px;
 `;
 
-const ProductActions = styled.div`
+const ProductActions = styled.div.withConfig({
+  shouldForwardProp: (prop) => prop !== 'viewMode'
+})`
   display: flex;
   gap: ${props => props.theme.spacing[2]};
   margin-top: ${props => props.theme.spacing[3]};

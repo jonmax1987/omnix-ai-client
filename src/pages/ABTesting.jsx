@@ -26,6 +26,7 @@ import ABTestAutomatedOptimization from '../components/organisms/ABTestAutomated
 import ABTestModelBenchmarking from '../components/organisms/ABTestModelBenchmarking';
 import ABTestEnvironmentManagement from '../components/organisms/ABTestEnvironmentManagement';
 import ABTestRiskAssessment from '../components/organisms/ABTestRiskAssessment';
+import ABTestAdvancedStatistics from '../components/organisms/ABTestAdvancedStatistics';
 import { useI18n } from '../hooks/useI18n';
 import { useModal } from '../contexts/ModalContext';
 
@@ -762,6 +763,42 @@ const ABTesting = () => {
     // TODO: Show success notification with risk assessment summary
   }, []);
 
+  // Handle advanced statistics analysis updates
+  const handleAdvancedAnalysisUpdate = useCallback((analysisData) => {
+    console.log('Advanced statistical analysis updated:', analysisData);
+    
+    // Update tests with statistical analysis data
+    if (analysisData.testId) {
+      setTests(prev => prev.map(t => 
+        t.id === analysisData.testId
+          ? { 
+              ...t, 
+              statisticalAnalysis: analysisData.analysis,
+              powerAnalysis: analysisData.analysis?.powerAnalysis,
+              effectSizeAnalysis: analysisData.analysis?.effectSize,
+              confidenceAnalysis: analysisData.analysis?.confidence,
+              bayesianAnalysis: analysisData.analysis?.bayesian,
+              lastStatisticalUpdate: analysisData.timestamp
+            }
+          : t
+      ));
+    } else {
+      // Apply global statistical insights
+      setTests(prev => prev.map(t => 
+        t.status === 'running' || t.status === 'completed'
+          ? { 
+              ...t, 
+              globalStatisticalInsights: analysisData.analysis,
+              statisticalRecommendations: analysisData.recommendations,
+              lastGlobalStatisticalUpdate: analysisData.timestamp
+            }
+          : t
+      ));
+    }
+    
+    // TODO: Show success notification with statistical analysis summary
+  }, []);
+
   return (
     <ABTestingContainer
       initial={{ opacity: 0, y: 20 }}
@@ -899,6 +936,14 @@ const ABTesting = () => {
           >
             <Icon name="shield" size={16} />
             Risk Assessment
+          </Button>
+          <Button
+            variant="secondary"
+            size="sm"
+            onClick={() => openModal('advancedStatistics', { size: 'xl' })}
+          >
+            <Icon name="calculator" size={16} />
+            Advanced Statistics
           </Button>
           <Button
             variant="secondary"
@@ -1374,6 +1419,21 @@ const ABTesting = () => {
           testData={tests}
           onRiskUpdate={handleRiskUpdate}
           onClose={() => closeModal('riskAssessment')}
+        />
+      </Modal>
+
+      {/* Advanced Statistics Modal */}
+      <Modal
+        isOpen={isModalOpen('advancedStatistics')}
+        onClose={() => closeModal('advancedStatistics')}
+        title=""
+        size="xl"
+        padding={false}
+      >
+        <ABTestAdvancedStatistics
+          testData={tests}
+          onAnalysisUpdate={handleAdvancedAnalysisUpdate}
+          onClose={() => closeModal('advancedStatistics')}
         />
       </Modal>
     </ABTestingContainer>
