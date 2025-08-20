@@ -6,6 +6,7 @@ import Icon from '../components/atoms/Icon';
 import Badge from '../components/atoms/Badge';
 import Modal from '../components/atoms/Modal';
 import RevenueAnalyticsDashboard from '../components/organisms/RevenueAnalyticsDashboard';
+import CustomerAnalyticsDashboard from '../components/organisms/CustomerAnalyticsDashboard';
 import { useI18n } from '../hooks/useI18n';
 import { useModal } from '../contexts/ModalContext';
 
@@ -153,7 +154,7 @@ const Analytics = () => {
         'Churn prediction and prevention',
         'Customer journey mapping'
       ],
-      status: 'coming-soon'
+      status: 'available'
     },
     {
       id: 'product',
@@ -216,6 +217,8 @@ const Analytics = () => {
   const handleCardClick = (moduleId) => {
     if (moduleId === 'revenue') {
       openModal('revenueAnalytics', { size: 'xl' });
+    } else if (moduleId === 'customer') {
+      openModal('customerAnalytics', { size: 'xl' });
     }
     // Other modules will be implemented in future tasks
   };
@@ -249,8 +252,16 @@ const Analytics = () => {
         
         <HeaderRight>
           <Typography variant="caption" color="tertiary">
-            1 of 6 modules available
+            2 of 6 modules available
           </Typography>
+          <Button
+            variant="secondary"
+            size="sm"
+            onClick={() => openModal('customerAnalytics', { size: 'xl' })}
+          >
+            <Icon name="users" size={16} />
+            Customer Dashboard
+          </Button>
           <Button
             variant="secondary"
             size="sm"
@@ -317,6 +328,20 @@ const Analytics = () => {
         <RevenueAnalyticsDashboard
           onAnalyticsUpdate={handleAnalyticsUpdate}
           onClose={() => closeModal('revenueAnalytics')}
+        />
+      </Modal>
+
+      {/* Customer Analytics Modal */}
+      <Modal
+        isOpen={isModalOpen('customerAnalytics')}
+        onClose={() => closeModal('customerAnalytics')}
+        title=""
+        size="xl"
+        padding={false}
+      >
+        <CustomerAnalyticsDashboard
+          onAnalyticsUpdate={handleAnalyticsUpdate}
+          onClose={() => closeModal('customerAnalytics')}
         />
       </Modal>
     </AnalyticsContainer>
