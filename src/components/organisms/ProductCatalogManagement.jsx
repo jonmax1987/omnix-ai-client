@@ -6,6 +6,8 @@ import Typography from '../atoms/Typography';
 import Badge from '../atoms/Badge';
 import Button from '../atoms/Button';
 import Progress from '../atoms/Progress';
+import Modal from '../atoms/Modal';
+import ProductForm from './ProductForm';
 import inventoryService from '../../services/inventoryService';
 import { useI18n } from '../../hooks/useI18n';
 
@@ -417,6 +419,12 @@ const ProductCatalogManagement = ({
   const [sortBy, setSortBy] = useState('name');
   const [sortOrder, setSortOrder] = useState('asc');
   const [error, setError] = useState(null);
+  
+  // Product form modal state
+  const [showProductForm, setShowProductForm] = useState(false);
+  const [formMode, setFormMode] = useState('create'); // 'create' or 'edit'
+  const [editingProduct, setEditingProduct] = useState(null);
+  const [formLoading, setFormLoading] = useState(false);
 
   // Mock product data
   const mockProducts = [
@@ -638,6 +646,65 @@ const ProductCatalogManagement = ({
     setSelectedProducts(new Set());
   };
 
+  // Product form handlers
+  const handleCreateProduct = () => {
+    setFormMode('create');
+    setEditingProduct(null);
+    setShowProductForm(true);
+  };
+
+  const handleEditProduct = (product) => {
+    setFormMode('edit');
+    setEditingProduct(product);
+    setShowProductForm(true);
+  };
+
+  const handleProductFormSubmit = async (productData) => {
+    setFormLoading(true);
+    try {
+      if (formMode === 'create') {
+        const newProduct = await inventoryService.createProduct(productData);
+        setProducts(prev => [newProduct, ...prev]);
+        onProductCreate?.(newProduct);
+      } else {
+        const updatedProduct = await inventoryService.updateProduct(editingProduct.id, productData);
+        setProducts(prev => prev.map(p => p.id === editingProduct.id ? updatedProduct : p));
+        onProductEdit?.(updatedProduct);
+      }
+      setShowProductForm(false);
+      setEditingProduct(null);
+    } catch (error) {
+      console.error('Product form error:', error);
+      setError(error.message);
+    } finally {
+      setFormLoading(false);
+    }
+  };
+
+  const handleProductFormCancel = () => {
+    setShowProductForm(false);
+    setEditingProduct(null);
+    setFormLoading(false);
+  };
+
+  const handleDeleteProduct = async (product) => {
+    if (window.confirm(`Are you sure you want to delete "${product.name}"? This action cannot be undone.`)) {
+      setFormLoading(true);
+      try {
+        await inventoryService.deleteProduct(product.id);
+        setProducts(prev => prev.filter(p => p.id !== product.id));
+        onProductDelete?.(product);
+        setShowProductForm(false);
+        setEditingProduct(null);
+      } catch (error) {
+        console.error('Delete product error:', error);
+        setError(error.message);
+      } finally {
+        setFormLoading(false);
+      }
+    }
+  };
+
   // Render product in grid/list mode
   const renderProduct = (product) => (
     <ProductCard
@@ -712,12 +779,12 @@ const ProductCatalogManagement = ({
             <Icon name="eye" size={14} />
             View
           </Button>
-          <Button variant="outline" size="sm" onClick={() => onProductEdit?.(product)}>
+          <Button variant="outline" size="sm" onClick={() => handleEditProduct(product)}>
             <Icon name="edit" size={14} />
             Edit
           </Button>
           {viewMode === 'grid' && (
-            <Button variant="ghost" size="sm" onClick={() => onProductDelete?.(product)}>
+            <Button variant="ghost" size="sm" onClick={() => handleDeleteProduct(product)}>
               <Icon name="trash" size={14} />
             </Button>
           )}
@@ -772,10 +839,10 @@ const ProductCatalogManagement = ({
         <Button variant="ghost" size="xs" onClick={() => onProductView?.(product)}>
           <Icon name="eye" size={12} />
         </Button>
-        <Button variant="ghost" size="xs" onClick={() => onProductEdit?.(product)}>
+        <Button variant="ghost" size="xs" onClick={() => handleEditProduct(product)}>
           <Icon name="edit" size={12} />
         </Button>
-        <Button variant="ghost" size="xs" onClick={() => onProductDelete?.(product)}>
+        <Button variant="ghost" size="xs" onClick={() => handleDeleteProduct(product)}>
           <Icon name="trash" size={12} />
         </Button>
       </div>
@@ -851,7 +918,7 @@ const ProductCatalogManagement = ({
               </Button>
             </>
           )}
-          <Button variant="primary" onClick={() => onProductCreate?.()}>
+          <Button variant="primary" onClick={handleCreateProduct}>
             <Icon name="plus" size={16} />
             Add Product
           </Button>
@@ -995,6 +1062,24 @@ const ProductCatalogManagement = ({
           </Button>
         </PaginationButtons>
       </PaginationControls>
+      
+      {/* Product Form Modal */}
+      <Modal
+        isOpen={showProductForm}
+        onClose={handleProductFormCancel}
+        title={formMode === 'create' ? 'Add New Product' : 'Edit Product'}
+        size="lg"
+        preventCloseOnBackdropClick={formLoading}
+      >
+        <ProductForm
+          mode={formMode}
+          initialData={editingProduct || {}}
+          onSubmit={handleProductFormSubmit}
+          onCancel={handleProductFormCancel}
+          onDelete={formMode === 'edit' ? () => handleDeleteProduct(editingProduct) : undefined}
+          loading={formLoading}
+        />
+      </Modal>
     </CatalogContainer>
   );
 };

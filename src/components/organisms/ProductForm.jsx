@@ -1,6 +1,6 @@
 import styled, { css } from 'styled-components';
 import { motion } from 'framer-motion';
-import { useState, useEffect, useCallback } from 'react';
+import { useState, useEffect, useCallback, useRef } from 'react';
 import Button from '../atoms/Button';
 import Typography from '../atoms/Typography';
 import Icon from '../atoms/Icon';
@@ -178,6 +178,238 @@ const ValidationIcon = styled.div.withConfig({
   color: ${props => getValidationColor(props.status, props.theme)};
 `;
 
+const ImageUploadSection = styled.div`
+  display: flex;
+  flex-direction: column;
+  gap: ${props => props.theme.spacing[4]};
+`;
+
+const ImageUploadArea = styled.div`
+  display: flex;
+  flex-direction: column;
+  gap: ${props => props.theme.spacing[4]};
+  
+  @media (min-width: ${props => props.theme.breakpoints.md}) {
+    flex-direction: row;
+  }
+`;
+
+const DropZone = styled(motion.div).withConfig({
+  shouldForwardProp: (prop) => !['isDragActive', 'hasImages'].includes(prop)
+})`
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  min-height: 240px;
+  padding: ${props => props.theme.spacing[6]};
+  border: 2px dashed ${props => props.isDragActive ? props.theme.colors.primary[400] : props.theme.colors.border.default};
+  border-radius: ${props => props.theme.spacing[3]};
+  background: ${props => props.isDragActive ? props.theme.colors.primary[50] : props.theme.colors.background.subtle};
+  cursor: pointer;
+  transition: all 0.2s ease;
+  flex: ${props => props.hasImages ? '1' : '1'};
+  
+  &:hover {
+    border-color: ${props => props.theme.colors.primary[400]};
+    background: ${props => props.theme.colors.primary[25]};
+  }
+  
+  @media (max-width: ${props => props.theme.breakpoints.md}) {
+    min-height: 180px;
+    padding: ${props => props.theme.spacing[4]};
+  }
+`;
+
+const DropZoneIcon = styled.div`
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 64px;
+  height: 64px;
+  border-radius: ${props => props.theme.spacing[3]};
+  background: ${props => props.theme.colors.primary[100]};
+  color: ${props => props.theme.colors.primary[600]};
+  margin-bottom: ${props => props.theme.spacing[4]};
+`;
+
+const DropZoneText = styled.div`
+  text-align: center;
+  max-width: 280px;
+`;
+
+const HiddenFileInput = styled.input`
+  position: absolute;
+  opacity: 0;
+  width: 0;
+  height: 0;
+  pointer-events: none;
+`;
+
+const ImagePreviewGrid = styled.div.withConfig({
+  shouldForwardProp: (prop) => !['imageCount'].includes(prop)
+})`
+  display: grid;
+  gap: ${props => props.theme.spacing[3]};
+  flex: 1;
+  max-height: 400px;
+  overflow-y: auto;
+  
+  ${props => {
+    if (props.imageCount === 1) return 'grid-template-columns: 1fr;';
+    if (props.imageCount === 2) return 'grid-template-columns: 1fr 1fr;';
+    if (props.imageCount >= 3) return 'grid-template-columns: 1fr 1fr; grid-template-rows: auto auto;';
+    return 'grid-template-columns: 1fr;';
+  }}
+  
+  @media (max-width: ${props => props.theme.breakpoints.md}) {
+    grid-template-columns: 1fr;
+    max-height: 300px;
+  }
+`;
+
+const ImagePreviewCard = styled(motion.div).withConfig({
+  shouldForwardProp: (prop) => !['isPrimary'].includes(prop)
+})`
+  position: relative;
+  border-radius: ${props => props.theme.spacing[2]};
+  overflow: hidden;
+  background: ${props => props.theme.colors.background.elevated};
+  border: 2px solid ${props => props.isPrimary ? props.theme.colors.primary[400] : props.theme.colors.border.default};
+  aspect-ratio: 4/3;
+  
+  ${props => props.isPrimary && css`
+    box-shadow: 0 0 0 2px ${props.theme.colors.primary[100]};
+  `}
+`;
+
+const PreviewImage = styled.img`
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  display: block;
+`;
+
+const ImageOverlay = styled.div`
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(
+    to top,
+    rgba(0, 0, 0, 0.8) 0%,
+    rgba(0, 0, 0, 0.4) 50%,
+    transparent 100%
+  );
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  padding: ${props => props.theme.spacing[3]};
+  opacity: 0;
+  transition: opacity 0.2s ease;
+  
+  ${ImagePreviewCard}:hover & {
+    opacity: 1;
+  }
+`;
+
+const ImageActions = styled.div`
+  display: flex;
+  gap: ${props => props.theme.spacing[2]};
+  align-self: flex-end;
+`;
+
+const ImageActionButton = styled(Button).withConfig({
+  shouldForwardProp: (prop) => !['variant'].includes(prop)
+})`
+  min-width: auto;
+  width: 32px;
+  height: 32px;
+  padding: 0;
+  border-radius: ${props => props.theme.spacing[1]};
+  
+  &:hover {
+    transform: scale(1.05);
+  }
+`;
+
+const PrimaryBadge = styled(Badge)`
+  position: absolute;
+  top: ${props => props.theme.spacing[2]};
+  left: ${props => props.theme.spacing[2]};
+  z-index: 2;
+`;
+
+const ImageMetadata = styled.div`
+  display: flex;
+  flex-direction: column;
+  gap: ${props => props.theme.spacing[1]};
+  color: white;
+`;
+
+const UploadProgress = styled(motion.div)`
+  position: absolute;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  height: 4px;
+  background: rgba(0, 0, 0, 0.2);
+  overflow: hidden;
+`;
+
+const ProgressBar = styled(motion.div)`
+  height: 100%;
+  background: ${props => props.theme.colors.primary[500]};
+  transform-origin: left;
+`;
+
+const UploadError = styled(motion.div)`
+  padding: ${props => props.theme.spacing[3]};
+  background: ${props => props.theme.colors.red[50]};
+  border: 1px solid ${props => props.theme.colors.red[200]};
+  border-radius: ${props => props.theme.spacing[2]};
+  display: flex;
+  align-items: center;
+  gap: ${props => props.theme.spacing[2]};
+`;
+
+const ImageSummary = styled.div`
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: ${props => props.theme.spacing[3]};
+  background: ${props => props.theme.colors.background.subtle};
+  border-radius: ${props => props.theme.spacing[2]};
+  border: 1px solid ${props => props.theme.colors.border.subtle};
+`;
+
+const SummaryStats = styled.div`
+  display: flex;
+  align-items: center;
+  gap: ${props => props.theme.spacing[4]};
+`;
+
+const Stat = styled.div`
+  display: flex;
+  align-items: center;
+  gap: ${props => props.theme.spacing[1]};
+`;
+
+const BulkActions = styled.div`
+  display: flex;
+  gap: ${props => props.theme.spacing[2]};
+`;
+
+const SizeLimit = styled.div`
+  display: flex;
+  align-items: center;
+  gap: ${props => props.theme.spacing[2]};
+  padding: ${props => props.theme.spacing[2]} ${props => props.theme.spacing[3]};
+  background: ${props => props.theme.colors.blue[50]};
+  border: 1px solid ${props => props.theme.colors.blue[200]};
+  border-radius: ${props => props.theme.spacing[2]};
+  margin-top: ${props => props.theme.spacing[2]};
+`;
+
 const getValidationColor = (status, theme) => {
   switch (status) {
     case 'valid':
@@ -221,6 +453,77 @@ const validationRules = {
     !value || regex.test(value) ? null : message,
 };
 
+// Image upload utilities
+const MAX_FILE_SIZE = 5 * 1024 * 1024; // 5MB
+const MAX_FILES = 8;
+const ALLOWED_TYPES = ['image/jpeg', 'image/jpg', 'image/png', 'image/webp'];
+
+const formatFileSize = (bytes) => {
+  if (bytes === 0) return '0 Bytes';
+  const k = 1024;
+  const sizes = ['Bytes', 'KB', 'MB', 'GB'];
+  const i = Math.floor(Math.log(bytes) / Math.log(k));
+  return parseFloat((bytes / Math.pow(k, i)).toFixed(2)) + ' ' + sizes[i];
+};
+
+const validateImageFile = (file) => {
+  const errors = [];
+  
+  if (!ALLOWED_TYPES.includes(file.type)) {
+    errors.push(`File type ${file.type} not supported. Please use JPG, PNG, or WebP.`);
+  }
+  
+  if (file.size > MAX_FILE_SIZE) {
+    errors.push(`File size ${formatFileSize(file.size)} exceeds maximum of ${formatFileSize(MAX_FILE_SIZE)}.`);
+  }
+  
+  return errors;
+};
+
+const createImagePreview = (file) => {
+  return new Promise((resolve, reject) => {
+    const reader = new FileReader();
+    reader.onload = (e) => {
+      const img = new Image();
+      img.onload = () => {
+        resolve({
+          id: `img_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`,
+          file,
+          url: e.target.result,
+          name: file.name,
+          size: file.size,
+          type: file.type,
+          dimensions: {
+            width: img.width,
+            height: img.height
+          },
+          uploadProgress: 0,
+          uploaded: false
+        });
+      };
+      img.onerror = reject;
+      img.src = e.target.result;
+    };
+    reader.onerror = reject;
+    reader.readAsDataURL(file);
+  });
+};
+
+const simulateUpload = (imageObj) => {
+  return new Promise((resolve) => {
+    let progress = 0;
+    const interval = setInterval(() => {
+      progress += Math.random() * 30;
+      if (progress >= 100) {
+        progress = 100;
+        clearInterval(interval);
+        resolve({ ...imageObj, uploaded: true, uploadProgress: 100 });
+      }
+      imageObj.uploadProgress = progress;
+    }, 200);
+  });
+};
+
 const ProductForm = ({
   initialData = {},
   mode = 'create',
@@ -257,6 +560,14 @@ const ProductForm = ({
   const [errors, setErrors] = useState({});
   const [touched, setTouched] = useState({});
   const [isDirty, setIsDirty] = useState(false);
+  
+  // Image upload state
+  const [images, setImages] = useState([]);
+  const [uploadingImages, setUploadingImages] = useState([]);
+  const [uploadErrors, setUploadErrors] = useState([]);
+  const [isDragActive, setIsDragActive] = useState(false);
+  const [primaryImageIndex, setPrimaryImageIndex] = useState(0);
+  const fileInputRef = useRef(null);
 
   // Define field configurations
   const fieldConfigs = {
@@ -581,7 +892,152 @@ const ProductForm = ({
     });
 
     console.log('📦 ProductForm - Mode:', mode, '- Processed data being sent:', processedData);
+    
+    // Include images in submission
+    if (images.length > 0) {
+      processedData.images = images.map((img, index) => ({
+        id: img.id,
+        url: img.url,
+        name: img.name,
+        isPrimary: index === primaryImageIndex,
+        size: img.size,
+        type: img.type,
+        dimensions: img.dimensions
+      }));
+    }
+    
     onSubmit?.(processedData);
+  };
+
+  // Image upload handlers
+  const handleFileSelect = async (files) => {
+    const fileArray = Array.from(files);
+    
+    // Check total file count
+    if (images.length + fileArray.length > MAX_FILES) {
+      setUploadErrors(prev => [...prev, {
+        id: Date.now(),
+        message: `Maximum ${MAX_FILES} images allowed. You can upload ${MAX_FILES - images.length} more.`
+      }]);
+      return;
+    }
+
+    const validFiles = [];
+    const newErrors = [];
+
+    // Validate each file
+    for (const file of fileArray) {
+      const errors = validateImageFile(file);
+      if (errors.length === 0) {
+        validFiles.push(file);
+      } else {
+        newErrors.push({
+          id: Date.now() + Math.random(),
+          message: `${file.name}: ${errors.join(', ')}`
+        });
+      }
+    }
+
+    // Add validation errors
+    if (newErrors.length > 0) {
+      setUploadErrors(prev => [...prev, ...newErrors]);
+    }
+
+    // Process valid files
+    if (validFiles.length > 0) {
+      try {
+        const imagePromises = validFiles.map(createImagePreview);
+        const newImages = await Promise.all(imagePromises);
+        
+        setImages(prev => [...prev, ...newImages]);
+        setUploadingImages(prev => [...prev, ...newImages.map(img => img.id)]);
+        setIsDirty(true);
+
+        // Simulate upload for each image
+        newImages.forEach(async (imageObj) => {
+          try {
+            const uploadedImage = await simulateUpload(imageObj);
+            setImages(prev => prev.map(img => 
+              img.id === uploadedImage.id ? uploadedImage : img
+            ));
+            setUploadingImages(prev => prev.filter(id => id !== uploadedImage.id));
+          } catch (error) {
+            setUploadErrors(prev => [...prev, {
+              id: Date.now() + Math.random(),
+              message: `Failed to upload ${imageObj.name}: ${error.message}`
+            }]);
+            setUploadingImages(prev => prev.filter(id => id !== imageObj.id));
+          }
+        });
+      } catch (error) {
+        setUploadErrors(prev => [...prev, {
+          id: Date.now(),
+          message: `Failed to process images: ${error.message}`
+        }]);
+      }
+    }
+  };
+
+  const handleDrop = useCallback((e) => {
+    e.preventDefault();
+    setIsDragActive(false);
+    
+    const files = e.dataTransfer?.files;
+    if (files && files.length > 0) {
+      handleFileSelect(files);
+    }
+  }, [images.length]);
+
+  const handleDragOver = useCallback((e) => {
+    e.preventDefault();
+    setIsDragActive(true);
+  }, []);
+
+  const handleDragLeave = useCallback((e) => {
+    e.preventDefault();
+    setIsDragActive(false);
+  }, []);
+
+  const handleDropZoneClick = () => {
+    fileInputRef.current?.click();
+  };
+
+  const handleFileInputChange = (e) => {
+    const files = e.target.files;
+    if (files && files.length > 0) {
+      handleFileSelect(files);
+    }
+    // Reset the input value so the same file can be selected again
+    e.target.value = '';
+  };
+
+  const removeImage = (imageId) => {
+    setImages(prev => {
+      const newImages = prev.filter(img => img.id !== imageId);
+      // Adjust primary index if needed
+      if (primaryImageIndex >= newImages.length) {
+        setPrimaryImageIndex(Math.max(0, newImages.length - 1));
+      }
+      return newImages;
+    });
+    setUploadingImages(prev => prev.filter(id => id !== imageId));
+    setIsDirty(true);
+  };
+
+  const setPrimaryImage = (index) => {
+    setPrimaryImageIndex(index);
+    setIsDirty(true);
+  };
+
+  const removeAllImages = () => {
+    setImages([]);
+    setUploadingImages([]);
+    setPrimaryImageIndex(0);
+    setIsDirty(true);
+  };
+
+  const dismissError = (errorId) => {
+    setUploadErrors(prev => prev.filter(error => error.id !== errorId));
   };
 
   // Calculate form status
@@ -872,6 +1328,212 @@ const ProductForm = ({
             error={errors.tags}
           />
         </FieldGrid>
+      </FormSection>
+
+      {/* Product Images */}
+      <FormSection>
+        <SectionHeader>
+          <SectionIcon>
+            <Icon name="image" size={16} />
+          </SectionIcon>
+          <Typography variant="h6" weight="medium">
+            Product Images
+          </Typography>
+        </SectionHeader>
+        
+        <ImageUploadSection>
+          {/* Upload Error Messages */}
+          {uploadErrors.length > 0 && (
+            <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
+              {uploadErrors.map((error) => (
+                <UploadError
+                  key={error.id}
+                  initial={{ opacity: 0, y: -10 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  exit={{ opacity: 0, y: -10 }}
+                >
+                  <Icon name="error" size={16} color="red.600" />
+                  <Typography variant="body2" color="error" style={{ flex: 1 }}>
+                    {error.message}
+                  </Typography>
+                  <Button
+                    variant="ghost"
+                    size="xs"
+                    onClick={() => dismissError(error.id)}
+                  >
+                    <Icon name="x" size={14} />
+                  </Button>
+                </UploadError>
+              ))}
+            </div>
+          )}
+
+          {/* Image Summary */}
+          {images.length > 0 && (
+            <ImageSummary>
+              <SummaryStats>
+                <Stat>
+                  <Icon name="image" size={16} />
+                  <Typography variant="body2" weight="medium">
+                    {images.length} / {MAX_FILES} images
+                  </Typography>
+                </Stat>
+                <Stat>
+                  <Icon name="database" size={16} />
+                  <Typography variant="body2">
+                    {formatFileSize(images.reduce((total, img) => total + img.size, 0))}
+                  </Typography>
+                </Stat>
+                {images.length > 0 && (
+                  <Stat>
+                    <Icon name="star" size={16} />
+                    <Typography variant="body2">
+                      Primary: {images[primaryImageIndex]?.name || 'None'}
+                    </Typography>
+                  </Stat>
+                )}
+              </SummaryStats>
+              <BulkActions>
+                <Button
+                  variant="secondary"
+                  size="sm"
+                  onClick={removeAllImages}
+                  disabled={uploadingImages.length > 0}
+                >
+                  <Icon name="trash" size={14} />
+                  Clear All
+                </Button>
+              </BulkActions>
+            </ImageSummary>
+          )}
+
+          <ImageUploadArea>
+            {/* Drop Zone */}
+            <DropZone
+              isDragActive={isDragActive}
+              hasImages={images.length > 0}
+              onDrop={handleDrop}
+              onDragOver={handleDragOver}
+              onDragLeave={handleDragLeave}
+              onClick={handleDropZoneClick}
+              whileHover={{ scale: 1.01 }}
+              whileTap={{ scale: 0.99 }}
+            >
+              <DropZoneIcon>
+                <Icon name={isDragActive ? "upload" : "image"} size={32} />
+              </DropZoneIcon>
+              
+              <DropZoneText>
+                <Typography variant="subtitle1" weight="medium" align="center">
+                  {isDragActive ? 'Drop images here' : 'Upload Product Images'}
+                </Typography>
+                <Typography variant="body2" color="secondary" align="center" style={{ marginTop: '8px' }}>
+                  {images.length === 0 
+                    ? `Drag & drop up to ${MAX_FILES} images, or click to browse`
+                    : `Add ${MAX_FILES - images.length} more images`
+                  }
+                </Typography>
+                <Typography variant="body2" color="tertiary" align="center" style={{ marginTop: '4px' }}>
+                  JPG, PNG, WebP up to {formatFileSize(MAX_FILE_SIZE)} each
+                </Typography>
+              </DropZoneText>
+
+              <HiddenFileInput
+                ref={fileInputRef}
+                type="file"
+                accept={ALLOWED_TYPES.join(',')}
+                multiple
+                onChange={handleFileInputChange}
+                aria-label="Upload product images"
+              />
+            </DropZone>
+
+            {/* Image Previews */}
+            {images.length > 0 && (
+              <ImagePreviewGrid imageCount={images.length}>
+                {images.map((image, index) => (
+                  <ImagePreviewCard
+                    key={image.id}
+                    isPrimary={index === primaryImageIndex}
+                    initial={{ opacity: 0, scale: 0.8 }}
+                    animate={{ opacity: 1, scale: 1 }}
+                    exit={{ opacity: 0, scale: 0.8 }}
+                    transition={{ duration: 0.2 }}
+                  >
+                    {index === primaryImageIndex && (
+                      <PrimaryBadge variant="primary" size="xs">
+                        Primary
+                      </PrimaryBadge>
+                    )}
+
+                    <PreviewImage
+                      src={image.url}
+                      alt={image.name}
+                      loading="lazy"
+                    />
+
+                    <ImageOverlay>
+                      <ImageMetadata>
+                        <Typography variant="caption" weight="medium" style={{ color: 'white' }}>
+                          {image.name}
+                        </Typography>
+                        <Typography variant="caption" style={{ color: 'rgba(255,255,255,0.8)' }}>
+                          {formatFileSize(image.size)} • {image.dimensions.width}×{image.dimensions.height}
+                        </Typography>
+                      </ImageMetadata>
+
+                      <ImageActions>
+                        {index !== primaryImageIndex && (
+                          <ImageActionButton
+                            variant="secondary"
+                            size="xs"
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              setPrimaryImage(index);
+                            }}
+                            title="Set as primary image"
+                          >
+                            <Icon name="star" size={16} />
+                          </ImageActionButton>
+                        )}
+                        <ImageActionButton
+                          variant="danger"
+                          size="xs"
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            removeImage(image.id);
+                          }}
+                          title="Remove image"
+                        >
+                          <Icon name="trash" size={16} />
+                        </ImageActionButton>
+                      </ImageActions>
+                    </ImageOverlay>
+
+                    {/* Upload Progress */}
+                    {uploadingImages.includes(image.id) && (
+                      <UploadProgress>
+                        <ProgressBar
+                          initial={{ scaleX: 0 }}
+                          animate={{ scaleX: image.uploadProgress / 100 }}
+                          transition={{ duration: 0.2 }}
+                        />
+                      </UploadProgress>
+                    )}
+                  </ImagePreviewCard>
+                ))}
+              </ImagePreviewGrid>
+            )}
+          </ImageUploadArea>
+
+          <SizeLimit>
+            <Icon name="info" size={16} />
+            <Typography variant="body2">
+              <strong>Image Guidelines:</strong> Use high-quality images (1200×1200px recommended). 
+              The first image will be the primary product image shown in listings.
+            </Typography>
+          </SizeLimit>
+        </ImageUploadSection>
       </FormSection>
 
       <FormActions>
