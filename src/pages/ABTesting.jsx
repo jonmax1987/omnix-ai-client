@@ -11,6 +11,7 @@ import ABTestCreationWizard from '../components/organisms/ABTestCreationWizard';
 import ABTestConfiguration from '../components/organisms/ABTestConfiguration';
 import ABTestResultsVisualization from '../components/organisms/ABTestResultsVisualization';
 import ABTestStatisticalCalculator from '../components/organisms/ABTestStatisticalCalculator';
+import ABTestModelComparison from '../components/organisms/ABTestModelComparison';
 import { useI18n } from '../hooks/useI18n';
 import { useModal } from '../contexts/ModalContext';
 
@@ -586,6 +587,17 @@ const ABTesting = () => {
     }
   }, [calculatedTest]);
 
+  // Handle model selection
+  const handleModelSelect = useCallback((selectedModel) => {
+    console.log('Model selected:', selectedModel);
+    
+    // TODO: Implement model selection logic
+    // This could update global settings or create a new test with the selected model
+    closeModal('compareModels');
+    
+    // TODO: Show success notification
+  }, [closeModal]);
+
   return (
     <ABTestingContainer
       initial={{ opacity: 0, y: 20 }}
@@ -619,6 +631,14 @@ const ABTesting = () => {
           >
             <Icon name="bar-chart" size={16} />
             Analytics
+          </Button>
+          <Button
+            variant="secondary"
+            size="sm"
+            onClick={() => openModal('compareModels', { size: 'xl' })}
+          >
+            <Icon name="cpu" size={16} />
+            Compare Models
           </Button>
           <Button
             variant="primary"
@@ -795,6 +815,30 @@ const ABTesting = () => {
           />
         </Modal>
       )}
+
+      {/* Model Comparison Modal */}
+      <Modal
+        isOpen={isModalOpen('compareModels')}
+        onClose={() => closeModal('compareModels')}
+        title=""
+        size="xl"
+        padding={false}
+      >
+        <ABTestModelComparison
+          models={[
+            { id: 'claude-sonnet', name: 'Claude 3.5 Sonnet', type: 'claude-sonnet' },
+            { id: 'claude-haiku', name: 'Claude 3 Haiku', type: 'claude-haiku' },
+            { id: 'gpt-4-turbo', name: 'GPT-4 Turbo', type: 'gpt-4' }
+          ]}
+          testResults={{
+            // Aggregate test results from current tests
+            accuracy: stats.avgSignificance,
+            totalTests: stats.totalTests,
+            runningTests: stats.runningTests
+          }}
+          onModelSelect={handleModelSelect}
+        />
+      </Modal>
     </ABTestingContainer>
   );
 };
