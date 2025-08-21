@@ -1,97 +1,120 @@
+/**
+ * OMNIX AI - Notification Store
+ * State management for push notifications, preferences, and delivery tracking
+ */
+
 import { create } from 'zustand';
-import { devtools } from 'zustand/middleware';
+import { persist } from 'zustand/middleware';
+import { immer } from 'zustand/middleware/immer';
 
 export const useNotificationStore = create(
-  devtools(
-    (set, get) => ({
+  persist(
+    immer((set, get) => ({
+      // Notification state
       notifications: [],
-      maxNotifications: 10,
-      autoHideDuration: 5000,
+      unreadCount: 0,
+      isInitialized: false,
+      permission: 'default',
+      isSubscribed: false,
       
-      // Add a new notification
-      addNotification: (notification) => {
-        const id = Date.now().toString();
-        const newNotification = {
-          id,
-          timestamp: new Date().toISOString(),
-          read: false,
-          ...notification
-        };
-        
-        set(state => {
-          const notifications = [newNotification, ...state.notifications];
-          // Keep only the latest maxNotifications
-          return {
-            notifications: notifications.slice(0, state.maxNotifications)
-          };
-        });
-        
-        // Auto-hide notification after duration
-        if (notification.autoHide !== false) {
-          setTimeout(() => {
-            get().removeNotification(id);
-          }, notification.duration || get().autoHideDuration);
+      // User preferences
+      preferences: {
+        replenishment: {
+          enabled: true,
+          timing: 'optimal',
+          daysBeforeEmpty: 3,
+          quietHours: { start: 22, end: 8 },
+          frequency: 'smart'
+        },
+        deals: {
+          enabled: true,
+          categories: [],
+          minDiscount: 20,
+          maxPerDay: 5,
+          personalizedOnly: true
+        },
+        priceDrops: {
+          enabled: true,
+          watchlist: [],
+          minDropPercentage: 15,
+          immediateAlert: true
+        },
+        newProducts: {
+          enabled: false,
+          categories: [],
+          aiRecommendationsOnly: true,
+          maxPerWeek: 3
+        },
+        loyalty: {
+          enabled: true,
+          milestoneAlerts: true,
+          expirationWarnings: true,
+          specialOffers: true
+        },
+        delivery: {
+          webPush: true,
+          inApp: true,
+          email: false,
+          sms: false
         }
-        
-        // Show browser notification if enabled
-        if (notification.showBrowserNotification && 'Notification' in window) {
-          if (Notification.permission === 'granted') {
-            new Notification(notification.title, {
-              body: notification.message,
-              icon: '/icon-192.svg',
-              badge: '/badge-72.svg',
-              tag: id
-            });
+      },
+      
+      // Analytics & AI insights
+      analytics: {
+        deliveryStats: {
+          sent: 0,
+          delivered: 0,
+          clicked: 0,
+          dismissed: 0
+        },
+        engagementScore: 0,
+        optimalTiming: {
+          timeOfDay: 14,
+          dayOfWeek: [1, 2, 3, 4, 5],
+          confidence: 0.7
+        },
+        categoryPreferences: {},
+        responsePatterns: {}
+      },
+
+      // Actions
+      initializeNotifications: async () => {
+        // Implementation will be added when service is imported
+        return true;
+      },
+
+      updateAnalytics: (eventType, data) => {
+        set((state) => {
+          switch (eventType) {
+            case 'delivered':
+              state.analytics.deliveryStats.delivered += 1;
+              break;
+            case 'clicked':
+              state.analytics.deliveryStats.clicked += 1;
+              break;
+            case 'dismissed':
+              state.analytics.deliveryStats.dismissed += 1;
+              break;
           }
-        }
-        
-        return id;
-      },
-      
-      // Remove a notification
-      removeNotification: (id) => {
-        set(state => ({
-          notifications: state.notifications.filter(n => n.id !== id)
-        }));
-      },
-      
-      // Mark notification as read
-      markAsRead: (id) => {
-        set(state => ({
-          notifications: state.notifications.map(n =>
-            n.id === id ? { ...n, read: true } : n
-          )
-        }));
-      },
-      
-      // Mark all notifications as read
-      markAllAsRead: () => {
-        set(state => ({
-          notifications: state.notifications.map(n => ({ ...n, read: true }))
-        }));
-      },
-      
-      // Clear all notifications
-      clearAll: () => {
-        set({ notifications: [] });
-      },
-      
-      // Get unread count
-      getUnreadCount: () => {
-        return get().notifications.filter(n => !n.read).length;
-      },
-      
-      // Request browser notification permission
-      requestPermission: async () => {
-        if ('Notification' in window && Notification.permission === 'default') {
-          const permission = await Notification.requestPermission();
-          return permission === 'granted';
-        }
-        return false;
+          
+          const stats = state.analytics.deliveryStats;
+          const totalDelivered = stats.delivered || 1;
+          state.analytics.engagementScore = (
+            (stats.clicked * 0.7 + stats.delivered * 0.3 - stats.dismissed * 0.1) / totalDelivered
+          ) * 100;
+        });
       }
-    }),
+    })),
     {
-      name: 'notification-store'
+      name: 'omnix-notifications',
+      partialize: (state) => ({
+        preferences: state.preferences,
+        analytics: state.analytics,
+        isSubscribed: state.isSubscribed,
+        permission: state.permission
+      })
     }
   )
 );
+
+export default useNotificationStore;
