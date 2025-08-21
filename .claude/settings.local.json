@@ -122,7 +122,8 @@
       "Bash(VITE_API_BASE_URL=https://18sz01wxsi.execute-api.eu-central-1.amazonaws.com/dev/v1 VITE_WEBSOCKET_URL=wss://5oo31khrrj.execute-api.eu-central-1.amazonaws.com/dev npm start)",
       "Bash(VITE_API_BASE_URL=https://18sz01wxsi.execute-api.eu-central-1.amazonaws.com/dev/v1 VITE_WEBSOCKET_URL=wss://5oo31khrrj.execute-api.eu-central-1.amazonaws.com/dev npm run build)",
       "Bash(npm test:*)",
-      "Bash(git commit:*)"
+      "Bash(git commit:*)",
+      "Bash(npx playwright:*)"
     ],
     "deny": [],
     "defaultMode": "acceptEdits"
