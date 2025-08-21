@@ -1,0 +1,293 @@
+name: Release
+
+on:
+  push:
+    tags:
+      - 'v*.*.*'
+  workflow_dispatch:
+    inputs:
+      version:
+        description: 'Release version (e.g., v1.0.0)'
+        required: true
+        type: string
+
+env:
+  NODE_VERSION: '18.x'
+
+jobs:
+  # Validate Release
+  validate:
+    name: Validate Release
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      
+      - name: Validate version format
+        run: |
+          if [[ "${{ github.ref_name }}" =~ ^v[0-9]+\.[0-9]+\.[0-9]+$ ]]; then
+            echo "Valid version format: ${{ github.ref_name }}"
+          else
+            echo "Invalid version format. Use v1.0.0 format"
+            exit 1
+          fi
+
+  # Build Release
+  build:
+    name: Build Release
+    runs-on: ubuntu-latest
+    needs: validate
+    steps:
+      - uses: actions/checkout@v4
+      
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+          cache: 'npm'
+      
+      - name: Install dependencies
+        run: npm ci
+      
+      - name: Run tests
+        run: npm run test:run
+      
+      - name: Build for production
+        run: npm run build
+        env:
+          VITE_API_BASE_URL: ${{ secrets.VITE_API_BASE_URL }}
+          VITE_WEBSOCKET_URL: ${{ secrets.VITE_WEBSOCKET_URL }}
+      
+      - name: Create release archive
+        run: |
+          tar -czf omnix-ai-${{ github.ref_name }}.tar.gz dist/
+          zip -r omnix-ai-${{ github.ref_name }}.zip dist/
+      
+      - name: Upload build artifacts
+        uses: actions/upload-artifact@v4
+        with:
+          name: release-build
+          path: |
+            omnix-ai-${{ github.ref_name }}.tar.gz
+            omnix-ai-${{ github.ref_name }}.zip
+            dist/
+
+  # Generate Changelog
+  changelog:
+    name: Generate Changelog
+    runs-on: ubuntu-latest
+    needs: validate
+    outputs:
+      changelog: ${{ steps.changelog.outputs.changelog }}
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      
+      - name: Generate changelog
+        id: changelog
+        run: |
+          # Get the previous tag
+          PREV_TAG=$(git describe --tags --abbrev=0 HEAD~1 2>/dev/null || echo "")
+          
+          if [ -z "$PREV_TAG" ]; then
+            echo "First release, getting all commits"
+            CHANGELOG=$(git log --pretty=format:"- %s (%h)" --no-merges)
+          else
+            echo "Getting commits since $PREV_TAG"
+            CHANGELOG=$(git log $PREV_TAG..HEAD --pretty=format:"- %s (%h)" --no-merges)
+          fi
+          
+          # Format changelog for GitHub release
+          echo "## What's Changed" > changelog.md
+          echo "" >> changelog.md
+          echo "$CHANGELOG" >> changelog.md
+          echo "" >> changelog.md
+          echo "**Full Changelog**: https://github.com/${{ github.repository }}/compare/$PREV_TAG...${{ github.ref_name }}" >> changelog.md
+          
+          # Output for next step
+          {
+            echo 'changelog<<EOF'
+            cat changelog.md
+            echo EOF
+          } >> $GITHUB_OUTPUT
+      
+      - name: Upload changelog
+        uses: actions/upload-artifact@v4
+        with:
+          name: changelog
+          path: changelog.md
+
+  # Create GitHub Release
+  release:
+    name: Create GitHub Release
+    runs-on: ubuntu-latest
+    needs: [build, changelog]
+    permissions:
+      contents: write
+    steps:
+      - uses: actions/checkout@v4
+      
+      - name: Download build artifacts
+        uses: actions/download-artifact@v4
+        with:
+          name: release-build
+      
+      - name: Create Release
+        uses: actions/create-release@v1
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        with:
+          tag_name: ${{ github.ref_name }}
+          release_name: OMNIX AI ${{ github.ref_name }}
+          body: ${{ needs.changelog.outputs.changelog }}
+          draft: false
+          prerelease: false
+      
+      - name: Upload Release Assets
+        uses: actions/upload-release-asset@v1
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        with:
+          upload_url: ${{ steps.create_release.outputs.upload_url }}
+          asset_path: omnix-ai-${{ github.ref_name }}.tar.gz
+          asset_name: omnix-ai-${{ github.ref_name }}.tar.gz
+          asset_content_type: application/gzip
+      
+      - name: Upload Release Assets (ZIP)
+        uses: actions/upload-release-asset@v1
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        with:
+          upload_url: ${{ steps.create_release.outputs.upload_url }}
+          asset_path: omnix-ai-${{ github.ref_name }}.zip
+          asset_name: omnix-ai-${{ github.ref_name }}.zip
+          asset_content_type: application/zip
+
+  # Deploy to Production
+  deploy:
+    name: Deploy Release to Production
+    runs-on: ubuntu-latest
+    needs: [release]
+    environment:
+      name: production
+      url: https://omnix-ai.com
+    steps:
+      - uses: actions/checkout@v4
+      
+      - name: Download build artifacts
+        uses: actions/download-artifact@v4
+        with:
+          name: release-build
+      
+      - name: Configure AWS credentials
+        uses: aws-actions/configure-aws-credentials@v4
+        with:
+          aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
+          aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+          aws-region: eu-central-1
+      
+      - name: Deploy to S3
+        run: |
+          aws s3 sync dist/ s3://${{ secrets.PRODUCTION_S3_BUCKET }} \
+            --delete \
+            --cache-control "public, max-age=31536000" \
+            --exclude "index.html" \
+            --exclude "*.json"
+          
+          aws s3 cp dist/index.html s3://${{ secrets.PRODUCTION_S3_BUCKET }}/index.html \
+            --cache-control "no-cache, no-store, must-revalidate"
+      
+      - name: Invalidate CloudFront
+        run: |
+          INVALIDATION_ID=$(aws cloudfront create-invalidation \
+            --distribution-id ${{ secrets.PRODUCTION_CLOUDFRONT_ID }} \
+            --paths "/*" \
+            --query 'Invalidation.Id' \
+            --output text)
+          
+          echo "Created CloudFront invalidation: $INVALIDATION_ID"
+          
+          # Wait for invalidation to complete
+          aws cloudfront wait invalidation-completed \
+            --distribution-id ${{ secrets.PRODUCTION_CLOUDFRONT_ID }} \
+            --id $INVALIDATION_ID
+      
+      - name: Update deployment status
+        run: |
+          echo "✅ Successfully deployed ${{ github.ref_name }} to production"
+          echo "🌍 Available at: https://omnix-ai.com"
+
+  # Post-release tasks
+  post-release:
+    name: Post-Release Tasks
+    runs-on: ubuntu-latest
+    needs: [deploy]
+    steps:
+      - name: Send Slack notification
+        uses: 8398a7/action-slack@v3
+        with:
+          status: success
+          text: |
+            🚀 OMNIX AI ${{ github.ref_name }} has been released!
+            
+            📦 Release: https://github.com/${{ github.repository }}/releases/tag/${{ github.ref_name }}
+            🌍 Production: https://omnix-ai.com
+            
+            Changes in this release:
+            ${{ needs.changelog.outputs.changelog }}
+          webhook_url: ${{ secrets.SLACK_WEBHOOK }}
+      
+      - name: Create deployment issue
+        uses: actions/github-script@v7
+        with:
+          script: |
+            github.rest.issues.create({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              title: `🚀 Release ${{ github.ref_name }} deployed to production`,
+              body: `
+              ## Release Deployment Complete
+              
+              **Version**: ${{ github.ref_name }}
+              **Deployed**: ${new Date().toISOString()}
+              **Environment**: Production
+              **URL**: https://omnix-ai.com
+              
+              ## Post-Deployment Checklist
+              
+              - [ ] Verify all core features are working
+              - [ ] Check analytics dashboard
+              - [ ] Verify customer dashboard
+              - [ ] Test authentication flows
+              - [ ] Check mobile responsiveness
+              - [ ] Monitor error rates
+              - [ ] Verify AI recommendations
+              - [ ] Check inventory management
+              
+              ## Rollback Plan
+              
+              If issues are detected:
+              1. Revert CloudFront to previous distribution
+              2. Restore previous S3 bucket contents
+              3. Create hotfix branch from previous stable tag
+              
+              **Release Notes**: https://github.com/${{ github.repository }}/releases/tag/${{ github.ref_name }}
+              `,
+              labels: ['deployment', 'production', 'release']
+            })
+
+  # Security scan post-release
+  security-scan:
+    name: Post-Release Security Scan
+    runs-on: ubuntu-latest
+    needs: [deploy]
+    steps:
+      - uses: actions/checkout@v4
+      
+      - name: Run security scan on production
+        run: |
+          # This would run security scans against the live site
+          echo "Security scan would run against https://omnix-ai.com"
+          
+          # Example: OWASP ZAP scan, Lighthouse security audit, etc.
+          # docker run -t owasp/zap2docker-stable zap-baseline.py -t https://omnix-ai.com

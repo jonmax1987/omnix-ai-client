@@ -1,0 +1,124 @@
+# Auto-labeling configuration for PRs
+
+# Components
+"component: atoms":
+  - src/components/atoms/**
+
+"component: molecules":
+  - src/components/molecules/**
+
+"component: organisms":
+  - src/components/organisms/**
+
+"component: pages":
+  - src/pages/**
+
+"component: templates":
+  - src/components/templates/**
+
+# Features
+"feature: auth":
+  - src/components/**/Auth*
+  - src/components/**/Login*
+  - src/components/**/Register*
+  - src/services/auth*
+  - src/store/**/auth*
+
+"feature: dashboard":
+  - src/pages/**/*Dashboard*
+  - src/components/**/*Dashboard*
+
+"feature: inventory":
+  - src/components/**/Inventory*
+  - src/pages/**/inventory*
+  - src/services/inventory*
+
+"feature: analytics":
+  - src/components/**/Analytics*
+  - src/components/**/Chart*
+  - src/components/**/Metric*
+
+"feature: customer":
+  - src/pages/Customer*
+  - src/components/**/Customer*
+
+"feature: manager":
+  - src/pages/Manager*
+  - src/components/**/Manager*
+
+# Technical
+"tech: testing":
+  - "**/*.test.*"
+  - "**/*.spec.*"
+  - e2e/**
+  - src/test/**
+  - __tests__/**
+
+"tech: config":
+  - "*.config.*"
+  - ".*rc*"
+  - package.json
+  - tsconfig.json
+  - vite.config.*
+  - playwright.config.*
+
+"tech: ci/cd":
+  - .github/**
+  - "**/deploy*"
+  - "**/build*"
+
+"tech: docs":
+  - "**/*.md"
+  - docs/**
+  - "**/*.mdx"
+
+"tech: styling":
+  - "**/*.css"
+  - "**/*.scss"
+  - src/styles/**
+  - src/theme/**
+
+"tech: api":
+  - src/services/**
+  - src/api/**
+  - "**/api*"
+
+"tech: store":
+  - src/store/**
+  - src/zustand/**
+  - "**/store*"
+
+# Areas
+"area: frontend":
+  - src/**
+  - public/**
+
+"area: backend":
+  - server/**
+  - api/**
+  - lambda/**
+
+"area: infrastructure":
+  - terraform/**
+  - cloudformation/**
+  - docker/**
+  - k8s/**
+
+# Priorities
+"priority: critical":
+  - any: ["**/security*", "**/auth*", "**/payment*"]
+
+"priority: high":
+  - any: ["**/dashboard*", "**/inventory*", "**/customer*"]
+
+# Dependencies
+"dependencies":
+  - package.json
+  - package-lock.json
+  - yarn.lock
+
+# Size labels are handled by the PR workflow script
+
+# Breaking changes
+"breaking change":
+  - any: ["**/BREAKING*", "**/breaking*"]
