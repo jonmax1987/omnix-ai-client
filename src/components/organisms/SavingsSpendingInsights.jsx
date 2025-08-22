@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import styled from 'styled-components';
 import { motion, AnimatePresence } from 'framer-motion';
+import { baseShouldForwardProp } from '../../utils/styledUtils';
 import { 
   DollarSign, 
   TrendingUp, 
@@ -104,7 +105,9 @@ const ActionButtons = styled.div`
   flex-wrap: wrap;
 `;
 
-const ActionButton = styled(motion.button)`
+const ActionButton = styled(motion.button).withConfig({
+  shouldForwardProp: (prop) => !['variant'].includes(prop)
+})`
   display: flex;
   align-items: center;
   gap: 8px;
@@ -140,7 +143,9 @@ const OverviewCards = styled.div`
   margin-bottom: 24px;
 `;
 
-const OverviewCard = styled(motion.div)`
+const OverviewCard = styled(motion.div).withConfig({
+  shouldForwardProp: (prop) => !['gradient'].includes(prop)
+})`
   background: ${({ gradient, theme }) => 
     gradient === 'spending' ? 'linear-gradient(135deg, #FF6B6B, #4ECDC4)' :
     gradient === 'savings' ? 'linear-gradient(135deg, #4ECDC4, #45B7D1)' :
@@ -179,7 +184,9 @@ const CardLabel = styled.div`
   color: ${({ gradient }) => gradient ? 'white' : 'inherit'};
 `;
 
-const CardChange = styled.div`
+const CardChange = styled.div.withConfig({
+  shouldForwardProp: (prop) => !['positive', 'gradient'].includes(prop)
+})`
   display: flex;
   align-items: center;
   gap: 4px;
@@ -220,7 +227,9 @@ const TimeFilter = styled.div`
   padding: 4px;
 `;
 
-const TimeButton = styled(motion.button)`
+const TimeButton = styled(motion.button).withConfig({
+  shouldForwardProp: (prop) => !['active'].includes(prop)
+})`
   padding: 8px 16px;
   background: ${({ active, theme }) => active ? theme.colors.primary.main : 'transparent'};
   color: ${({ active, theme }) => active ? 'white' : theme.colors.text.secondary};
@@ -243,7 +252,9 @@ const InsightsGrid = styled.div`
   margin-bottom: 24px;
 `;
 
-const InsightCard = styled(motion.div)`
+const InsightCard = styled(motion.div).withConfig({
+  shouldForwardProp: (prop) => !['type'].includes(prop)
+})`
   background: white;
   border-radius: 12px;
   padding: 20px;
@@ -336,7 +347,9 @@ const CategoryItem = styled.div`
   border-radius: 8px;
 `;
 
-const CategoryColor = styled.div`
+const CategoryColor = styled.div.withConfig({
+  shouldForwardProp: (prop) => !['color'].includes(prop)
+})`
   width: 12px;
   height: 12px;
   border-radius: 50%;
@@ -398,7 +411,9 @@ const GoalTitle = styled.div`
   color: ${({ theme }) => theme.colors.text.primary};
 `;
 
-const GoalStatus = styled.div`
+const GoalStatus = styled.div.withConfig({
+  shouldForwardProp: (prop) => !['achieved'].includes(prop)
+})`
   font-size: 12px;
   color: ${({ achieved, theme }) => achieved ? theme.colors.success.main : theme.colors.warning.main};
   font-weight: 500;
@@ -413,7 +428,9 @@ const GoalProgress = styled.div`
   margin-bottom: 8px;
 `;
 
-const GoalProgressBar = styled.div`
+const GoalProgressBar = styled.div.withConfig({
+  shouldForwardProp: (prop) => !['progress', 'achieved'].includes(prop)
+})
   height: 100%;
   background: ${({ achieved, theme }) => 
     achieved ? theme.colors.success.main : theme.colors.primary.main};

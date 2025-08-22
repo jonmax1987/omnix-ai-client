@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import styled from 'styled-components';
 import { motion, AnimatePresence } from 'framer-motion';
+import { baseShouldForwardProp } from '../../utils/styledUtils';
 import { 
   Users, 
   Share2, 
@@ -90,7 +91,9 @@ const ActionButtons = styled.div`
   flex-wrap: wrap;
 `;
 
-const ActionButton = styled(motion.button)`
+const ActionButton = styled(motion.button).withConfig({
+  shouldForwardProp: (prop) => !['variant'].includes(prop)
+})`
   display: flex;
   align-items: center;
   gap: 8px;
@@ -120,7 +123,9 @@ const Content = styled.div`
   overflow-y: auto;
 `;
 
-const StatusBar = styled.div`
+const StatusBar = styled.div.withConfig({
+  shouldForwardProp: (prop) => !['online'].includes(prop)
+})`
   display: flex;
   align-items: center;
   justify-content: space-between;
@@ -153,7 +158,9 @@ const TabNavigation = styled.div`
   overflow-x: auto;
 `;
 
-const TabButton = styled(motion.button)`
+const TabButton = styled(motion.button).withConfig({
+  shouldForwardProp: (prop) => !['active'].includes(prop)
+})`
   flex: 1;
   min-width: 120px;
   padding: 12px 16px;
@@ -182,7 +189,9 @@ const FamilyMembersGrid = styled.div`
   margin-bottom: 24px;
 `;
 
-const MemberCard = styled(motion.div)`
+const MemberCard = styled(motion.div).withConfig({
+  shouldForwardProp: (prop) => !['active'].includes(prop)
+})`
   background: ${({ theme }) => theme.colors.gray[50]};
   border-radius: 12px;
   padding: 20px;
@@ -196,7 +205,9 @@ const MemberHeader = styled.div`
   margin-bottom: 16px;
 `;
 
-const MemberAvatar = styled.div`
+const MemberAvatar = styled.div.withConfig({
+  shouldForwardProp: (prop) => !['color'].includes(prop)
+})`
   width: 48px;
   height: 48px;
   border-radius: 50%;
@@ -210,7 +221,9 @@ const MemberAvatar = styled.div`
   position: relative;
 `;
 
-const MemberStatus = styled.div`
+const MemberStatus = styled.div.withConfig({
+  shouldForwardProp: (prop) => !['online'].includes(prop)
+})`
   position: absolute;
   bottom: -2px;
   right: -2px;
@@ -247,7 +260,9 @@ const MemberActions = styled.div`
   gap: 8px;
 `;
 
-const MemberActionButton = styled(motion.button)`
+const MemberActionButton = styled(motion.button).withConfig({
+  shouldForwardProp: (prop) => !['variant'].includes(prop)
+})`
   width: 32px;
   height: 32px;
   border: none;
@@ -351,7 +366,9 @@ const ItemsPreview = styled.div`
   gap: 6px;
 `;
 
-const ItemPreview = styled.div`
+const ItemPreview = styled.div.withConfig({
+  shouldForwardProp: (prop) => !['completed'].includes(prop)
+})`
   display: flex;
   align-items: center;
   gap: 8px;
@@ -360,7 +377,9 @@ const ItemPreview = styled.div`
   text-decoration: ${({ completed }) => completed ? 'line-through' : 'none'};
 `;
 
-const ItemCheckbox = styled.div`
+const ItemCheckbox = styled.div.withConfig({
+  shouldForwardProp: (prop) => !['checked'].includes(prop)
+})`
   width: 16px;
   height: 16px;
   border: 2px solid ${({ checked, theme }) => checked ? theme.colors.success.main : theme.colors.gray[300]};
@@ -379,7 +398,9 @@ const ContributorsAvatars = styled.div`
   margin-left: auto;
 `;
 
-const ContributorAvatar = styled.div`
+const ContributorAvatar = styled.div.withConfig({
+  shouldForwardProp: (prop) => !['color'].includes(prop)
+})`
   width: 32px;
   height: 32px;
   border-radius: 50%;
@@ -454,7 +475,9 @@ const ActivityFeed = styled.div`
   gap: 12px;
 `;
 
-const ActivityItem = styled(motion.div)`
+const ActivityItem = styled(motion.div).withConfig({
+  shouldForwardProp: (prop) => !['type'].includes(prop)
+})`
   display: flex;
   align-items: center;
   gap: 12px;
@@ -528,7 +551,9 @@ const SettingDescription = styled.div`
   margin-top: 2px;
 `;
 
-const Toggle = styled(motion.button)`
+const Toggle = styled(motion.button).withConfig({
+  shouldForwardProp: (prop) => !['active'].includes(prop)
+})
   width: 44px;
   height: 24px;
   border-radius: 12px;

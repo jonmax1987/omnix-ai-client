@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import styled from 'styled-components';
 import { motion, AnimatePresence } from 'framer-motion';
+import { baseShouldForwardProp } from '../../utils/styledUtils';
 import { 
   Award, 
   Trophy, 
@@ -98,7 +99,9 @@ const ActionButtons = styled.div`
   flex-wrap: wrap;
 `;
 
-const ActionButton = styled(motion.button)`
+const ActionButton = styled(motion.button).withConfig({
+  shouldForwardProp: (prop) => !['variant'].includes(prop)
+})`
   display: flex;
   align-items: center;
   gap: 8px;
@@ -250,7 +253,9 @@ const TabNavigation = styled.div`
   overflow-x: auto;
 `;
 
-const TabButton = styled(motion.button)`
+const TabButton = styled(motion.button).withConfig({
+  shouldForwardProp: (prop) => !['active'].includes(prop)
+})`
   flex: 1;
   min-width: 120px;
   padding: 12px 16px;
@@ -279,7 +284,9 @@ const BadgesGrid = styled.div`
   margin-bottom: 24px;
 `;
 
-const BadgeCard = styled(motion.div)`
+const BadgeCard = styled(motion.div).withConfig({
+  shouldForwardProp: (prop) => !['earned', 'rarity'].includes(prop)
+})`
   background: ${({ earned, theme }) => earned ? 'white' : theme.colors.gray[50]};
   border-radius: 16px;
   padding: 20px;

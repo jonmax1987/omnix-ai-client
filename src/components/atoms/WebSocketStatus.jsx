@@ -1,8 +1,9 @@
 import styled from 'styled-components';
 import { useState, useEffect } from 'react';
-import { wsService } from '../../services/api';
+import { useWebSocketStore } from '../../store/websocketStore';
+import { webSocketManager } from '../../services/websocket';
 import Icon from './Icon';
-import { useI18n } from '../../hooks/useI18n';
+import { useI18n } from '../../hooks/useI18n.jsx';
 
 const StatusContainer = styled.div`
   display: flex;
@@ -77,68 +78,16 @@ const MetricsText = styled.span`
 
 const WebSocketStatus = ({ showText = true, showTooltip = true, showMetrics = false }) => {
   const { t } = useI18n();
-  const [connectionState, setConnectionState] = useState('disconnected');
-  const [metrics, setMetrics] = useState({});
-  const [queuedMessages, setQueuedMessages] = useState(0);
-  
-  useEffect(() => {
-    // Check if WebSocket is disabled
-    const wsUrl = import.meta.env.VITE_WEBSOCKET_URL;
-    if (!wsUrl) {
-      setConnectionState('disconnected');
-      return;
-    }
-    
-    // Get initial state
-    setConnectionState(wsService.getConnectionState());
-    setMetrics(wsService.getMetrics());
-    
-    // Listen to state changes using the enhanced service's event system
-    const handleStateChange = ({ to }) => {
-      setConnectionState(to);
-    };
-    
-    const handleConnected = () => {
-      setMetrics(wsService.getMetrics());
-    };
-    
-    const handleDisconnected = () => {
-      setMetrics(wsService.getMetrics());
-    };
-    
-    const handleMessage = () => {
-      // Update metrics when messages are received
-      if (showMetrics) {
-        setMetrics(wsService.getMetrics());
-      }
-    };
-    
-    // Subscribe to events
-    wsService.on('state-change', handleStateChange);
-    wsService.on('connected', handleConnected);
-    wsService.on('disconnected', handleDisconnected);
-    
-    if (showMetrics) {
-      wsService.on('message', handleMessage);
-    }
-    
-    // Update metrics periodically
-    const metricsInterval = setInterval(() => {
-      const currentMetrics = wsService.getMetrics();
-      setMetrics(currentMetrics);
-      setQueuedMessages(currentMetrics.queuedMessages || 0);
-    }, 2000);
-    
-    return () => {
-      wsService.off('state-change', handleStateChange);
-      wsService.off('connected', handleConnected);
-      wsService.off('disconnected', handleDisconnected);
-      if (showMetrics) {
-        wsService.off('message', handleMessage);
-      }
-      clearInterval(metricsInterval);
-    };
-  }, [showMetrics]);
+  const {
+    connectionState,
+    isConnected,
+    reconnectAttempts,
+    maxReconnectAttempts,
+    queuedMessagesCount,
+    totalMessagesReceived,
+    totalMessagesSent,
+    lastConnected
+  } = useWebSocketStore();
   
   const handleClick = () => {
     const wsUrl = import.meta.env.VITE_WEBSOCKET_URL;
@@ -147,40 +96,40 @@ const WebSocketStatus = ({ showText = true, showTooltip = true, showMetrics = fa
       return;
     }
     
-    if (connectionState !== 'connected') {
-      wsService.connect().catch(error => {
+    if (!isConnected) {
+      const { connect } = useWebSocketStore.getState();
+      connect().catch(error => {
         console.error('Failed to connect to WebSocket:', error);
       });
     }
   };
   
   const getStatusText = () => {
-    const attempts = metrics.reconnectAttempts || 0;
-    
     switch (connectionState) {
       case 'connected':
+      case 'authenticated':
         return t('websocket.connected', { fallback: 'Connected' });
       case 'connecting':
         return t('websocket.connecting', { fallback: 'Connecting...' });
       case 'reconnecting':
         return t('websocket.reconnecting', { 
-          attempts,
-          fallback: `Reconnecting... (${attempts})` 
+          attempts: reconnectAttempts,
+          fallback: `Reconnecting... (${reconnectAttempts})` 
         });
       case 'disconnected':
+      case 'error':
+      case 'failed':
       default:
         return t('websocket.disconnected', { fallback: 'Disconnected' });
     }
   };
   
   const getTooltipContent = () => {
-    const attempts = metrics.reconnectAttempts || 0;
-    const maxAttempts = wsService.config?.maxReconnectAttempts || 5;
-    
     switch (connectionState) {
       case 'connected':
-        const uptime = metrics.lastConnectedAt ? 
-          Math.floor((Date.now() - metrics.lastConnectedAt) / 1000) : 0;
+      case 'authenticated':
+        const uptime = lastConnected ? 
+          Math.floor((Date.now() - lastConnected) / 1000) : 0;
         return t('websocket.tooltip.connected', { 
           uptime,
           fallback: `Connected • Uptime: ${uptime}s` 
@@ -191,25 +140,27 @@ const WebSocketStatus = ({ showText = true, showTooltip = true, showMetrics = fa
         });
       case 'reconnecting':
         return t('websocket.tooltip.reconnecting', { 
-          attempts,
-          maxAttempts,
-          fallback: `Reconnecting... (${attempts}/${maxAttempts})` 
+          attempts: reconnectAttempts,
+          maxAttempts: maxReconnectAttempts,
+          fallback: `Reconnecting... (${reconnectAttempts}/${maxReconnectAttempts})` 
         });
       case 'disconnected':
+      case 'error':
+      case 'failed':
       default:
-        const hasQueued = queuedMessages > 0;
+        const hasQueued = queuedMessagesCount > 0;
         return t('websocket.tooltip.disconnected', { 
-          queuedMessages,
+          queuedMessages: queuedMessagesCount,
           hasQueued,
           fallback: hasQueued ? 
-            `Disconnected • ${queuedMessages} queued messages` : 
+            `Disconnected • ${queuedMessagesCount} queued messages` : 
             'Disconnected • Click to reconnect' 
         });
     }
   };
   
-  const isConnected = connectionState === 'connected';
-  const showRefreshIcon = connectionState === 'disconnected' && metrics.reconnectAttempts === 0;
+  const isConnectionActive = connectionState === 'connected' || connectionState === 'authenticated';
+  const showRefreshIcon = connectionState === 'disconnected' && reconnectAttempts === 0;
   
   return (
     <StatusContainer 
@@ -219,14 +170,14 @@ const WebSocketStatus = ({ showText = true, showTooltip = true, showMetrics = fa
     >
       <StatusDot $state={connectionState} />
       {showText && <StatusText>{getStatusText()}</StatusText>}
-      {showMetrics && isConnected && (
+      {showMetrics && isConnectionActive && (
         <MetricsText>
-          ↓{metrics.messagesReceived || 0} ↑{metrics.messagesSent || 0}
+          ↓{totalMessagesReceived || 0} ↑{totalMessagesSent || 0}
         </MetricsText>
       )}
-      {queuedMessages > 0 && (
-        <MetricsText title={`${queuedMessages} queued messages`}>
-          📨{queuedMessages}
+      {queuedMessagesCount > 0 && (
+        <MetricsText title={`${queuedMessagesCount} queued messages`}>
+          📨{queuedMessagesCount}
         </MetricsText>
       )}
       {showRefreshIcon && (

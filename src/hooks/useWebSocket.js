@@ -1,5 +1,6 @@
 import { useEffect, useCallback } from 'react';
-import { wsService } from '../services/api';
+import { useWebSocketStore } from '../store/websocketStore';
+import { webSocketManager } from '../services/websocket';
 import useUserStore from '../store/userStore';
 import useProductStore from '../store/productsStore';
 import useDashboardStore from '../store/dashboardStore';
@@ -19,6 +20,15 @@ export const useWebSocket = () => {
   const addAlert = useAlertStore(state => state.addAlert);
   const updateAlert = useAlertStore(state => state.updateAlert);
   const addNotification = useNotificationStore(state => state.addNotification);
+  
+  const { 
+    connect, 
+    disconnect, 
+    sendMessage, 
+    subscribeToStream, 
+    unsubscribeFromStream,
+    isConnected 
+  } = useWebSocketStore();
 
   // Handle incoming WebSocket messages
   const handleRealtimeUpdate = useCallback((message) => {
@@ -136,42 +146,40 @@ export const useWebSocket = () => {
         return;
       }
       
+      let unsubscribers = [];
+      
       // Connect to WebSocket
-      wsService.connect().then(() => {
+      connect().then(() => {
         console.log('WebSocket connected successfully');
         
-        // Subscribe to all events (global listener)
-        wsService.subscribe('*', handleRealtimeUpdate);
-        
-        // Subscribe to specific channels
-        wsService.subscribe('products', handleRealtimeUpdate);
-        wsService.subscribe('dashboard', handleRealtimeUpdate);
-        wsService.subscribe('alerts', handleRealtimeUpdate);
-        wsService.subscribe('orders', handleRealtimeUpdate);
-        wsService.subscribe('inventory', handleRealtimeUpdate);
+        // Subscribe to specific event streams
+        unsubscribers = [
+          subscribeToStream('product_update', handleRealtimeUpdate),
+          subscribeToStream('product_delete', handleRealtimeUpdate),
+          subscribeToStream('stock_update', handleRealtimeUpdate),
+          subscribeToStream('dashboard_update', handleRealtimeUpdate),
+          subscribeToStream('new_alert', handleRealtimeUpdate),
+          subscribeToStream('alert_update', handleRealtimeUpdate),
+          subscribeToStream('new_order', handleRealtimeUpdate),
+          subscribeToStream('order_status_update', handleRealtimeUpdate),
+          subscribeToStream('new_recommendation', handleRealtimeUpdate),
+          subscribeToStream('system_maintenance', handleRealtimeUpdate)
+        ];
       }).catch(error => {
         console.error('Failed to connect to WebSocket:', error);
       });
       
       // Cleanup on unmount or when user logs out
       return () => {
-        // Only cleanup if WebSocket was enabled
-        const wsUrl = import.meta.env.VITE_WEBSOCKET_URL;
-        if (!wsUrl) return;
-        
-        wsService.unsubscribe('*', handleRealtimeUpdate);
-        wsService.unsubscribe('products', handleRealtimeUpdate);
-        wsService.unsubscribe('dashboard', handleRealtimeUpdate);
-        wsService.unsubscribe('alerts', handleRealtimeUpdate);
-        wsService.unsubscribe('orders', handleRealtimeUpdate);
-        wsService.unsubscribe('inventory', handleRealtimeUpdate);
+        // Cleanup subscriptions
+        unsubscribers.forEach(unsubscribe => unsubscribe && unsubscribe());
         
         if (!isAuthenticated) {
-          wsService.disconnect();
+          disconnect();
         }
       };
     }
-  }, [isAuthenticated, handleRealtimeUpdate]);
+  }, [isAuthenticated, handleRealtimeUpdate, connect, disconnect, subscribeToStream]);
 
   // Expose WebSocket methods for manual control
   return {
@@ -181,41 +189,32 @@ export const useWebSocket = () => {
         console.log('WebSocket disabled - connect() ignored');
         return Promise.resolve();
       }
-      return wsService.connect();
+      return connect();
     },
     disconnect: () => {
       const wsUrl = import.meta.env.VITE_WEBSOCKET_URL;
       if (!wsUrl) return;
-      wsService.disconnect();
+      disconnect();
     },
-    send: (data) => {
+    send: (type, data) => {
       const wsUrl = import.meta.env.VITE_WEBSOCKET_URL;
       if (!wsUrl) return;
-      wsService.send(data);
+      sendMessage(type, data);
     },
-    subscribe: (channel, callback) => {
+    subscribe: (stream, callback) => {
       const wsUrl = import.meta.env.VITE_WEBSOCKET_URL;
       if (!wsUrl) return;
-      wsService.subscribe(channel, callback);
+      return subscribeToStream(stream, callback);
     },
-    unsubscribe: (channel, callback) => {
+    unsubscribe: (stream, callback) => {
       const wsUrl = import.meta.env.VITE_WEBSOCKET_URL;
       if (!wsUrl) return;
-      wsService.unsubscribe(channel, callback);
+      unsubscribeFromStream(stream, callback);
     },
     isConnected: () => {
       const wsUrl = import.meta.env.VITE_WEBSOCKET_URL;
       if (!wsUrl) return false;
-      if (!wsService.socket) return false;
-      
-      // Check connection status based on socket type
-      if (wsService.socket.connected !== undefined) {
-        // Socket.IO connection
-        return wsService.socket.connected;
-      } else {
-        // Raw WebSocket connection
-        return wsService.socket.readyState === WebSocket.OPEN;
-      }
+      return isConnected;
     }
   };
 };
@@ -231,16 +230,10 @@ export const useRealtimeProducts = (productId = null) => {
     
     if (productId && ws.isConnected()) {
       // Subscribe to specific product updates
-      ws.send({
-        type: 'SUBSCRIBE_PRODUCT',
-        productId
-      });
+      ws.send('SUBSCRIBE_PRODUCT', { productId });
       
       return () => {
-        ws.send({
-          type: 'UNSUBSCRIBE_PRODUCT',
-          productId
-        });
+        ws.send('UNSUBSCRIBE_PRODUCT', { productId });
       };
     }
   }, [productId, ws]);
@@ -257,7 +250,7 @@ export const useRealtimeDashboard = () => {
     const interval = setInterval(() => {
       if (wsUrl && ws.isConnected()) {
         // Request latest dashboard metrics via WebSocket
-        ws.send({ type: 'GET_DASHBOARD_METRICS' });
+        ws.send('GET_DASHBOARD_METRICS', {});
       } else {
         // Fallback to API polling if WebSocket is disabled or disconnected
         fetchMetrics();
@@ -279,12 +272,12 @@ export const useRealtimeAlerts = () => {
     
     if (ws.isConnected()) {
       // Subscribe to alert channel
-      ws.send({ type: 'SUBSCRIBE_ALERTS' });
+      ws.send('SUBSCRIBE_ALERTS', {});
     }
     
     return () => {
       if (ws.isConnected()) {
-        ws.send({ type: 'UNSUBSCRIBE_ALERTS' });
+        ws.send('UNSUBSCRIBE_ALERTS', {});
       }
     };
   }, [ws]);

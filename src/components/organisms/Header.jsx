@@ -1,5 +1,6 @@
 import styled, { css } from 'styled-components';
 import { motion, AnimatePresence } from 'framer-motion';
+import { baseShouldForwardProp } from '../../utils/styledUtils';
 import { useState, useRef, useEffect } from 'react';
 import Icon from '../atoms/Icon';
 import Button from '../atoms/Button';
@@ -10,7 +11,9 @@ import SearchBar from '../molecules/SearchBar';
 import LanguageSwitcher from '../molecules/LanguageSwitcher';
 import WebSocketStatus from '../atoms/WebSocketStatus';
 
-const HeaderContainer = styled.header`
+const HeaderContainer = styled.header.withConfig({
+  shouldForwardProp: (prop) => !['variant'].includes(prop) && baseShouldForwardProp(prop)
+})`
   position: sticky;
   top: 0;
   z-index: 30;
@@ -46,7 +49,9 @@ const LeftSection = styled.div`
   min-width: 0;
 `;
 
-const Logo = styled(motion.div)`
+const Logo = styled(motion.div).withConfig({
+  shouldForwardProp: baseShouldForwardProp
+})`
   display: flex;
   align-items: center;
   gap: ${props => props.theme.spacing[2]};
@@ -121,7 +126,9 @@ const UserMenuContainer = styled.div`
   position: relative;
 `;
 
-const UserMenuButton = styled(motion.button)`
+const UserMenuButton = styled(motion.button).withConfig({
+  shouldForwardProp: baseShouldForwardProp
+})`
   display: flex;
   align-items: center;
   gap: ${props => props.theme.spacing[2]};
@@ -153,7 +160,9 @@ const UserInfo = styled.div`
   }
 `;
 
-const DropdownMenu = styled(motion.div)`
+const DropdownMenu = styled(motion.div).withConfig({
+  shouldForwardProp: baseShouldForwardProp
+})`
   position: absolute;
   top: calc(100% + ${props => props.theme.spacing[1]});
   right: 0;
@@ -181,7 +190,9 @@ const DropdownSection = styled.div`
   }
 `;
 
-const DropdownItem = styled(motion.button)`
+const DropdownItem = styled(motion.button).withConfig({
+  shouldForwardProp: baseShouldForwardProp
+})`
   display: flex;
   align-items: center;
   gap: ${props => props.theme.spacing[3]};

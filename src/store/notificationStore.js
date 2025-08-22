@@ -78,6 +78,60 @@ export const useNotificationStore = create(
       },
 
       // Actions
+      addNotification: (notification) => {
+        set((state) => {
+          const newNotification = {
+            id: notification.id || `notification_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`,
+            timestamp: notification.timestamp || Date.now(),
+            read: false,
+            ...notification
+          };
+          
+          state.notifications.unshift(newNotification);
+          
+          // Keep only last 100 notifications
+          if (state.notifications.length > 100) {
+            state.notifications = state.notifications.slice(0, 100);
+          }
+          
+          // Update unread count
+          state.unreadCount = state.notifications.filter(n => !n.read).length;
+        });
+      },
+
+      removeNotification: (notificationId) => {
+        set((state) => {
+          state.notifications = state.notifications.filter(n => n.id !== notificationId);
+          state.unreadCount = state.notifications.filter(n => !n.read).length;
+        });
+      },
+
+      markAsRead: (notificationId) => {
+        set((state) => {
+          const notification = state.notifications.find(n => n.id === notificationId);
+          if (notification) {
+            notification.read = true;
+            state.unreadCount = state.notifications.filter(n => !n.read).length;
+          }
+        });
+      },
+
+      markAllAsRead: () => {
+        set((state) => {
+          state.notifications.forEach(n => {
+            n.read = true;
+          });
+          state.unreadCount = 0;
+        });
+      },
+
+      clearAll: () => {
+        set((state) => {
+          state.notifications = [];
+          state.unreadCount = 0;
+        });
+      },
+
       initializeNotifications: async () => {
         // Implementation will be added when service is imported
         return true;
@@ -103,7 +157,39 @@ export const useNotificationStore = create(
             (stats.clicked * 0.7 + stats.delivered * 0.3 - stats.dismissed * 0.1) / totalDelivered
           ) * 100;
         });
-      }
+      },
+
+      updatePreferences: (category, preferences) => {
+        set((state) => {
+          if (category) {
+            state.preferences[category] = {
+              ...state.preferences[category],
+              ...preferences
+            };
+          } else {
+            state.preferences = {
+              ...state.preferences,
+              ...preferences
+            };
+          }
+        });
+      },
+
+      setPermission: (permission) => {
+        set((state) => {
+          state.permission = permission;
+        });
+      },
+
+      setSubscriptionStatus: (isSubscribed) => {
+        set((state) => {
+          state.isSubscribed = isSubscribed;
+        });
+      },
+
+      getNotifications: () => get().notifications,
+      getUnreadCount: () => get().unreadCount,
+      getPreferences: () => get().preferences
     })),
     {
       name: 'omnix-notifications',

@@ -119,6 +119,9 @@ export const ordersAPI = {
   fulfillOrder: (id, data) => api.post(`/orders/${id}/fulfill`, data),
   getOrderHistory: (id) => api.get(`/orders/${id}/history`),
   exportOrders: (params = {}) => api.get('/orders/export', params),
+  // NOTE: Backend has a routing issue where /orders/statistics is incorrectly matched by /orders/:id
+  // This causes a 404 error saying "Order with ID statistics not found"
+  // Backend fix needed: Define /orders/statistics route BEFORE /orders/:id route
   getOrderStatistics: (params = {}) => api.get('/orders/statistics', params)
 };
 

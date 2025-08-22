@@ -3,8 +3,9 @@
  * Real-time communication service for live updates and notifications
  */
 
-import { useAuthStore } from '../store/authStore';
+import useUserStore from '../store/userStore';
 import { useNotificationStore } from '../store/notificationStore';
+import { websocketErrorHandler } from './websocketErrorHandler';
 
 class WebSocketManager {
   constructor() {
@@ -47,8 +48,8 @@ class WebSocketManager {
       this.updateConnectionState('connecting');
       
       // Get authentication token
-      const authStore = useAuthStore.getState();
-      const token = authStore.token;
+      const userStore = useUserStore.getState();
+      const token = userStore.token;
       
       if (!token) {
         console.error('WebSocket: No authentication token available');
@@ -242,19 +243,28 @@ class WebSocketManager {
   handleError(error) {
     console.error('WebSocket: Connection error', error);
     this.updateConnectionState('error');
+    
+    // Let error handler process the error
     this.emit('error', { error });
+    
+    // Additional error context for handler
+    websocketErrorHandler.handleWebSocketError({ 
+      error, 
+      connectionState: this.connectionState,
+      reconnectAttempts: this.reconnectAttempts 
+    });
   }
 
   /**
    * Authenticate WebSocket connection
    */
   authenticate() {
-    const authStore = useAuthStore.getState();
+    const userStore = useUserStore.getState();
     
     this.send('authenticate', {
-      token: authStore.token,
-      userId: authStore.user?.id,
-      role: authStore.user?.role,
+      token: userStore.token,
+      userId: userStore.user?.id,
+      role: userStore.user?.role,
       clientInfo: {
         userAgent: navigator.userAgent,
         timestamp: Date.now()
@@ -475,4 +485,8 @@ class WebSocketManager {
 
 // Create singleton instance
 export const webSocketManager = new WebSocketManager();
+
+// Initialize error handler after webSocketManager is created
+websocketErrorHandler.initialize(webSocketManager);
+
 export default webSocketManager;

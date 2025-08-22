@@ -1,5 +1,6 @@
 import styled, { css } from 'styled-components';
 import { motion, AnimatePresence } from 'framer-motion';
+import { baseShouldForwardProp } from '../../utils/styledUtils';
 import { useState, useMemo, useCallback, useEffect, useRef } from 'react';
 import Icon from '../atoms/Icon';
 import Button from '../atoms/Button';
@@ -9,7 +10,7 @@ import Badge from '../atoms/Badge';
 import TableRow from '../molecules/TableRow';
 import SearchBar from '../molecules/SearchBar';
 import { exportToCSV, exportToPDF } from '../../utils/exportUtils';
-import { useI18n } from '../../hooks/useI18n';
+import { useI18n } from '../../hooks/useI18n.jsx';
 
 const TableContainer = styled.div`
   display: flex;
@@ -70,7 +71,9 @@ const SearchContainer = styled.div`
   min-width: 200px;
 `;
 
-const FiltersContainer = styled(motion.div)`
+const FiltersContainer = styled(motion.div).withConfig({
+  shouldForwardProp: baseShouldForwardProp
+})`
   display: flex;
   align-items: center;
   gap: ${props => props.theme.spacing[2]};
@@ -88,7 +91,9 @@ const FiltersContainer = styled(motion.div)`
   }
 `;
 
-const FilterChip = styled(motion.button)`
+const FilterChip = styled(motion.button).withConfig({
+  shouldForwardProp: baseShouldForwardProp
+})`
   display: flex;
   align-items: center;
   gap: ${props => props.theme.spacing[1]};
@@ -107,7 +112,9 @@ const FilterChip = styled(motion.button)`
   }
 `;
 
-const BulkActionsBar = styled(motion.div)`
+const BulkActionsBar = styled(motion.div).withConfig({
+  shouldForwardProp: baseShouldForwardProp
+})`
   display: flex;
   align-items: center;
   justify-content: space-between;
@@ -289,7 +296,9 @@ const ExportButton = styled(Button)`
   }
 `;
 
-const ExportMenu = styled(motion.div)`
+const ExportMenu = styled(motion.div).withConfig({
+  shouldForwardProp: baseShouldForwardProp
+})`
   position: absolute;
   top: 100%;
   right: 0;
@@ -309,7 +318,9 @@ const ExportMenu = styled(motion.div)`
   }
 `;
 
-const ExportMenuItem = styled(motion.button)`
+const ExportMenuItem = styled(motion.button).withConfig({
+  shouldForwardProp: baseShouldForwardProp
+})`
   display: flex;
   align-items: center;
   gap: ${props => props.theme.spacing[2]};

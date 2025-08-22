@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import styled from 'styled-components';
 import { motion, AnimatePresence } from 'framer-motion';
+import { baseShouldForwardProp } from '../../utils/styledUtils';
 import { 
   Calendar, 
   ChefHat, 
@@ -80,7 +81,9 @@ const ActionButtons = styled.div`
   flex-wrap: wrap;
 `;
 
-const ActionButton = styled(motion.button)`
+const ActionButton = styled(motion.button).withConfig({
+  shouldForwardProp: (prop) => !['variant'].includes(prop)
+})`
   display: flex;
   align-items: center;
   gap: 8px;
@@ -118,7 +121,9 @@ const TabNavigation = styled.div`
   overflow-x: auto;
 `;
 
-const TabButton = styled(motion.button)`
+const TabButton = styled(motion.button).withConfig({
+  shouldForwardProp: (prop) => !['active'].includes(prop)
+})`
   flex: 1;
   min-width: 120px;
   padding: 12px 16px;
@@ -147,7 +152,9 @@ const WeekPlanView = styled.div`
   margin-bottom: 24px;
 `;
 
-const DayCard = styled(motion.div)`
+const DayCard = styled(motion.div).withConfig({
+  shouldForwardProp: (prop) => !['active'].includes(prop)
+})
   background: ${({ theme }) => theme.colors.gray[50]};
   border-radius: 12px;
   padding: 16px;
@@ -218,7 +225,9 @@ const MealActions = styled.div`
   gap: 4px;
 `;
 
-const MealActionButton = styled(motion.button)`
+const MealActionButton = styled(motion.button).withConfig({
+  shouldForwardProp: (prop) => !['variant'].includes(prop)
+})`
   width: 24px;
   height: 24px;
   border: none;
@@ -307,7 +316,9 @@ const RecipeTags = styled.div`
   margin-bottom: 12px;
 `;
 
-const RecipeTag = styled.span`
+const RecipeTag = styled.span.withConfig({
+  shouldForwardProp: (prop) => !['variant'].includes(prop)
+})
   padding: 4px 8px;
   background: ${({ variant, theme }) => 
     variant === 'dietary' ? theme.colors.success.light : 

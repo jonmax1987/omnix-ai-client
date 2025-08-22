@@ -6,6 +6,8 @@
 import { create } from 'zustand';
 import { immer } from 'zustand/middleware/immer';
 import { webSocketManager } from '../services/websocket';
+import { websocketErrorHandler } from '../services/websocketErrorHandler';
+import { fallbackPollingService } from '../services/fallbackPollingService';
 
 export const useWebSocketStore = create(
   immer((set, get) => ({
@@ -319,6 +321,9 @@ export const useWebSocketStore = create(
 
     getConnectionInfo: () => {
       const state = get();
+      const errorHandlerStatus = websocketErrorHandler.getStatus();
+      const fallbackStatus = fallbackPollingService.getStatus();
+      
       return {
         state: state.connectionState,
         isConnected: state.isConnected,
@@ -333,7 +338,9 @@ export const useWebSocketStore = create(
         lastDisconnected: state.lastDisconnected,
         totalMessagesReceived: state.totalMessagesReceived,
         totalMessagesSent: state.totalMessagesSent,
-        errors: state.connectionErrors.slice(-5) // Last 5 errors
+        errors: state.connectionErrors.slice(-5), // Last 5 errors
+        errorHandler: errorHandlerStatus,
+        fallback: fallbackStatus
       };
     },
 

@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import styled from 'styled-components';
-import { wsService } from '../../services/api';
+import { useWebSocketStore } from '../../store/websocketStore';
+import { webSocketManager } from '../../services/websocket';
 import useUserStore from '../../store/userStore';
 
 const DebugContainer = styled.div`
@@ -96,9 +97,16 @@ const Stat = styled.div`
 
 const WebSocketDebug = () => {
   const { isAuthenticated } = useUserStore();
-  const [isConnected, setIsConnected] = useState(false);
+  const { 
+    isConnected,
+    connectionState, 
+    totalMessagesReceived, 
+    totalMessagesSent,
+    connect,
+    disconnect,
+    sendMessage 
+  } = useWebSocketStore();
   const [logs, setLogs] = useState([]);
-  const [messageCount, setMessageCount] = useState(0);
   const [isVisible, setIsVisible] = useState(false);
   
   // Add log entry
@@ -110,46 +118,42 @@ const WebSocketDebug = () => {
   useEffect(() => {
     if (!isAuthenticated) return;
     
-    // Check connection status periodically
-    const checkConnection = () => {
-      const connected = wsService.socket && wsService.socket.connected;
-      setIsConnected(connected);
-    };
-    
-    const interval = setInterval(checkConnection, 1000);
-    checkConnection();
-    
-    // Hook into WebSocket service to log messages
-    const originalHandleMessage = wsService.handleMessage.bind(wsService);
-    wsService.handleMessage = (data) => {
-      setMessageCount(prev => prev + 1);
-      addLog(`📨 ${data.type || data.channel || 'message'}: ${JSON.stringify(data).substring(0, 50)}...`, 'info');
-      originalHandleMessage(data);
-    };
-    
-    // Log connection events
-    if (wsService.socket) {
-      wsService.socket.on('connect', () => {
+    // Subscribe to WebSocket events for logging
+    const unsubscribers = [
+      webSocketManager.subscribe('connection', () => {
         addLog('✅ WebSocket connected', 'success');
-      });
+      }),
       
-      wsService.socket.on('disconnect', () => {
+      webSocketManager.subscribe('disconnection', () => {
         addLog('❌ WebSocket disconnected', 'error');
-      });
+      }),
       
-      wsService.socket.on('connect_error', (error) => {
-        addLog(`🚨 Connection error: ${error.message}`, 'error');
-      });
-    }
+      webSocketManager.subscribe('error', (data) => {
+        addLog(`🚨 Connection error: ${data.error?.message || 'Unknown error'}`, 'error');
+      }),
+      
+      webSocketManager.subscribe('authenticated', () => {
+        addLog('🔑 Authentication successful', 'success');
+      }),
+      
+      webSocketManager.subscribe('auth_failed', (data) => {
+        addLog(`🔐 Authentication failed: ${JSON.stringify(data)}`, 'error');
+      }),
+      
+      webSocketManager.subscribe('state_change', (data) => {
+        addLog(`🔄 State changed to: ${data.state}`, 'info');
+      })
+    ];
     
     return () => {
-      clearInterval(interval);
+      // Cleanup subscriptions
+      unsubscribers.forEach(unsubscribe => unsubscribe && unsubscribe());
     };
   }, [isAuthenticated]);
   
   const handleConnect = () => {
     addLog('🔄 Attempting to connect...', 'warning');
-    wsService.connect().then(() => {
+    connect().then(() => {
       addLog('✅ Connected successfully', 'success');
     }).catch(error => {
       addLog(`❌ Connection failed: ${error.message}`, 'error');
@@ -158,17 +162,16 @@ const WebSocketDebug = () => {
   
   const handleDisconnect = () => {
     addLog('🔌 Disconnecting...', 'warning');
-    wsService.disconnect();
+    disconnect();
   };
   
   const handleTestMessage = () => {
-    wsService.send({ type: 'test', message: 'Hello from debug panel' });
+    sendMessage('test', { message: 'Hello from debug panel', timestamp: Date.now() });
     addLog('📤 Test message sent', 'info');
   };
   
   const clearLogs = () => {
     setLogs([]);
-    setMessageCount(0);
   };
   
   // Show debug panel only in development or when explicitly enabled
@@ -212,7 +215,9 @@ const WebSocketDebug = () => {
       </Header>
       
       <Stats>
-        <Stat>Messages: {messageCount}</Stat>
+        <Stat>Received: {totalMessagesReceived}</Stat>
+        <Stat>Sent: {totalMessagesSent}</Stat>
+        <Stat>State: {connectionState}</Stat>
         <Stat>Logs: {logs.length}</Stat>
       </Stats>
       

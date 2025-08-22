@@ -123,7 +123,12 @@
       "Bash(VITE_API_BASE_URL=https://18sz01wxsi.execute-api.eu-central-1.amazonaws.com/dev/v1 VITE_WEBSOCKET_URL=wss://5oo31khrrj.execute-api.eu-central-1.amazonaws.com/dev npm run build)",
       "Bash(npm test:*)",
       "Bash(git commit:*)",
-      "Bash(npx playwright:*)"
+      "Bash(npx playwright:*)",
+      "Bash(sed:*)",
+      "Bash(for file in src/components/organisms/SavingsSpendingInsights.jsx src/components/organisms/MealPlanningIntegration.jsx src/components/organisms/AchievementBadgesGamification.jsx)",
+      "Bash(do)",
+      "Bash(done)",
+      "Bash(for file in src/components/organisms/Header.jsx src/components/organisms/DataTable.jsx)"
     ],
     "deny": [],
     "defaultMode": "acceptEdits"
